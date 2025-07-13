@@ -1052,15 +1052,14 @@ function loadProfile() {
     
                 // Add user to moderators list if not already there
                 moderatorsRef.child(userId).once('value').then(snapshot => {
-                    if (!snapshot.exists()) {
-                        moderatorsRef.child(userId).set({
-                            name: name,
-                            role: role,
-                            joinedAt: new Date().toISOString(),
-                            lastSeen: new Date().toISOString()
-                        });
-                    }
-                });
+        const existingData = snapshot.val() || {};
+        moderatorsRef.child(userId).update({
+            name: name,
+            role: role,
+            joinedAt: existingData.joinedAt || new Date().toISOString(),
+            lastSeen: new Date().toISOString()
+        });
+    });
 
                 // Update password if provided
                 if (password) {
