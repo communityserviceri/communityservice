@@ -1100,51 +1100,52 @@ function loadProfile() {
             });
         }
 
-        function logoutUser() {
-    		const userId = currentUser.uid;
-
-    		// Set user status to offline manually
-    		const userStatusRef = db.ref('status/' + userId);
-    		userStatusRef.set({
-        		status: 'offline',
-        		lastChanged: firebase.database.ServerValue.TIMESTAMP
-    		}).then(() => {
-        		// Sign out from Firebase auth
-        		auth.signOut().then(() => {
-	        		currentUser = null;
-            		document.getElementById('authModal').classList.add('flex');
-            		document.getElementById('authModal').classList.remove('hidden');
-            		document.getElementById('loginForm').classList.remove('hidden');
-            		document.getElementById('profileForm').classList.add('hidden');
-            		document.getElementById('app').classList.add('hidden');
-        		});
-    		});
+	function setupUserPresence() {
+	    const userId = currentUser.uid;
+	    const userStatusRef = db.ref('status/' + userId);
+	
+	    // Listener untuk cek koneksi
+	    const connectedRef = db.ref('.info/connected');
+	    connectedRef.on('value', function(snapshot) {
+	        if (snapshot.val() === true) {
+	            userStatusRef.onDisconnect().set({
+	                status: 'offline',
+	                lastChanged: firebase.database.ServerValue.TIMESTAMP
+	            }).then(() => {
+	                // Set online ketika terkoneksi
+	                userStatusRef.set({
+	                    status: 'online',
+	                    lastChanged: firebase.database.ServerValue.TIMESTAMP
+	                });
+	            });
+	        }
+	    });
 	}
-
-
-        function setupUserPresence() {
-            // Mark user as online
-            const userId = currentUser.uid;
-            const userStatusRef = db.ref('status/' + userId);
-            const userStatusDatabaseRef = db.ref('.info/connected');
-            
-            userStatusDatabaseRef.on('value', function(snapshot) {
-                if (snapshot.val() === true) {
-                    // Connection is established
-                    const ref = userStatusRef.onDisconnect();
-                    ref.set({
-                        status: 'offline',
-                        lastChanged: firebase.database.ServerValue.TIMESTAMP
-                    }).then(() => {
-                        // When we disconnect, update the user status
-                        userStatusRef.set({
-                            status: 'online',
-                            lastChanged: firebase.database.ServerValue.TIMESTAMP
-                        });
-                    });
-                }
-            });
-        }
+	
+	function logoutUser() {
+	    const userId = currentUser.uid;
+	    const userStatusRef = db.ref('status/' + userId);
+	
+	    // 🚨 Paksa set offline saat logout
+	    userStatusRef.set({
+	        status: 'offline',
+	        lastChanged: firebase.database.ServerValue.TIMESTAMP
+	    }).then(() => {
+	        // Hapus listener presence
+	        db.ref('.info/connected').off();
+	
+	        // Sign out Firebase auth
+	        auth.signOut().then(() => {
+	            currentUser = null;
+	            document.getElementById('authModal').classList.add('flex');
+	            document.getElementById('authModal').classList.remove('hidden');
+	            document.getElementById('loginForm').classList.remove('hidden');
+	            document.getElementById('profileForm').classList.add('hidden');
+	            document.getElementById('app').classList.add('hidden');
+	        });
+	    });
+	}
+	
 
         // Tab navigation functions
         function initTabEvents() {
