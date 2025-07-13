@@ -12,7 +12,7 @@ function loadFinance() {
     const monthlyIncomeEl = document.getElementById('monthlyIncome');
     const monthlyExpensesEl = document.getElementById('monthlyExpenses');
 
-    transactionsRef.orderByChild('date').on('value', snapshot => {
+    transactionsRef.orderByChild('date').off(); transactionsRef.orderByChild('date').on('value', snapshot => {
         const transactions = snapshot.val();
         if (!transactions) {
             transactionsList.innerHTML = '<p class="text-center py-8 text-gray-500">No transactions yet</p>';
@@ -89,7 +89,7 @@ function loadFinance() {
     const monthlyIncomeEl = document.getElementById('monthlyIncome');
     const monthlyExpensesEl = document.getElementById('monthlyExpenses');
 
-    transactionsRef.orderByChild('date').on('value', snapshot => {
+    transactionsRef.orderByChild('date').off(); transactionsRef.orderByChild('date').on('value', snapshot => {
         const transactions = snapshot.val();
         if (!transactions) {
             transactionsList.innerHTML = '<p class="text-center py-8 text-gray-500">No transactions yet</p>';
@@ -168,7 +168,7 @@ function loadFinance() {
     const monthlyIncomeEl = document.getElementById('monthlyIncome');
     const monthlyExpensesEl = document.getElementById('monthlyExpenses');
 
-    transactionsRef.orderByChild('date').on('value', snapshot => {
+    transactionsRef.orderByChild('date').off(); transactionsRef.orderByChild('date').on('value', snapshot => {
         const transactions = snapshot.val();
         if (!transactions) {
             transactionsList.innerHTML = '<p class="text-center py-8 text-gray-500">No transactions yet</p>';
@@ -247,7 +247,7 @@ function loadFinance() {
     const monthlyIncomeEl = document.getElementById('monthlyIncome');
     const monthlyExpensesEl = document.getElementById('monthlyExpenses');
 
-    transactionsRef.orderByChild('date').on('value', snapshot => {
+    transactionsRef.orderByChild('date').off(); transactionsRef.orderByChild('date').on('value', snapshot => {
         const transactions = snapshot.val();
         if (!transactions) {
             transactionsList.innerHTML = '<p class="text-center py-8 text-gray-500">No transactions yet</p>';
@@ -378,7 +378,7 @@ function loadFinance() {
     const monthlyIncomeEl = document.getElementById('monthlyIncome');
     const monthlyExpensesEl = document.getElementById('monthlyExpenses');
 
-    transactionsRef.orderByChild('date').on('value', snapshot => {
+    transactionsRef.orderByChild('date').off(); transactionsRef.orderByChild('date').on('value', snapshot => {
         const transactions = snapshot.val();
         if (!transactions) {
             transactionsList.innerHTML = '<p class="text-center py-8 text-gray-500">No transactions yet</p>';
@@ -480,6 +480,8 @@ function loadProfile() {
                         <option value="Admin">Admin</option>
                         <option value="Staff">Staff</option>
                         <option value="Helper">Helper</option>
+                        <option value="Moderator">Moderator</option>
+                        <option value="Executive">Executive</option>
                     </select>
                 </div>
                 <div class="mb-4">
@@ -769,6 +771,8 @@ function loadProfile() {
                                                 <option value="Admin">Admin</option>
                                                 <option value="Staff">Staff</option>
                                                 <option value="Helper">Helper</option>
+                        <option value="Moderator">Moderator</option>
+                        <option value="Executive">Executive</option>
                                             </select>
                                         </div>
                                     </div>
@@ -1063,6 +1067,12 @@ function loadProfile() {
 
             // Update user data
             usersRef.child(userId).update(updates).then(() => {
+                // Update moderatorsRef name and role too
+                moderatorsRef.child(userId).update({
+                    name: name,
+                    role: role
+                });
+    
                 // Add user to moderators list if not already there
                 moderatorsRef.child(userId).once('value').then(snapshot => {
                     if (!snapshot.exists()) {
@@ -1197,7 +1207,7 @@ function loadProfile() {
             const moderatorsList = document.getElementById('moderatorsList');
             moderatorsList.innerHTML = '<div class="flex items-center justify-center py-12"><div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div></div>';
 
-            moderatorsRef.orderByChild('role').on('value', snapshot => {
+            moderatorsRef.orderByChild('role').off(); moderatorsRef.orderByChild('role').on('value', snapshot => {
                 const moderators = snapshot.val();
                 if (!moderators) {
                     moderatorsList.innerHTML = '<p class="text-center py-8 text-gray-500">No moderators found</p>';
@@ -1358,7 +1368,7 @@ function loadProfile() {
             const eventsList = document.getElementById('eventsList');
             eventsList.innerHTML = '<div class="flex items-center justify-center py-12"><div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div></div>';
 
-            eventsRef.orderByChild('createdAt').on('value', snapshot => {
+            eventsRef.orderByChild('createdAt').off(); eventsRef.orderByChild('createdAt').on('value', snapshot => {
                 const events = snapshot.val();
                 if (!events) {
                     eventsList.innerHTML = '<p class="text-center py-8 text-gray-500">No events scheduled yet</p>';
@@ -1901,6 +1911,12 @@ function loadProfile() {
         const userId = currentUser.uid;
 
         usersRef.child(userId).update(updates).then(() => {
+                // Update moderatorsRef name and role too
+                moderatorsRef.child(userId).update({
+                    name: name,
+                    role: role
+                });
+    
             if (password) {
                 currentUser.updatePassword(password).then(() => {
                     alert('Profile updated and password changed successfully.');
@@ -1923,7 +1939,7 @@ function loadFinance() {
     const monthlyIncomeEl = document.getElementById('monthlyIncome');
     const monthlyExpensesEl = document.getElementById('monthlyExpenses');
 
-    transactionsRef.orderByChild('date').on('value', snapshot => {
+    transactionsRef.orderByChild('date').off(); transactionsRef.orderByChild('date').on('value', snapshot => {
         const transactions = snapshot.val();
         if (!transactions) {
             transactionsList.innerHTML = '<p class="text-center py-8 text-gray-500">No transactions yet</p>';
@@ -2069,6 +2085,12 @@ function saveProfile() {
     const userId = currentUser.uid;
 
     usersRef.child(userId).update(updates).then(() => {
+                // Update moderatorsRef name and role too
+                moderatorsRef.child(userId).update({
+                    name: name,
+                    role: role
+                });
+    
         moderatorsRef.child(userId).update({
             name: name,
             role: role,
@@ -2209,6 +2231,12 @@ function saveProfile() {
     const userId = currentUser.uid;
 
     usersRef.child(userId).update(updates).then(() => {
+                // Update moderatorsRef name and role too
+                moderatorsRef.child(userId).update({
+                    name: name,
+                    role: role
+                });
+    
         moderatorsRef.child(userId).update({
             name: name,
             role: role,
