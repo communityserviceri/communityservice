@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>COMMUNITY SERVICE: MODERATOR REALITY INDONESIA</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js">
-// ✅ Tambahan fungsi: loadFinance
+
 function loadFinance() {
     const transactionsList = document.getElementById('transactionsList');
     const totalBalanceEl = document.getElementById('totalBalance');
@@ -64,7 +64,6 @@ function loadFinance() {
     });
 }
 
-// ✅ Tambahan fungsi: loadProfile
 function loadProfile() {
     const uid = currentUser.uid;
     usersRef.child(uid).once('value').then(snapshot => {
@@ -84,7 +83,6 @@ function loadProfile() {
 
 </script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js">
-// ✅ Tambahan fungsi: loadFinance
 function loadFinance() {
     const transactionsList = document.getElementById('transactionsList');
     const totalBalanceEl = document.getElementById('totalBalance');
@@ -1996,5 +1994,267 @@ function loadProfile() {
 }
 
 </script>
+
+
+<!-- ✅ PATCHED CHAT, PROFILE, AND SEARCH SECTION START -->
+<!-- PATCHED SECTION: Perbaikan fitur chat, profile, dan status online -->
+<script>
+// Tambahkan di bagian bawah script utama, atau setelah definisi fungsi setupUserPresence()
+
+function setupUserPresence() {
+    const userId = currentUser.uid;
+    const userStatusRef = db.ref('status/' + userId);
+    const connectedRef = db.ref('.info/connected');
+
+    connectedRef.on('value', function(snapshot) {
+        if (snapshot.val() === true) {
+            userStatusRef.onDisconnect().set({
+                status: 'offline',
+                lastChanged: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            userStatusRef.set({
+                status: 'online',
+                lastChanged: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            // Update lastSeen moderator setiap 60 detik
+            setInterval(() => {
+                moderatorsRef.child(userId).update({
+                    lastSeen: new Date().toISOString()
+                });
+            }, 60000);
+        }
+    });
+}
+
+// Perbarui loadProfile jadi realtime
+function loadProfileRealtime() {
+    const uid = currentUser.uid;
+    usersRef.child(uid).on('value', snapshot => {
+        const user = snapshot.val();
+        if (user) {
+            document.getElementById('profileDisplayName').textContent = user.name || 'Unknown';
+            document.getElementById('profileRoleBadge').textContent = user.role || 'Member';
+            document.getElementById('profileEmail').textContent = currentUser.email;
+            document.getElementById('profileAvatar').textContent = user.name ? user.name.substring(0, 1).toUpperCase() : '?';
+            document.getElementById('updateProfileName').value = user.name;
+            document.getElementById('updateProfileRole').value = user.role;
+            document.getElementById('profileJoinDate').textContent = new Date(user.joinedAt || Date.now()).toLocaleDateString();
+            document.getElementById('profileLastLogin').textContent = new Date().toLocaleString();
+        }
+    });
+}
+
+// Gunakan saat ganti tab ke profile atau saat login sukses
+// loadProfileRealtime();
+
+// Tambahkan update ke moderatorsRef saat user update profil
+function saveProfile() {
+    const name = document.getElementById('profileName').value;
+    const role = document.getElementById('profileRole').value;
+    const password = document.getElementById('profilePassword').value;
+
+    if (!name || !role) {
+        alert('Please fill in all required fields');
+        return;
+    }
+
+    const updates = {
+        name: name,
+        role: role,
+        profileComplete: true
+    };
+
+    const userId = currentUser.uid;
+
+    usersRef.child(userId).update(updates).then(() => {
+        moderatorsRef.child(userId).update({
+            name: name,
+            role: role,
+            lastSeen: new Date().toISOString()
+        });
+
+        if (password) {
+            currentUser.updatePassword(password).catch(error => {
+                console.error('Error updating password:', error);
+            });
+        }
+
+        document.getElementById('authModal').classList.remove('flex');
+        document.getElementById('authModal').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+        loadAppData();
+    });
+}
+
+// Gunakan user data terbaru saat kirim pesan chat
+function sendMessage() {
+    const message = document.getElementById('chatInput').value.trim();
+    if (!message) return;
+
+    usersRef.child(currentUser.uid).once('value').then(snapshot => {
+        const user = snapshot.val();
+        const name = user.name || 'Unknown';
+        const role = user.role || 'Member';
+
+        chatRef.push({
+            uid: currentUser.uid,
+            name: name,
+            role: role,
+            message: message,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+
+        document.getElementById('chatInput').value = '';
+    });
+}
+
+// Ganti event click tombol kirim chat
+// document.getElementById('sendChatBtn').addEventListener('click', sendMessage);
+</script>
+
+
+<script>
+// 🔍 Fitur pencarian moderator berdasarkan nama
+document.getElementById('moderatorSearch').addEventListener('input', function () {
+    const query = this.value.toLowerCase();
+
+    const moderatorCards = document.querySelectorAll('#moderatorsList > div');
+    moderatorCards.forEach(card => {
+        const name = card.querySelector('h3')?.textContent.toLowerCase() || '';
+        if (name.includes(query)) {
+            card.classList.remove('hidden');
+        } else {
+            card.classList.add('hidden');
+        }
+    });
+});
+</script>
+
+<!-- ✅ PATCHED CHAT, PROFILE, AND SEARCH SECTION END -->
+
+
+
+<!-- ✅ PATCHED CHAT & PROFILE SECTION START -->
+<!-- PATCHED SECTION: Perbaikan fitur chat, profile, dan status online -->
+<script>
+// Tambahkan di bagian bawah script utama, atau setelah definisi fungsi setupUserPresence()
+
+function setupUserPresence() {
+    const userId = currentUser.uid;
+    const userStatusRef = db.ref('status/' + userId);
+    const connectedRef = db.ref('.info/connected');
+
+    connectedRef.on('value', function(snapshot) {
+        if (snapshot.val() === true) {
+            userStatusRef.onDisconnect().set({
+                status: 'offline',
+                lastChanged: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            userStatusRef.set({
+                status: 'online',
+                lastChanged: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            // Update lastSeen moderator setiap 60 detik
+            setInterval(() => {
+                moderatorsRef.child(userId).update({
+                    lastSeen: new Date().toISOString()
+                });
+            }, 60000);
+        }
+    });
+}
+
+// Perbarui loadProfile jadi realtime
+function loadProfileRealtime() {
+    const uid = currentUser.uid;
+    usersRef.child(uid).on('value', snapshot => {
+        const user = snapshot.val();
+        if (user) {
+            document.getElementById('profileDisplayName').textContent = user.name || 'Unknown';
+            document.getElementById('profileRoleBadge').textContent = user.role || 'Member';
+            document.getElementById('profileEmail').textContent = currentUser.email;
+            document.getElementById('profileAvatar').textContent = user.name ? user.name.substring(0, 1).toUpperCase() : '?';
+            document.getElementById('updateProfileName').value = user.name;
+            document.getElementById('updateProfileRole').value = user.role;
+            document.getElementById('profileJoinDate').textContent = new Date(user.joinedAt || Date.now()).toLocaleDateString();
+            document.getElementById('profileLastLogin').textContent = new Date().toLocaleString();
+        }
+    });
+}
+
+// Gunakan saat ganti tab ke profile atau saat login sukses
+// loadProfileRealtime();
+
+// Tambahkan update ke moderatorsRef saat user update profil
+function saveProfile() {
+    const name = document.getElementById('profileName').value;
+    const role = document.getElementById('profileRole').value;
+    const password = document.getElementById('profilePassword').value;
+
+    if (!name || !role) {
+        alert('Please fill in all required fields');
+        return;
+    }
+
+    const updates = {
+        name: name,
+        role: role,
+        profileComplete: true
+    };
+
+    const userId = currentUser.uid;
+
+    usersRef.child(userId).update(updates).then(() => {
+        moderatorsRef.child(userId).update({
+            name: name,
+            role: role,
+            lastSeen: new Date().toISOString()
+        });
+
+        if (password) {
+            currentUser.updatePassword(password).catch(error => {
+                console.error('Error updating password:', error);
+            });
+        }
+
+        document.getElementById('authModal').classList.remove('flex');
+        document.getElementById('authModal').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+        loadAppData();
+    });
+}
+
+// Gunakan user data terbaru saat kirim pesan chat
+function sendMessage() {
+    const message = document.getElementById('chatInput').value.trim();
+    if (!message) return;
+
+    usersRef.child(currentUser.uid).once('value').then(snapshot => {
+        const user = snapshot.val();
+        const name = user.name || 'Unknown';
+        const role = user.role || 'Member';
+
+        chatRef.push({
+            uid: currentUser.uid,
+            name: name,
+            role: role,
+            message: message,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+
+        document.getElementById('chatInput').value = '';
+    });
+}
+
+// Ganti event click tombol kirim chat
+// document.getElementById('sendChatBtn').addEventListener('click', sendMessage);
+</script>
+
+<!-- ✅ PATCHED CHAT & PROFILE SECTION END -->
+
 </body>
 </html>
