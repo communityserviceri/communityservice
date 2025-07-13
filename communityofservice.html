@@ -1101,15 +1101,26 @@ function loadProfile() {
         }
 
         function logoutUser() {
-            auth.signOut().then(() => {
-                currentUser = null;
-                document.getElementById('authModal').classList.add('flex');
-                document.getElementById('authModal').classList.remove('hidden');
-                document.getElementById('loginForm').classList.remove('hidden');
-                document.getElementById('profileForm').classList.add('hidden');
-                document.getElementById('app').classList.add('hidden');
-            });
-        }
+    		const userId = currentUser.uid;
+
+    		// Set user status to offline manually
+    		const userStatusRef = db.ref('status/' + userId);
+    		userStatusRef.set({
+        		status: 'offline',
+        		lastChanged: firebase.database.ServerValue.TIMESTAMP
+    		}).then(() => {
+        		// Sign out from Firebase auth
+        		auth.signOut().then(() => {
+	        		currentUser = null;
+            		document.getElementById('authModal').classList.add('flex');
+            		document.getElementById('authModal').classList.remove('hidden');
+            		document.getElementById('loginForm').classList.remove('hidden');
+            		document.getElementById('profileForm').classList.add('hidden');
+            		document.getElementById('app').classList.add('hidden');
+        		});
+    		});
+	}
+
 
         function setupUserPresence() {
             // Mark user as online
