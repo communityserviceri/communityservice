@@ -606,6 +606,16 @@ function loadProfile() {
 Discord Server
 </div>
 </button>
+
+<button class="tab-btn w-full text-left px-3 py-2 rounded-md text-gray-600 hover:bg-gray-100" id="ticketingTab">
+  <div class="flex items-center">
+    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M9 17v-6h13v6H9zM4 7h16V5H4v2zm0 4h16V9H4v2zm0 4h16v-2H4v2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+    </svg>
+    Tiketing
+  </div>
+</button>
+
 </nav>
 <div class="mt-8 p-4 bg-white shadow rounded-lg">
 <h3 class="font-medium text-gray-900 mb-2">Quick Stats</h3>
@@ -748,6 +758,32 @@ Discord Server
 </div>
 </div>
 </div>
+
+<!-- Ticketing Content -->
+<div class="content-section hidden" id="ticketingContent">
+  <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-md p-6">
+    <h1 class="text-2xl font-bold text-center mb-6">🎫 Ticket Purchase Form</h1>
+    <form id="ticketForm" class="space-y-4">
+      <input id="buyerName" type="text" placeholder="Buyer Name" class="w-full p-2 border rounded" required>
+      <select id="category" class="w-full p-2 border rounded" required>
+        <option value="">Select Category</option>
+        <option value="Income">Income</option>
+        <option value="Expense">Expense</option>
+      </select>
+      <select id="ticketType" class="w-full p-2 border rounded" required disabled>
+        <option value="">-- Select Category First --</option>
+      </select>
+      <input id="purchaseDate" type="date" class="w-full p-2 border rounded" required>
+      <input id="price" type="number" placeholder="Price" class="w-full p-2 border rounded" required>
+      <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Submit</button>
+    </form>
+  </div>
+  <div class="max-w-3xl mx-auto mt-10">
+    <h2 class="text-xl font-semibold mb-4">📋 Ticket List</h2>
+    <div id="ticketList" class="space-y-4"></div>
+  </div>
+</div>
+
 <!-- Profile Content -->
 <div class="content-section hidden" id="profileContent">
 <div class="flex justify-between items-center mb-6">
@@ -1225,6 +1261,8 @@ Discord Server
                     loadFinance();
                     break;
                 case 'profile':
+                case 'ticketing':
+                    break;
                     loadProfile();
                     break;
             }
@@ -2409,7 +2447,91 @@ document.getElementById('exportFinanceBtn').addEventListener('click', function()
       modRef.update({ status: data.status || 'offline' });
     });
   };
-})();</script></body>
+})();</script>
+<script>
+// Firebase sudah diinisialisasi sebelumnya
+
+const ticketTypeOptions = {
+  Income: ["Membership Discord", "Premium Class", "Competition/Tournament"],
+  Expense: ["Design Service", "Guest Speaker Invitation", "Server Needs", "Rewards/Prizes"]
+};
+
+document.addEventListener('DOMContentLoaded', function () {
+  const categoryEl = document.getElementById('category');
+  const typeEl = document.getElementById('ticketType');
+  const form = document.getElementById('ticketForm');
+
+  categoryEl.addEventListener('change', function () {
+    const selected = this.value;
+    typeEl.innerHTML = '<option value="">Select Ticket Type</option>';
+
+    if (selected && ticketTypeOptions[selected]) {
+      typeEl.disabled = false;
+      ticketTypeOptions[selected].forEach(item => {
+        const option = document.createElement('option');
+        option.value = item;
+        option.textContent = item;
+        typeEl.appendChild(option);
+      });
+    } else {
+      typeEl.disabled = true;
+    }
+  });
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const buyerName = document.getElementById('buyerName').value;
+    const category = categoryEl.value;
+    const ticketType = typeEl.value;
+    const purchaseDate = document.getElementById('purchaseDate').value;
+    const price = parseInt(document.getElementById('price').value);
+
+    const newTicketRef = db.ref('tickets').push();
+    const ticketData = {
+      id: newTicketRef.key,
+      buyerName,
+      category,
+      ticketType,
+      purchaseDate,
+      price
+    };
+
+    newTicketRef.set(ticketData);
+
+    db.ref('transactions').push({
+      type: category.toLowerCase(),
+      amount: price,
+      description: ticketType,
+      category: "Tiketing",
+      date: purchaseDate
+    });
+
+    form.reset();
+    typeEl.disabled = true;
+  });
+
+  db.ref('tickets').on('value', (snapshot) => {
+    const list = document.getElementById('ticketList');
+    list.innerHTML = '';
+    snapshot.forEach(child => {
+      const ticket = child.val();
+      const div = document.createElement('div');
+      div.className = "p-4 bg-white rounded shadow";
+      div.innerHTML = `
+        <p><strong>Buyer:</strong> ${ticket.buyerName}</p>
+        <p><strong>Category:</strong> ${ticket.category}</p>
+        <p><strong>Type:</strong> ${ticket.ticketType}</p>
+        <p><strong>Date:</strong> ${ticket.purchaseDate}</p>
+        <p><strong>Price:</strong> Rp ${ticket.price}</p>
+      `;
+      list.appendChild(div);
+    });
+  });
+});
+</script>
+
+</body>
 </html>
 <script>
 function colorMap(color, level) {
