@@ -81,6 +81,7 @@ function loadProfile() {
             document.getElementById('profileAvatar').textContent = user.name ? user.name.substring(0, 1).toUpperCase() : '?';
             document.getElementById('updateProfileName').value = user.name;
             document.getElementById('updateProfileRole').value = user.role;
+            document.getElementById('updateProfileSubDivision').value = user.subDivision || '';
             document.getElementById('profileJoinDate').textContent = new Date(user.joinedAt || Date.now()).toLocaleDateString();
             document.getElementById('profileLastLogin').textContent = new Date().toLocaleString();
         }
@@ -516,7 +517,32 @@ function loadProfile() {
 <label class="block text-gray-700 mb-2">New Password</label>
 <input class="w-full px-3 py-2 border border-gray-300 rounded-md" id="profilePassword" type="password"/>
 </div>
-<button class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition" id="saveProfileBtn">
+<div class="mb-4">
+<label class="block text-gray-700 mb-2">Sub-Divisi</label>
+<select class="w-full px-3 py-2 border border-gray-300 rounded-md" id="profileSubDivision">
+<option value="">Pilih Sub-Divisi</option>
+<option value="Koordinator Edukasi">Koordinator Edukasi</option>
+<option value="Mentor">Mentor</option>
+<option value="Pemateri">Pemateri</option>
+<option value="Notulen / Recorder">Notulen / Recorder</option>
+<option value="Head Moderator">Head Moderator</option>
+<option value="Moderator">Moderator</option>
+<option value="Helper / Support Staff">Helper / Support Staff</option>
+<option value="Bot Handler">Bot Handler</option>
+<option value="Event Coordinator">Event Coordinator</option>
+<option value="MC / Host">MC / Host</option>
+<option value="Giveaway Staff">Giveaway Staff</option>
+<option value="Social Media Handler">Social Media Handler</option>
+<option value="Content Lead">Content Lead</option>
+<option value="Designer">Designer</option>
+<option value="Dokumentator">Dokumentator</option>
+<option value="Editor">Editor</option>
+<option value="Tech Lead">Tech Lead</option>
+<option value="Bot Dev / Integrator">Bot Dev / Integrator</option>
+<option value="Web &amp; Tools Support">Web &amp; Tools Support</option>
+<option value="Database Admin">Database Admin</option>
+</select>
+</div><button class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition" id="saveProfileBtn">
                     Save Profile
                 </button>
 </div>
@@ -597,25 +623,22 @@ function loadProfile() {
                                 My Profile
                             </div>
 </button>
-
 <button class="tab-btn w-full text-left px-3 py-2 rounded-md text-gray-600 hover:bg-gray-100" onclick="window.open('https://discord.gg/pVBzxPKJjw', '_blank')">
 <div class="flex items-center">
-<svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 <path d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4 8 5.79 8 8s1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
 Discord Server
 </div>
 </button>
-
 <button class="tab-btn w-full text-left px-3 py-2 rounded-md text-gray-600 hover:bg-gray-100" id="ticketingTab">
-  <div class="flex items-center">
-    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path d="M9 17v-6h13v6H9zM4 7h16V5H4v2zm0 4h16V9H4v2zm0 4h16v-2H4v2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-    </svg>
+<div class="flex items-center">
+<svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M9 17v-6h13v6H9zM4 7h16V5H4v2zm0 4h16V9H4v2zm0 4h16v-2H4v2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
     Tiketing
   </div>
 </button>
-
 </nav>
 <div class="mt-8 p-4 bg-white shadow rounded-lg">
 <h3 class="font-medium text-gray-900 mb-2">Quick Stats</h3>
@@ -758,32 +781,30 @@ Discord Server
 </div>
 </div>
 </div>
-
 <!-- Ticketing Content -->
 <div class="content-section hidden" id="ticketingContent">
-  <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-md p-6">
-    <h1 class="text-2xl font-bold text-center mb-6">🎫 Ticket Purchase Form</h1>
-    <form id="ticketForm" class="space-y-4">
-      <input id="buyerName" type="text" placeholder="Buyer Name" class="w-full p-2 border rounded" required>
-      <select id="category" class="w-full p-2 border rounded" required>
-        <option value="">Select Category</option>
-        <option value="Income">Income</option>
-        <option value="Expense">Expense</option>
-      </select>
-      <select id="ticketType" class="w-full p-2 border rounded" required disabled>
-        <option value="">-- Select Category First --</option>
-      </select>
-      <input id="purchaseDate" type="date" class="w-full p-2 border rounded" required>
-      <input id="price" type="number" placeholder="Price" class="w-full p-2 border rounded" required>
-      <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Submit</button>
-    </form>
-  </div>
-  <div class="max-w-3xl mx-auto mt-10">
-    <h2 class="text-xl font-semibold mb-4">📋 Ticket List</h2>
-    <div id="ticketList" class="space-y-4"></div>
-  </div>
+<div class="max-w-2xl mx-auto bg-white rounded-xl shadow-md p-6">
+<h1 class="text-2xl font-bold text-center mb-6">🎫 Ticket Purchase Form</h1>
+<form class="space-y-4" id="ticketForm">
+<input class="w-full p-2 border rounded" id="buyerName" placeholder="Buyer Name" required="" type="text"/>
+<select class="w-full p-2 border rounded" id="category" required="">
+<option value="">Select Category</option>
+<option value="Income">Income</option>
+<option value="Expense">Expense</option>
+</select>
+<select class="w-full p-2 border rounded" disabled="" id="ticketType" required="">
+<option value="">-- Select Category First --</option>
+</select>
+<input class="w-full p-2 border rounded" id="purchaseDate" required="" type="date"/>
+<input class="w-full p-2 border rounded" id="price" placeholder="Price" required="" type="number"/>
+<button class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700" type="submit">Submit</button>
+</form>
 </div>
-
+<div class="max-w-3xl mx-auto mt-10">
+<h2 class="text-xl font-semibold mb-4">📋 Ticket List</h2>
+<div class="space-y-4" id="ticketList"></div>
+</div>
+</div>
 <!-- Profile Content -->
 <div class="content-section hidden" id="profileContent">
 <div class="flex justify-between items-center mb-6">
@@ -832,7 +853,7 @@ Discord Server
 <option value="Junior Moderator/Helper">Junior Moderator/Helper</option>
 </select>
 </div>
-</div>
+<div class="col-span-1 md:col-span-1"><label class="block text-sm font-medium text-gray-700 mb-1">Sub-Divisi</label><select class="w-full border border-gray-300 rounded-md px-3 py-2" id="updateProfileSubDivision"><option value="">Pilih Sub-Divisi</option><option value="Koordinator Edukasi">Koordinator Edukasi</option><option value="Mentor">Mentor</option><option value="Pemateri">Pemateri</option><option value="Notulen / Recorder">Notulen / Recorder</option><option value="Head Moderator">Head Moderator</option><option value="Moderator">Moderator</option><option value="Helper / Support Staff">Helper / Support Staff</option><option value="Bot Handler">Bot Handler</option><option value="Event Coordinator">Event Coordinator</option><option value="MC / Host">MC / Host</option><option value="Giveaway Staff">Giveaway Staff</option><option value="Social Media Handler">Social Media Handler</option><option value="Content Lead">Content Lead</option><option value="Designer">Designer</option><option value="Dokumentator">Dokumentator</option><option value="Editor">Editor</option><option value="Tech Lead">Tech Lead</option><option value="Bot Dev / Integrator">Bot Dev / Integrator</option><option value="Web &amp; Tools Support">Web &amp; Tools Support</option><option value="Database Admin">Database Admin</option></select></div></div>
 <div class="mt-3">
 <label class="block text-sm font-medium text-gray-700 mb-1">Change Password</label>
 <input class="w-full border border-gray-300 rounded-md px-3 py-2" id="updateProfilePassword" placeholder="Leave blank to keep current password" type="password"/>
@@ -1114,6 +1135,7 @@ Discord Server
         function saveProfile() {
             const name = document.getElementById('profileName').value;
             const role = document.getElementById('profileRole').value;
+    const subDivision = document.getElementById('profileSubDivision')?.value || '';
             const password = document.getElementById('profilePassword').value;
 
             if (!name || !role) {
@@ -1122,8 +1144,11 @@ Discord Server
             }
 
             const updates = {
+        subDivision: subDivision,
                 name: name,
                 role: role,
+        subDivision: subDivision,
+                    subDivision: subDivision,
                 profileComplete: true
             };
 
@@ -1134,7 +1159,8 @@ Discord Server
                 // Update moderatorsRef name and role too
                 moderatorsRef.child(userId).update({
                     name: name,
-                    role: role
+                    role: role,
+        subDivision: subDivision
                 });
     
                 // Add user to moderators list if not already there
@@ -1143,6 +1169,8 @@ Discord Server
         moderatorsRef.child(userId).update({
             name: name,
             role: role,
+        subDivision: subDivision,
+                    subDivision: subDivision,
             joinedAt: existingData.joinedAt || new Date().toISOString(),
             lastSeen: new Date().toISOString()
         });
@@ -1318,11 +1346,12 @@ Discord Server
                                 <h3 class="font-medium text-gray-900">${mod.name || 'Unknown'}</h3>
                                 <div class="flex items-center space-x-2 mt-1">
                                     <span class="inline-block px-2 py-1 rounded-full text-xs font-medium ${`bg-${roleColors[mod.role] || "gray"}-100 text-${roleColors[mod.role] || "gray"}-800`}">
-                                        ${mod.role || 'Member'}
+                                        ${mod.role || 'Member'}${mod.subDivision ? ' - ' + mod.subDivision : ''}
                                     </span>
                                     <span class="text-xs text-gray-500">Since ${mod.joinedAt ? new Date(mod.joinedAt).toLocaleDateString() : 'unknown'}</span>
                                 </div>
-                                <div class="mt-2 text-sm text-gray-500">
+                                <div class="text-sm text-indigo-600 mt-1">${mod.subDivision || "No Sub-Divisi"}</div>
+<div class="mt-2 text-sm text-gray-500">
                                     ${isOnline ? 'Online now' : `Last seen ${mod.lastSeen ? formatLastSeen(mod.lastSeen) : 'unknown'}`}
                                 </div>
                             </div>
@@ -1967,6 +1996,7 @@ Discord Server
     document.getElementById('updateProfileBtn').addEventListener('click', function () {
         const name = document.getElementById('updateProfileName').value;
         const role = document.getElementById('updateProfileRole').value;
+    const subDivision = document.getElementById('updateProfileSubDivision')?.value || '';
         const password = document.getElementById('updateProfilePassword').value;
 
         if (!name || !role) {
@@ -1975,6 +2005,7 @@ Discord Server
         }
 
         const updates = {
+        subDivision: subDivision,
             name,
             role,
             updatedAt: firebase.database.ServerValue.TIMESTAMP
@@ -1986,7 +2017,8 @@ Discord Server
                 // Update moderatorsRef name and role too
                 moderatorsRef.child(userId).update({
                     name: name,
-                    role: role
+                    role: role,
+        subDivision: subDivision
                 });
     
             if (password) {
@@ -2530,7 +2562,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 </script>
-
 </body>
 </html>
 <script>
