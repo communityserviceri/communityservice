@@ -1,345 +1,13 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>ATLANTIS CORP: MODERATOR CONTROL</title>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js">
-
-function loadFinance() {
-    const transactionsList = document.getElementById('transactionsList');
-    const totalBalanceEl = document.getElementById('totalBalance');
-    const monthlyIncomeEl = document.getElementById('monthlyIncome');
-    const monthlyExpensesEl = document.getElementById('monthlyExpenses');
-
-    transactionsRef.orderByChild('date').off(); transactionsRef.orderByChild('date').on('value', snapshot => {
-        const transactions = snapshot.val();
-        if (!transactions) {
-            transactionsList.innerHTML = '<p class="text-center py-8 text-gray-500">No transactions yet</p>';
-            totalBalanceEl.textContent = 'Rp 0';
-            monthlyIncomeEl.textContent = 'Rp 0';
-            monthlyExpensesEl.textContent = 'Rp 0';
-            return;
-        }
-
-        const now = new Date();
-        const thisMonth = now.getMonth();
-        const thisYear = now.getFullYear();
-
-        let html = '';
-        let balance = 0;
-        let income = 0;
-        let expenses = 0;
-
-        Object.entries(transactions).forEach(([id, trx]) => {
-            const trxDate = new Date(trx.date);
-            const amount = parseInt(trx.amount) || 0;
-            const isIncome = trx.type === 'income';
-
-            if (isIncome) balance += amount;
-            else balance -= amount;
-
-            if (trxDate.getMonth() === thisMonth && trxDate.getFullYear() === thisYear) {
-                if (isIncome) income += amount;
-                else expenses += amount;
-            }
-
-            html += `
-                <div class="bg-white p-4 shadow rounded-md flex justify-between items-center">
-                    <div>
-                        <h4 class="font-medium text-gray-900">${trx.description}</h4>
-                        <p class="text-sm text-gray-500">${trx.category} • ${trx.date}</p>
-                    </div>
-                    <div class="text-${isIncome ? 'green' : 'red'}-600 font-bold">
-                        ${isIncome ? '+' : '-'}Rp ${amount.toLocaleString()}
-                    </div>
-                </div>
-            `;
-        });
-
-        transactionsList.innerHTML = html;
-        totalBalanceEl.textContent = `Rp ${balance.toLocaleString()}`;
-        monthlyIncomeEl.textContent = `Rp ${income.toLocaleString()}`;
-        monthlyExpensesEl.textContent = `Rp ${expenses.toLocaleString()}`;
-    });
-}
-
-function loadProfile() {
-    const uid = currentUser.uid;
-    usersRef.child(uid).once('value').then(snapshot => {
-        const user = snapshot.val();
-        if (user) {
-            document.getElementById('profileDisplayName').textContent = user.name || 'Unknown';
-            document.getElementById('profileRoleBadge').textContent = user.role || 'Member';
-            const color = roleColors[user.role] || 'gray';
-            document.getElementById('profileRoleBadge').style.setProperty('--badge-bg', `var(--tw-bg-opacity, 1)`);
-            document.getElementById('profileRoleBadge').style.backgroundColor = `${colorMap(color, 100)}`;
-            document.getElementById('profileRoleBadge').style.color = `${colorMap(color, 800)}`;
-
-            document.getElementById('profileEmail').textContent = currentUser.email;
-            document.getElementById('profileAvatar').textContent = user.name ? user.name.substring(0, 1).toUpperCase() : '?';
-            document.getElementById('updateProfileName').value = user.name;
-            document.getElementById('updateProfileRole').value = user.role;
-            document.getElementById('updateProfileSubDivision').value = user.subDivision || '';
-            document.getElementById('profileJoinDate').textContent = new Date(user.joinedAt || Date.now()).toLocaleDateString();
-            document.getElementById('profileLastLogin').textContent = new Date().toLocaleString();
-        }
-    });
-}
-
-</script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js">
-function loadFinance() {
-    const transactionsList = document.getElementById('transactionsList');
-    const totalBalanceEl = document.getElementById('totalBalance');
-    const monthlyIncomeEl = document.getElementById('monthlyIncome');
-    const monthlyExpensesEl = document.getElementById('monthlyExpenses');
-
-    transactionsRef.orderByChild('date').off(); transactionsRef.orderByChild('date').on('value', snapshot => {
-        const transactions = snapshot.val();
-        if (!transactions) {
-            transactionsList.innerHTML = '<p class="text-center py-8 text-gray-500">No transactions yet</p>';
-            totalBalanceEl.textContent = 'Rp 0';
-            monthlyIncomeEl.textContent = 'Rp 0';
-            monthlyExpensesEl.textContent = 'Rp 0';
-            return;
-        }
-
-        const now = new Date();
-        const thisMonth = now.getMonth();
-        const thisYear = now.getFullYear();
-
-        let html = '';
-        let balance = 0;
-        let income = 0;
-        let expenses = 0;
-
-        Object.entries(transactions).forEach(([id, trx]) => {
-            const trxDate = new Date(trx.date);
-            const amount = parseInt(trx.amount) || 0;
-            const isIncome = trx.type === 'income';
-
-            if (isIncome) balance += amount;
-            else balance -= amount;
-
-            if (trxDate.getMonth() === thisMonth && trxDate.getFullYear() === thisYear) {
-                if (isIncome) income += amount;
-                else expenses += amount;
-            }
-
-            html += `
-                <div class="bg-white p-4 shadow rounded-md flex justify-between items-center">
-                    <div>
-                        <h4 class="font-medium text-gray-900">${trx.description}</h4>
-                        <p class="text-sm text-gray-500">${trx.category} • ${trx.date}</p>
-                    </div>
-                    <div class="text-${isIncome ? 'green' : 'red'}-600 font-bold">
-                        ${isIncome ? '+' : '-'}Rp ${amount.toLocaleString()}
-                    </div>
-                </div>
-            `;
-        });
-
-        transactionsList.innerHTML = html;
-        totalBalanceEl.textContent = `Rp ${balance.toLocaleString()}`;
-        monthlyIncomeEl.textContent = `Rp ${income.toLocaleString()}`;
-        monthlyExpensesEl.textContent = `Rp ${expenses.toLocaleString()}`;
-    });
-}
-
-// ✅ Tambahan fungsi: loadProfile
-function loadProfile() {
-    const uid = currentUser.uid;
-    usersRef.child(uid).once('value').then(snapshot => {
-        const user = snapshot.val();
-        if (user) {
-            document.getElementById('profileDisplayName').textContent = user.name || 'Unknown';
-            document.getElementById('profileRoleBadge').textContent = user.role || 'Member';
-            const color = roleColors[user.role] || 'gray';
-            document.getElementById('profileRoleBadge').style.setProperty('--badge-bg', `var(--tw-bg-opacity, 1)`);
-            document.getElementById('profileRoleBadge').style.backgroundColor = `${colorMap(color, 100)}`;
-            document.getElementById('profileRoleBadge').style.color = `${colorMap(color, 800)}`;
-
-            document.getElementById('profileEmail').textContent = currentUser.email;
-            document.getElementById('profileAvatar').textContent = user.name ? user.name.substring(0, 1).toUpperCase() : '?';
-            document.getElementById('updateProfileName').value = user.name;
-            document.getElementById('updateProfileRole').value = user.role;
-            document.getElementById('profileJoinDate').textContent = new Date(user.joinedAt || Date.now()).toLocaleDateString();
-            document.getElementById('profileLastLogin').textContent = new Date().toLocaleString();
-        }
-    });
-}
-
-</script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js">
-// ✅ Tambahan fungsi: loadFinance
-function loadFinance() {
-    const transactionsList = document.getElementById('transactionsList');
-    const totalBalanceEl = document.getElementById('totalBalance');
-    const monthlyIncomeEl = document.getElementById('monthlyIncome');
-    const monthlyExpensesEl = document.getElementById('monthlyExpenses');
-
-    transactionsRef.orderByChild('date').off(); transactionsRef.orderByChild('date').on('value', snapshot => {
-        const transactions = snapshot.val();
-        if (!transactions) {
-            transactionsList.innerHTML = '<p class="text-center py-8 text-gray-500">No transactions yet</p>';
-            totalBalanceEl.textContent = 'Rp 0';
-            monthlyIncomeEl.textContent = 'Rp 0';
-            monthlyExpensesEl.textContent = 'Rp 0';
-            return;
-        }
-
-        const now = new Date();
-        const thisMonth = now.getMonth();
-        const thisYear = now.getFullYear();
-
-        let html = '';
-        let balance = 0;
-        let income = 0;
-        let expenses = 0;
-
-        Object.entries(transactions).forEach(([id, trx]) => {
-            const trxDate = new Date(trx.date);
-            const amount = parseInt(trx.amount) || 0;
-            const isIncome = trx.type === 'income';
-
-            if (isIncome) balance += amount;
-            else balance -= amount;
-
-            if (trxDate.getMonth() === thisMonth && trxDate.getFullYear() === thisYear) {
-                if (isIncome) income += amount;
-                else expenses += amount;
-            }
-
-            html += `
-                <div class="bg-white p-4 shadow rounded-md flex justify-between items-center">
-                    <div>
-                        <h4 class="font-medium text-gray-900">${trx.description}</h4>
-                        <p class="text-sm text-gray-500">${trx.category} • ${trx.date}</p>
-                    </div>
-                    <div class="text-${isIncome ? 'green' : 'red'}-600 font-bold">
-                        ${isIncome ? '+' : '-'}Rp ${amount.toLocaleString()}
-                    </div>
-                </div>
-            `;
-        });
-
-        transactionsList.innerHTML = html;
-        totalBalanceEl.textContent = `Rp ${balance.toLocaleString()}`;
-        monthlyIncomeEl.textContent = `Rp ${income.toLocaleString()}`;
-        monthlyExpensesEl.textContent = `Rp ${expenses.toLocaleString()}`;
-    });
-}
-
-// ✅ Tambahan fungsi: loadProfile
-function loadProfile() {
-    const uid = currentUser.uid;
-    usersRef.child(uid).once('value').then(snapshot => {
-        const user = snapshot.val();
-        if (user) {
-            document.getElementById('profileDisplayName').textContent = user.name || 'Unknown';
-            document.getElementById('profileRoleBadge').textContent = user.role || 'Member';
-            const color = roleColors[user.role] || 'gray';
-            document.getElementById('profileRoleBadge').style.setProperty('--badge-bg', `var(--tw-bg-opacity, 1)`);
-            document.getElementById('profileRoleBadge').style.backgroundColor = `${colorMap(color, 100)}`;
-            document.getElementById('profileRoleBadge').style.color = `${colorMap(color, 800)}`;
-
-            document.getElementById('profileEmail').textContent = currentUser.email;
-            document.getElementById('profileAvatar').textContent = user.name ? user.name.substring(0, 1).toUpperCase() : '?';
-            document.getElementById('updateProfileName').value = user.name;
-            document.getElementById('updateProfileRole').value = user.role;
-            document.getElementById('profileJoinDate').textContent = new Date(user.joinedAt || Date.now()).toLocaleDateString();
-            document.getElementById('profileLastLogin').textContent = new Date().toLocaleString();
-        }
-    });
-}
-
-</script>
-<script src="https://cdn.tailwindcss.com">
-// ✅ Tambahan fungsi: loadFinance
-function loadFinance() {
-    const transactionsList = document.getElementById('transactionsList');
-    const totalBalanceEl = document.getElementById('totalBalance');
-    const monthlyIncomeEl = document.getElementById('monthlyIncome');
-    const monthlyExpensesEl = document.getElementById('monthlyExpenses');
-
-    transactionsRef.orderByChild('date').off(); transactionsRef.orderByChild('date').on('value', snapshot => {
-        const transactions = snapshot.val();
-        if (!transactions) {
-            transactionsList.innerHTML = '<p class="text-center py-8 text-gray-500">No transactions yet</p>';
-            totalBalanceEl.textContent = 'Rp 0';
-            monthlyIncomeEl.textContent = 'Rp 0';
-            monthlyExpensesEl.textContent = 'Rp 0';
-            return;
-        }
-
-        const now = new Date();
-        const thisMonth = now.getMonth();
-        const thisYear = now.getFullYear();
-
-        let html = '';
-        let balance = 0;
-        let income = 0;
-        let expenses = 0;
-
-        Object.entries(transactions).forEach(([id, trx]) => {
-            const trxDate = new Date(trx.date);
-            const amount = parseInt(trx.amount) || 0;
-            const isIncome = trx.type === 'income';
-
-            if (isIncome) balance += amount;
-            else balance -= amount;
-
-            if (trxDate.getMonth() === thisMonth && trxDate.getFullYear() === thisYear) {
-                if (isIncome) income += amount;
-                else expenses += amount;
-            }
-
-            html += `
-                <div class="bg-white p-4 shadow rounded-md flex justify-between items-center">
-                    <div>
-                        <h4 class="font-medium text-gray-900">${trx.description}</h4>
-                        <p class="text-sm text-gray-500">${trx.category} • ${trx.date}</p>
-                    </div>
-                    <div class="text-${isIncome ? 'green' : 'red'}-600 font-bold">
-                        ${isIncome ? '+' : '-'}Rp ${amount.toLocaleString()}
-                    </div>
-                </div>
-            `;
-        });
-
-        transactionsList.innerHTML = html;
-        totalBalanceEl.textContent = `Rp ${balance.toLocaleString()}`;
-        monthlyIncomeEl.textContent = `Rp ${income.toLocaleString()}`;
-        monthlyExpensesEl.textContent = `Rp ${expenses.toLocaleString()}`;
-    });
-}
-
-// ✅ Tambahan fungsi: loadProfile
-function loadProfile() {
-    const uid = currentUser.uid;
-    usersRef.child(uid).once('value').then(snapshot => {
-        const user = snapshot.val();
-        if (user) {
-            document.getElementById('profileDisplayName').textContent = user.name || 'Unknown';
-            document.getElementById('profileRoleBadge').textContent = user.role || 'Member';
-            const color = roleColors[user.role] || 'gray';
-            document.getElementById('profileRoleBadge').style.setProperty('--badge-bg', `var(--tw-bg-opacity, 1)`);
-            document.getElementById('profileRoleBadge').style.backgroundColor = `${colorMap(color, 100)}`;
-            document.getElementById('profileRoleBadge').style.color = `${colorMap(color, 800)}`;
-
-            document.getElementById('profileEmail').textContent = currentUser.email;
-            document.getElementById('profileAvatar').textContent = user.name ? user.name.substring(0, 1).toUpperCase() : '?';
-            document.getElementById('updateProfileName').value = user.name;
-            document.getElementById('updateProfileRole').value = user.role;
-            document.getElementById('profileJoinDate').textContent = new Date(user.joinedAt || Date.now()).toLocaleDateString();
-            document.getElementById('profileLastLogin').textContent = new Date().toLocaleString();
-        }
-    });
-}
-
-</script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
 <style>
         .progress-bar {
             height: 8px;
@@ -371,6 +39,26 @@ function loadProfile() {
             opacity: 1;
             visibility: visible;
         }
+        /* Custom styles for nested progress bars */
+        .nested-progress-container {
+            margin-left: 1rem;
+            border-left: 2px solid #e0e0e0;
+            padding-left: 1rem;
+        }
+        .department-item, .subdivision-item {
+            background-color: #f9fafb;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        .task-item {
+            background-color: #ffffff;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            margin-bottom: 0.25rem;
+            border: 1px solid #e5e7eb;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -393,88 +81,6 @@ function loadProfile() {
   	const db = firebase.database();
   	const auth = firebase.auth();
     
-// ✅ Tambahan fungsi: loadFinance
-function loadFinance() {
-    const transactionsList = document.getElementById('transactionsList');
-    const totalBalanceEl = document.getElementById('totalBalance');
-    const monthlyIncomeEl = document.getElementById('monthlyIncome');
-    const monthlyExpensesEl = document.getElementById('monthlyExpenses');
-
-    transactionsRef.orderByChild('date').off(); transactionsRef.orderByChild('date').on('value', snapshot => {
-        const transactions = snapshot.val();
-        if (!transactions) {
-            transactionsList.innerHTML = '<p class="text-center py-8 text-gray-500">No transactions yet</p>';
-            totalBalanceEl.textContent = 'Rp 0';
-            monthlyIncomeEl.textContent = 'Rp 0';
-            monthlyExpensesEl.textContent = 'Rp 0';
-            return;
-        }
-
-        const now = new Date();
-        const thisMonth = now.getMonth();
-        const thisYear = now.getFullYear();
-
-        let html = '';
-        let balance = 0;
-        let income = 0;
-        let expenses = 0;
-
-        Object.entries(transactions).forEach(([id, trx]) => {
-            const trxDate = new Date(trx.date);
-            const amount = parseInt(trx.amount) || 0;
-            const isIncome = trx.type === 'income';
-
-            if (isIncome) balance += amount;
-            else balance -= amount;
-
-            if (trxDate.getMonth() === thisMonth && trxDate.getFullYear() === thisYear) {
-                if (isIncome) income += amount;
-                else expenses += amount;
-            }
-
-            html += `
-                <div class="bg-white p-4 shadow rounded-md flex justify-between items-center">
-                    <div>
-                        <h4 class="font-medium text-gray-900">${trx.description}</h4>
-                        <p class="text-sm text-gray-500">${trx.category} • ${trx.date}</p>
-                    </div>
-                    <div class="text-${isIncome ? 'green' : 'red'}-600 font-bold">
-                        ${isIncome ? '+' : '-'}Rp ${amount.toLocaleString()}
-                    </div>
-                </div>
-            `;
-        });
-
-        transactionsList.innerHTML = html;
-        totalBalanceEl.textContent = `Rp ${balance.toLocaleString()}`;
-        monthlyIncomeEl.textContent = `Rp ${income.toLocaleString()}`;
-        monthlyExpensesEl.textContent = `Rp ${expenses.toLocaleString()}`;
-    });
-}
-
-// ✅ Tambahan fungsi: loadProfile
-function loadProfile() {
-    const uid = currentUser.uid;
-    usersRef.child(uid).once('value').then(snapshot => {
-        const user = snapshot.val();
-        if (user) {
-            document.getElementById('profileDisplayName').textContent = user.name || 'Unknown';
-            document.getElementById('profileRoleBadge').textContent = user.role || 'Member';
-            const color = roleColors[user.role] || 'gray';
-            document.getElementById('profileRoleBadge').style.setProperty('--badge-bg', `var(--tw-bg-opacity, 1)`);
-            document.getElementById('profileRoleBadge').style.backgroundColor = `${colorMap(color, 100)}`;
-            document.getElementById('profileRoleBadge').style.color = `${colorMap(color, 800)}`;
-
-            document.getElementById('profileEmail').textContent = currentUser.email;
-            document.getElementById('profileAvatar').textContent = user.name ? user.name.substring(0, 1).toUpperCase() : '?';
-            document.getElementById('updateProfileName').value = user.name;
-            document.getElementById('updateProfileRole').value = user.role;
-            document.getElementById('profileJoinDate').textContent = new Date(user.joinedAt || Date.now()).toLocaleDateString();
-            document.getElementById('profileLastLogin').textContent = new Date().toLocaleString();
-        }
-    });
-}
-
 </script>
 <!-- Auth Modal -->
 <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" id="authModal">
@@ -918,7 +524,7 @@ Discord Server
 <!-- Add Event Modal -->
 <div class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" id="eventModal">
 <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md max-h-screen overflow-y-auto">
-<h2 class="text-xl font-bold text-blue-700 mb-4">Add New Event</h2>
+<h2 class="text-xl font-bold text-blue-700 mb-4" id="eventModalTitle">Add New Event</h2>
 <div class="space-y-4">
 <div>
 <label class="block text-sm font-medium text-gray-700 mb-1">Event Title</label>
@@ -928,37 +534,18 @@ Discord Server
 <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
 <textarea class="w-full border border-gray-300 rounded-md px-3 py-2" id="eventDescription" rows="3"></textarea>
 </div>
-<div class="grid grid-cols-2 gap-4">
 <div>
-<label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-<input class="w-full border border-gray-300 rounded-md px-3 py-2" id="eventDate" type="date"/>
-</div>
-<div>
-<label class="block text-sm font-medium text-gray-700 mb-1">Time</label>
-<input class="w-full border border-gray-300 rounded-md px-3 py-2" id="eventTime" type="time"/>
-</div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Estimated Budget (Rp)</label>
+    <input class="w-full border border-gray-300 rounded-md px-3 py-2" id="estimatedBudget" type="number" min="0"/>
 </div>
 <div>
-<label class="block text-sm font-medium text-gray-700 mb-1">Assigned Moderators</label>
-<div class="space-y-2" id="eventModeratorsList">
-<!-- Moderator checkboxes will be loaded here -->
-</div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Execution Date/Time</label>
+    <input class="w-full border border-gray-300 rounded-md px-3 py-2" id="executionDateTime" type="datetime-local"/>
 </div>
 <div>
-<label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-<select class="w-full border border-gray-300 rounded-md px-3 py-2" id="eventStatus">
-<option value="Planning">Planning</option>
-<option value="Ongoing">Ongoing</option>
-<option value="Completed">Completed</option>
-</select>
-</div>
-<div>
-<label class="block text-sm font-medium text-gray-700 mb-1">Progress (%)</label>
-<input class="w-full" id="eventProgress" max="100" min="0" type="range"/>
-<div class="flex justify-between">
-<span>0%</span>
-<span id="progressValue">50%</span>
-<span>100%</span>
+<label class="block text-sm font-medium text-gray-700 mb-1">Departments Involved</label>
+<div class="space-y-2" id="eventDepartmentsList">
+<!-- Department checkboxes will be loaded here -->
 </div>
 </div>
 </div>
@@ -969,6 +556,43 @@ Discord Server
 <input id="eventId" type="hidden"/>
 </div>
 </div>
+
+<!-- Event Details Modal -->
+<div class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" id="eventDetailsModal">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-3xl max-h-screen overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold text-blue-700" id="detailEventTitle"></h2>
+            <button class="text-gray-500 hover:text-gray-700" onclick="hideEventDetailsModal()">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <p class="text-gray-600 mb-4" id="detailEventDescription"></p>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <p class="text-sm font-medium text-gray-700">Budget:</p>
+                <p class="text-gray-900" id="detailEstimatedBudget"></p>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-gray-700">Execution Date:</p>
+                <p class="text-gray-900" id="detailExecutionDateTime"></p>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <h3 class="font-medium text-gray-900 mb-2">Overall Progress: <span id="detailEventProgress">0%</span></h3>
+            <div class="progress-bar">
+                <div class="progress-fill bg-blue-500" id="detailEventProgressBar" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <h3 class="text-xl font-bold text-gray-800 mb-3">Departments</h3>
+        <div id="eventDetailsDepartmentsList" class="space-y-4">
+            <!-- Departments, Subdivisions, and Tasks will be loaded here -->
+        </div>
+    </div>
+</div>
+
+
 <!-- Add Report Modal -->
 <div class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" id="reportModal">
 <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md max-h-screen overflow-y-auto">
@@ -1081,9 +705,20 @@ Discord Server
     "Finance": "yellow"
 };
 
+const subDivisionOptions = {
+    "Education": ["Koordinator Edukasi", "Mentor", "Pemateri", "Notulen"],
+    "Moderation": ["Head Moderator", "Moderator", "Helper", "Support Staff"],
+    "Events": ["Event Coordinator", "MC", "Host", "Giveaway Staff"],
+    "Creative": ["Content Lead", "Designer", "Editor", "Dokumentator", "Social Media"],
+    "Technology": ["Tech Lead", "Bot Developer", "Web Tools Support", "Database Admin"],
+    "Finance": ["Bendahara", "Pembukuan", "Donasi", "Anggaran", "Laporan Keuangan"]
+};
+
+
 // Global variables
         let currentUser = null;
         let currentSection = 'moderators';
+        let currentUserData = null; // To store current user's role and subDivision
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
@@ -1104,8 +739,17 @@ Discord Server
                 if (user) {
                     // User is signed in
                     currentUser = user;
-                    setupUserPresence();
-                    checkProfileCompletion(user.uid);
+                    // Fetch currentUserData immediately after login
+                    usersRef.child(user.uid).once('value').then(snapshot => {
+                        currentUserData = snapshot.val();
+                        setupUserPresence();
+                        checkProfileCompletion(user.uid);
+                    }).catch(error => {
+                        console.error("Error fetching current user data:", error);
+                        // Proceed without currentUserData if fetch fails, but log the error
+                        setupUserPresence();
+                        checkProfileCompletion(user.uid);
+                    });
                 } else {
                     // No user is signed in
                     document.getElementById('authModal').classList.add('flex');
@@ -1159,6 +803,7 @@ Discord Server
     		usersRef.child(uid).once('value').then(snapshot => {
         		const userData = snapshot.val();
         		console.log("🔍 userData from DB:", userData);
+                currentUserData = userData; // Store current user data globally
 
         	if (!userData || !userData.name || !userData.role) {
             		// Show profile form
@@ -1181,7 +826,7 @@ Discord Server
         function saveProfile() {
             const name = document.getElementById('profileName').value;
             const role = document.getElementById('profileRole').value;
-    const subDivision = document.getElementById('profileSubDivision')?.value || '';
+            const subDivision = document.getElementById('profileSubDivision')?.value || '';
             const password = document.getElementById('profilePassword').value;
 
             if (!name || !role) {
@@ -1190,12 +835,11 @@ Discord Server
             }
 
             const updates = {
-        subDivision: subDivision,
                 name: name,
                 role: role,
-        subDivision: subDivision,
-                    subDivision: subDivision,
-                profileComplete: true
+                subDivision: subDivision, // <-- TAMBAHAN UNTUK BUG FIX SUBDIV
+                profileComplete: true,
+                joinedAt: new Date().toISOString() // Set joinedAt only on initial profile save
             };
 
             const userId = currentUser.uid;
@@ -1206,22 +850,11 @@ Discord Server
                 moderatorsRef.child(userId).update({
                     name: name,
                     role: role,
-        subDivision: subDivision
+                    subDivision: subDivision,
+                    joinedAt: updates.joinedAt, // Ensure joinedAt is consistent
+                    lastSeen: new Date().toISOString()
                 });
     
-                // Add user to moderators list if not already there
-                moderatorsRef.child(userId).once('value').then(snapshot => {
-        const existingData = snapshot.val() || {};
-        moderatorsRef.child(userId).update({
-            name: name,
-            role: role,
-        subDivision: subDivision,
-                    subDivision: subDivision,
-            joinedAt: existingData.joinedAt || new Date().toISOString(),
-            lastSeen: new Date().toISOString()
-        });
-    });
-
                 // Update password if provided
                 if (password) {
                     currentUser.updatePassword(password).catch(error => {
@@ -1274,6 +907,7 @@ Discord Server
 	        // Sign out Firebase auth
 	        auth.signOut().then(() => {
 	            currentUser = null;
+                currentUserData = null; // Clear user data on logout
 	            document.getElementById('authModal').classList.add('flex');
 	            document.getElementById('authModal').classList.remove('hidden');
 	            document.getElementById('loginForm').classList.remove('hidden');
@@ -1335,9 +969,10 @@ Discord Server
                     loadFinance();
                     break;
                 case 'profile':
-                case 'ticketing':
-                    break;
                     loadProfile();
+                    break;
+                case 'ticketing':
+                    // Ticketing logic is handled by DOMContentLoaded listener
                     break;
             }
         }
@@ -1371,44 +1006,74 @@ Discord Server
                 const moderatorArray = Object.entries(moderators);
 
                 // Sort by role hierarchy: Admin > Staff > Helper
+                // Assuming roles are defined in roleColors and ordered implicitly or explicitly
+                const roleOrder = Object.keys(roleColors); // Use the order of keys in roleColors
                 moderatorArray.sort((a, b) => {
-                    const roleOrder = { 'Admin': 0, 'Staff': 1, 'Helper': 2 };
-                    return roleOrder[a[1].role] - roleOrder[b[1].role];
+                    const roleA = a[1].role || 'Member';
+                    const roleB = b[1].role || 'Member';
+                    return roleOrder.indexOf(roleA) - roleOrder.indexOf(roleB);
                 });
 
                 moderatorArray.forEach(([id, mod]) => {
-                    const isOnline = mod.lastSeen && new Date() - new Date(mod.lastSeen) < 5 * 60 * 1000; // Online if last seen <5 mins ago
-                    if (isOnline) onlineCount++;
-
-                    html += `
-                        <div class="bg-white p-4 rounded-lg shadow flex items-start space-x-4">
-                            <div class="relative">
-                                <div class="w-12 h-12 rounded-full bg-${isOnline ? 'green' : 'gray'}-100 flex items-center justify-center font-bold text-${isOnline ? 'green' : 'gray'}-600">
-                                    ${mod.name ? mod.name.substring(0, 1).toUpperCase() : '?'}
-                                </div>
-                                <div class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white bg-${isOnline ? 'green' : 'gray'}-500"></div>
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="font-medium text-gray-900">${mod.name || 'Unknown'}</h3>
-                                <div class="flex items-center space-x-2 mt-1">
-                                    <span class="inline-block px-2 py-1 rounded-full text-xs font-medium ${`bg-${roleColors[mod.role] || "gray"}-100 text-${roleColors[mod.role] || "gray"}-800`}">
-                                        ${mod.role || 'Member'}${mod.subDivision ? ' - ' + mod.subDivision : ''}
-                                    </span>
-                                    <span class="text-xs text-gray-500">Since ${mod.joinedAt ? new Date(mod.joinedAt).toLocaleDateString() : 'unknown'}</span>
-                                </div>
-                                <div class="text-sm text-indigo-600 mt-1">${mod.subDivision || "No Sub-Divisi"}</div>
-<div class="mt-2 text-sm text-gray-500">
-                                    ${isOnline ? 'Online now' : `Last seen ${mod.lastSeen ? formatLastSeen(mod.lastSeen) : 'unknown'}`}
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                    // Check status from /status node for real-time presence
+                    db.ref('status/' + id).on('value', statusSnap => {
+                        const status = statusSnap.val();
+                        const isOnline = status && status.status === 'online';
+                        
+                        // Re-render the specific moderator card to update online status
+                        const existingCard = document.getElementById(`mod-card-${id}`);
+                        if (existingCard) {
+                            existingCard.outerHTML = createModeratorCard(id, mod, isOnline);
+                        } else {
+                            // If card doesn't exist (e.g., initial load), append it
+                            // This part might need optimization for large lists to avoid re-rendering everything
+                            // For now, we'll just build the full list and update counts
+                        }
+                    });
+                    html += createModeratorCard(id, mod, false); // Initial render as offline, will be updated by status listener
                 });
 
                 moderatorsList.innerHTML = html;
                 document.getElementById('moderatorCount').textContent = moderatorArray.length;
+                // Online count will be updated by individual status listeners
+            });
+
+            // Update online count based on status changes
+            db.ref('status').on('value', snapshot => {
+                let onlineCount = 0;
+                snapshot.forEach(childSnap => {
+                    if (childSnap.val().status === 'online') {
+                        onlineCount++;
+                    }
+                });
                 document.getElementById('onlineCount').textContent = onlineCount;
             });
+        }
+
+        function createModeratorCard(id, mod, isOnline) {
+            return `
+                <div class="bg-white p-4 rounded-lg shadow flex items-start space-x-4" id="mod-card-${id}">
+                    <div class="relative">
+                        <div class="w-12 h-12 rounded-full bg-${isOnline ? 'green' : 'gray'}-100 flex items-center justify-center font-bold text-${isOnline ? 'green' : 'gray'}-600">
+                            ${mod.name ? mod.name.substring(0, 1).toUpperCase() : '?'}
+                        </div>
+                        <div class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white bg-${isOnline ? 'green' : 'gray'}-500"></div>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-medium text-gray-900">${mod.name || 'Unknown'}</h3>
+                        <div class="flex items-center space-x-2 mt-1">
+                            <span class="inline-block px-2 py-1 rounded-full text-xs font-medium ${`bg-${roleColors[mod.role] || "gray"}-100 text-${roleColors[mod.role] || "gray"}-800`}">
+                                ${mod.role || 'Member'}${mod.subDivision ? ' - ' + mod.subDivision : ''}
+                            </span>
+                            <span class="text-xs text-gray-500">Since ${mod.joinedAt ? new Date(mod.joinedAt).toLocaleDateString() : 'unknown'}</span>
+                        </div>
+                        <div class="text-sm text-indigo-600 mt-1">${mod.subDivision || "No Sub-Divisi"}</div>
+                        <div class="mt-2 text-sm text-gray-500">
+                            ${isOnline ? 'Online now' : `Last seen ${mod.lastSeen ? formatLastSeen(mod.lastSeen) : 'unknown'}`}
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         function formatLastSeen(timestamp) {
@@ -1424,12 +1089,7 @@ Discord Server
 
         // Events functions
         function initEventModalEvents() {
-            // Event progress slider
-            document.getElementById('eventProgress').addEventListener('input', function() {
-                document.getElementById('progressValue').textContent = this.value + '%';
-            });
-
-            // Event modal buttons
+            // Event modal buttons (Add/Edit Event)
             document.getElementById('addEventBtn').addEventListener('click', function() {
                 showEventModal();
             });
@@ -1447,66 +1107,61 @@ Discord Server
             document.getElementById('eventModal').classList.add('active');
             document.getElementById('eventModal').classList.remove('hidden');
             document.getElementById('eventId').value = eventId || '';
+            document.getElementById('eventModalTitle').textContent = eventId ? 'Edit Event' : 'Add New Event';
+
+            const eventDepartmentsList = document.getElementById('eventDepartmentsList');
+            eventDepartmentsList.innerHTML = '';
+            const allDepartments = Object.keys(roleColors).filter(role => role !== 'Founder' && role !== 'Co-Founder');
+
+            // Clear previous department/subdivision selections
+            document.getElementById('eventTitle').value = '';
+            document.getElementById('eventDescription').value = '';
+            document.getElementById('estimatedBudget').value = '';
+            document.getElementById('executionDateTime').value = '';
+            eventDepartmentsList.innerHTML = ''; // Clear previous checkboxes
 
             if (eventId) {
-                // Load existing event data
                 eventsRef.child(eventId).once('value').then(snapshot => {
                     const event = snapshot.val();
                     if (event) {
                         document.getElementById('eventTitle').value = event.title || '';
                         document.getElementById('eventDescription').value = event.description || '';
-                        document.getElementById('eventDate').value = event.date || '';
-                        document.getElementById('eventTime').value = event.time || '';
-                        document.getElementById('eventStatus').value = event.status || 'Planning';
-                        document.getElementById('eventProgress').value = event.progress || 0;
-                        document.getElementById('progressValue').textContent = event.progress + '%' || '0%';
+                        document.getElementById('estimatedBudget').value = event.estimatedBudget || '';
+                        document.getElementById('executionDateTime').value = event.executionDateTime || '';
                         
-                        // Load assigned moderators
-                        const assignedModerators = event.assignedModerators || {};
-                        document.getElementById('eventModeratorsList').innerHTML = '';
-                        
-                        moderatorsRef.once('value').then(modSnapshot => {
-                            const moderators = modSnapshot.val();
-                            if (moderators) {
-                                Object.entries(moderators).forEach(([id, mod]) => {
-                                    const isAssigned = assignedModerators[id] || false;
-                                    const checkbox = document.createElement('div');
-                                    checkbox.className = 'flex items-center';
-                                    checkbox.innerHTML = `
-                                        <input type="checkbox" id="mod_${id}" ${isAssigned ? 'checked' : ''} class="h-4 w-4 text-blue-600 rounded">
-                                        <label for="mod_${id}" class="ml-2 text-sm text-gray-700">${mod.name} (${mod.role})</label>
-                                    `;
-                                    document.getElementById('eventModeratorsList').appendChild(checkbox);
-                                });
+                        allDepartments.forEach(dept => {
+                            const isDeptChecked = event.departments && event.departments[dept];
+                            let deptHtml = `
+                                <div class="flex flex-col mb-2">
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" id="dept_${dept}" value="${dept}" ${isDeptChecked ? 'checked' : ''} class="h-4 w-4 text-blue-600 rounded" onchange="toggleSubdivisions('${dept}', this.checked, '${eventId}')">
+                                        <span class="ml-2 text-sm font-medium text-gray-700">${dept}</span>
+                                    </label>
+                                    <div id="subdivisions_for_${dept}" class="ml-6 mt-1 space-y-1 ${isDeptChecked ? '' : 'hidden'}">
+                                        <!-- Subdivisions will be loaded here dynamically -->
+                                    </div>
+                                </div>
+                            `;
+                            eventDepartmentsList.innerHTML += deptHtml;
+                            if (isDeptChecked) {
+                                loadSubdivisionCheckboxes(dept, event.departments[dept]?.subdivisions || {}, eventId);
                             }
                         });
                     }
                 });
             } else {
-                // Clear form for new event
-                document.getElementById('eventTitle').value = '';
-                document.getElementById('eventDescription').value = '';
-                document.getElementById('eventDate').value = '';
-                document.getElementById('eventTime').value = '';
-                document.getElementById('eventStatus').value = 'Planning';
-                document.getElementById('eventProgress').value = 0;
-                document.getElementById('progressValue').textContent = '0%';
-                
-                // Load all moderators for assignment
-                document.getElementById('eventModeratorsList').innerHTML = '';
-                moderatorsRef.once('value').then(snapshot => {
-                    const moderators = snapshot.val();
-                    if (moderators) {
-                        Object.entries(moderators).forEach(([id, mod]) => {
-                            const checkbox = document.createElement('div');
-                            checkbox.className = 'flex items-center';
-                            checkbox.innerHTML = `
-                                <input type="checkbox" id="mod_${id}" class="h-4 w-4 text-blue-600 rounded">
-                                <label for="mod_${id}" class="ml-2 text-sm text-gray-700">${mod.name} (${mod.role})</label>
-                            `;
-                            document.getElementById('eventModeratorsList').appendChild(checkbox);
-                        });
-                    }
+                allDepartments.forEach(dept => {
+                    eventDepartmentsList.innerHTML += `
+                        <div class="flex flex-col mb-2">
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" id="dept_${dept}" value="${dept}" class="h-4 w-4 text-blue-600 rounded" onchange="toggleSubdivisions('${dept}', this.checked)">
+                                <span class="ml-2 text-sm font-medium text-gray-700">${dept}</span>
+                            </label>
+                            <div id="subdivisions_for_${dept}" class="ml-6 mt-1 space-y-1 hidden">
+                                <!-- Subdivisions will be loaded here dynamically -->
+                            </div>
+                        </div>
+                    `;
                 });
             }
         }
@@ -1520,7 +1175,8 @@ Discord Server
             const eventsList = document.getElementById('eventsList');
             eventsList.innerHTML = '<div class="flex items-center justify-center py-12"><div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div></div>';
 
-            eventsRef.orderByChild('createdAt').off(); eventsRef.orderByChild('createdAt').on('value', snapshot => {
+            eventsRef.orderByChild('executionDateTime').off(); 
+            eventsRef.orderByChild('executionDateTime').on('value', snapshot => {
                 const events = snapshot.val();
                 if (!events) {
                     eventsList.innerHTML = '<p class="text-center py-8 text-gray-500">No events scheduled yet</p>';
@@ -1530,28 +1186,26 @@ Discord Server
 
                 let html = '';
                 let activeCount = 0;
-                const today = new Date();
+                const eventArray = Object.entries(events);
 
-                Object.entries(events).forEach(([id, event]) => {
-                    const eventDate = new Date(event.date);
-                    const isActive = event.status === 'Ongoing' || (event.status === 'Planning' && eventDate >= today);
+                eventArray.forEach(([id, event]) => {
+                    const eventDate = new Date(event.executionDateTime);
+                    const now = new Date();
+                    // Consider event active if its execution date is in the future or today
+                    const isActive = eventDate >= now; 
                     if (isActive) activeCount++;
 
+                    const progress = event.progress ? (event.progress * 100).toFixed(0) : 0;
+                    const progressColor = progress == 100 ? 'green' : 'blue';
+
                     html += `
-                        <div class="bg-white p-4 rounded-lg shadow">
+                        <div class="bg-white p-4 rounded-lg shadow" data-event-id="${id}">
                             <div class="flex justify-between items-start">
                                 <div>
                                     <h3 class="font-medium text-lg text-gray-900">${event.title}</h3>
-                                    <div class="flex items-center space-x-2 mt-1">
-                                        <span class="inline-block px-2 py-1 rounded-full text-xs font-medium bg-${
-                                            event.status === 'Planning' ? 'blue' : 
-                                            event.status === 'Ongoing' ? 'green' : 'gray'}-100 text-${
-                                            event.status === 'Planning' ? 'blue' : 
-                                            event.status === 'Ongoing' ? 'green' : 'gray'}-800">
-                                            ${event.status}
-                                        </span>
-                                        <span class="text-sm text-gray-500">${event.date} at ${event.time}</span>
-                                    </div>
+                                    <p class="text-sm text-gray-500">${event.description}</p>
+                                    <p class="text-sm text-gray-500">Budget: Rp ${event.estimatedBudget ? event.estimatedBudget.toLocaleString() : '0'}</p>
+                                    <p class="text-sm text-gray-500">Date: ${new Date(event.executionDateTime).toLocaleString()}</p>
                                 </div>
                                 <div class="flex space-x-2">
                                     <button onclick="showEventModal('${id}')" class="p-1 text-blue-600 hover:text-blue-800">
@@ -1564,28 +1218,19 @@ Discord Server
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
                                     </button>
+                                    <button onclick="showEventDetailsModal('${id}')" class="p-1 text-purple-600 hover:text-purple-800">
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                    </button>
                                 </div>
                             </div>
-                            <p class="mt-2 text-gray-600">${event.description}</p>
                             
                             <div class="mt-4">
                                 <div class="flex justify-between mb-1">
-                                    <span class="text-sm font-medium text-blue-800">Progress: ${event.progress}%</span>
-                                    <span class="text-sm text-gray-500">${formatDateDistance(event.date)}</span>
+                                    <span class="text-sm font-medium text-${progressColor}-800">Progress: ${progress}%</span>
+                                    <span class="text-sm text-gray-500">${formatDateDistance(event.executionDateTime)}</span>
                                 </div>
                                 <div class="progress-bar">
-                                    <div class="progress-fill bg-${
-                                        event.status === 'Planning' ? 'blue' : 
-                                        event.status === 'Ongoing' ? 'green' : 'gray'}-500" style="width: ${event.progress}%"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="mt-4">
-                                <h4 class="text-sm font-medium text-gray-700 mb-2">Assigned Moderators</h4>
-                                <div class="flex flex-wrap gap-2">
-                                    ${event.assignedModerators ? Object.keys(event.assignedModerators).map(modId => {
-                                        return `Loading...`; // This will be replaced with actual data
-                                    }).join('') : '<span class="text-sm text-gray-500">No moderators assigned</span>'}
+                                    <div class="progress-fill bg-${progressColor}-500" style="width: ${progress}%"></div>
                                 </div>
                             </div>
                         </div>
@@ -1594,109 +1239,389 @@ Discord Server
 
                 eventsList.innerHTML = html;
                 document.getElementById('activeEventCount').textContent = activeCount;
-                
-                // Now fetch moderator names for assigned moderators
-                moderatorsRef.once('value').then(modSnapshot => {
-                    const moderators = modSnapshot.val();
-                    if (moderators) {
-                        // Update all events with moderator names
-                        Object.entries(events).forEach(([id, event]) => {
-                            if (event.assignedModerators) {
-                                const assignedMods = Object.keys(event.assignedModerators);
-                                const moderatorsHTML = assignedMods.map(modId => {
-                                    const mod = moderators[modId];
-                                    if (mod) {
-                                        return `
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${
-                                                mod.role === 'Admin' ? 'purple' : 
-                                                mod.role === 'Staff' ? 'blue' : 'gray'}-100 text-${
-                                                mod.role === 'Admin' ? 'purple' : 
-                                                mod.role === 'Staff' ? 'blue' : 'gray'}-800">
-                                                ${mod.name}
-                                            </span>
-                                        `;
-                                    }
-                                    return '';
-                                }).join('');
-                                
-                                // Find this event in the DOM and update the assigned moderators section
-                                const eventElement = eventsList.querySelector(`[data-event-id="${id}"]`);
-                                if (eventElement) {
-                                    const modsContainer = eventElement.querySelector('.assigned-moderators');
-                                    if (modsContainer) {
-                                        modsContainer.innerHTML = moderatorsHTML;
-                                    }
-                                }
-                            }
-                        });
-                    }
-                });
             });
         }
 
-        function saveEvent() {
+        async function saveEvent() {
             const eventId = document.getElementById('eventId').value;
             const title = document.getElementById('eventTitle').value;
             const description = document.getElementById('eventDescription').value;
-            const date = document.getElementById('eventDate').value;
-            const time = document.getElementById('eventTime').value;
-            const status = document.getElementById('eventStatus').value;
-            const progress = document.getElementById('eventProgress').value;
+            const estimatedBudget = parseFloat(document.getElementById('estimatedBudget').value) || 0;
+            const executionDateTime = document.getElementById('executionDateTime').value;
             
-            const assignedModerators = {};
-            const checkboxes = document.querySelectorAll('#eventModeratorsList input[type="checkbox"]');
-            checkboxes.forEach(checkbox => {
-                const modId = checkbox.id.replace('mod_', '');
-                assignedModerators[modId] = checkbox.checked;
+            const selectedDepartments = {};
+            document.querySelectorAll('#eventDepartmentsList input[type="checkbox"][id^="dept_"]:checked').forEach(deptCheckbox => {
+                const deptName = deptCheckbox.value;
+                selectedDepartments[deptName] = { progress: 0, subdivisions: {} }; // Initialize department with 0 progress and empty subdivisions
+
+                // Collect selected subdivisions for this department
+                document.querySelectorAll(`#subdivisions_for_${deptName} input[type="checkbox"]:checked`).forEach(subDivCheckbox => {
+                    const subDivName = subDivCheckbox.value;
+                    selectedDepartments[deptName].subdivisions[subDivName] = { progress: 0 }; // Initialize subdivision with 0 progress
+                });
             });
 
-            if (!title || !date || !time) {
-                alert('Please fill in all required fields');
+            if (!title || !executionDateTime || Object.keys(selectedDepartments).length === 0) {
+                alert('Please fill in title, execution date/time, and select at least one department.');
                 return;
             }
 
             const eventData = {
                 title,
                 description,
-                date,
-                time,
-                status,
-                progress: parseInt(progress),
-                assignedModerators,
+                estimatedBudget,
+                executionDateTime,
+                departments: selectedDepartments,
                 updatedAt: firebase.database.ServerValue.TIMESTAMP
             };
 
             if (eventId) {
                 // Update existing event
-                eventsRef.child(eventId).update(eventData);
+                const existingEvent = (await eventsRef.child(eventId).once('value')).val();
+                if (existingEvent && existingEvent.departments) {
+                    // Preserve existing department and subdivision structure if re-selected
+                    Object.keys(selectedDepartments).forEach(deptName => {
+                        if (existingEvent.departments[deptName]) {
+                            selectedDepartments[deptName].progress = existingEvent.departments[deptName].progress || 0;
+                            if (existingEvent.departments[deptName].subdivisions) {
+                                Object.keys(selectedDepartments[deptName].subdivisions).forEach(subDivName => {
+                                    if (existingEvent.departments[deptName].subdivisions[subDivName]) {
+                                        selectedDepartments[deptName].subdivisions[subDivName] = existingEvent.departments[deptName].subdivisions[subDivName];
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+                eventData.departments = selectedDepartments;
+                await eventsRef.child(eventId).update(eventData);
             } else {
                 // Create new event
                 eventData.createdAt = firebase.database.ServerValue.TIMESTAMP;
                 eventData.createdBy = currentUser.uid;
-                eventsRef.push(eventData);
+                const newEventRef = eventsRef.push();
+                await newEventRef.set(eventData);
             }
 
             hideEventModal();
+            loadEvents(); // Reload events to show updates
         }
 
         function deleteEvent(eventId) {
-            if (confirm('Are you sure you want to delete this event?')) {
-                eventsRef.child(eventId).remove();
+            if (confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
+                eventsRef.child(eventId).remove().then(() => {
+                    alert('Event deleted successfully.');
+                    loadEvents(); // Reload events after deletion
+                }).catch(error => {
+                    alert('Error deleting event: ' + error.message);
+                });
             }
         }
 
-        function formatDateDistance(dateString) {
+        function formatDateDistance(dateTimeString) {
             const now = new Date();
-            const eventDate = new Date(dateString);
-            const diffInDays = Math.floor((eventDate - now) / (1000 * 60 * 60 * 24));
+            const eventDate = new Date(dateTimeString);
+            const diffInMs = eventDate - now;
+            const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
             
             if (diffInDays < 0) return 'Event passed';
-            if (diffInDays === 0) return 'Today';
+            if (diffInDays === 0) {
+                const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+                if (diffInHours === 0) return 'Happening soon';
+                return `Today, in ${diffInHours} hour${diffInHours === 1 ? '' : 's'}`;
+            }
             if (diffInDays === 1) return 'Tomorrow';
             if (diffInDays < 7) return `In ${diffInDays} days`;
             if (diffInDays < 30) return `In ${Math.floor(diffInDays / 7)} week${Math.floor(diffInDays / 7) > 1 ? 's' : ''}`;
             return `On ${eventDate.toLocaleDateString()}`;
         }
+
+        // Event Details Modal Functions
+        async function showEventDetailsModal(eventId) {
+            document.getElementById('eventDetailsModal').classList.add('active');
+            document.getElementById('eventDetailsModal').classList.remove('hidden');
+
+            const eventSnapshot = await eventsRef.child(eventId).once('value');
+            const event = eventSnapshot.val();
+
+            if (!event) {
+                alert('Event not found.');
+                hideEventDetailsModal();
+                return;
+            }
+
+            document.getElementById('detailEventTitle').textContent = event.title;
+            document.getElementById('detailEventDescription').textContent = event.description;
+            document.getElementById('detailEstimatedBudget').textContent = `Rp ${event.estimatedBudget ? event.estimatedBudget.toLocaleString() : '0'}`;
+            document.getElementById('detailExecutionDateTime').textContent = new Date(event.executionDateTime).toLocaleString();
+
+            const departmentsListEl = document.getElementById('eventDetailsDepartmentsList');
+            departmentsListEl.innerHTML = '';
+
+            // Listen for real-time updates on this specific event
+            eventsRef.child(eventId).on('value', async (updatedEventSnapshot) => {
+                const updatedEvent = updatedEventSnapshot.val();
+                if (!updatedEvent) {
+                    hideEventDetailsModal(); // Event might have been deleted
+                    return;
+                }
+
+                // Update overall event progress
+                const overallProgress = updatedEvent.progress ? (updatedEvent.progress * 100).toFixed(0) : 0;
+                document.getElementById('detailEventProgress').textContent = `${overallProgress}%`;
+                document.getElementById('detailEventProgressBar').style.width = `${overallProgress}%`;
+                document.getElementById('detailEventProgressBar').className = `progress-fill bg-${overallProgress == 100 ? 'green' : 'blue'}-500`;
+
+                departmentsListEl.innerHTML = ''; // Clear before re-rendering
+
+                const departments = updatedEvent.departments || {};
+                for (const deptName of Object.keys(departments)) {
+                    const department = departments[deptName];
+                    const deptProgress = department.progress ? (department.progress * 100).toFixed(0) : 0;
+                    const deptProgressColor = deptProgress == 100 ? 'green' : 'blue';
+
+                    // Check if current user belongs to this department
+                    const canAddSubdivision = currentUserData && currentUserData.role === deptName;
+
+                    let departmentHtml = `
+                        <div class="department-item p-3 border rounded-md shadow-sm mb-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <h4 class="font-semibold text-lg text-gray-800">${deptName}</h4>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm font-medium text-${deptProgressColor}-800">${deptProgress}%</span>
+                                    ${canAddSubdivision ? `
+                                    <button onclick="promptAddSubdivision('${eventId}', '${deptName}')" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600">Add Sub-Divisi</button>
+                                    ` : ''}
+                                    <button onclick="deleteDepartment('${eventId}', '${deptName}')" class="text-red-500 hover:text-red-700 text-sm">Delete Dept</button>
+                                </div>
+                            </div>
+                            <div class="progress-bar mb-3">
+                                <div class="progress-fill bg-${deptProgressColor}-500" style="width: ${deptProgress}%"></div>
+                            </div>
+                            <div class="nested-progress-container space-y-3" id="subdivisions-list-${deptName}">
+                                <!-- Subdivisions will be loaded here -->
+                            </div>
+                        </div>
+                    `;
+                    departmentsListEl.innerHTML += departmentHtml;
+
+                    const subdivisionsListEl = document.getElementById(`subdivisions-list-${deptName}`);
+                    const subdivisions = department.subdivisions || {};
+
+                    for (const subDivName of Object.keys(subdivisions)) {
+                        const subdivision = subdivisions[subDivName];
+                        const subDivProgress = subdivision.progress ? (subdivision.progress * 100).toFixed(0) : 0;
+                        const subDivProgressColor = subDivProgress == 100 ? 'green' : 'blue';
+
+                        // Check if current user belongs to this subdivision
+                        const canAddTasks = currentUserData && currentUserData.role === deptName && currentUserData.subDivision === subDivName;
+                        // Bug Fix: Allow PIC to edit their own tasks
+                        const canEditAnyTaskInSubdivision = currentUserData && currentUserData.role === deptName && currentUserData.subDivision === subDivName;
+
+
+                        let subdivisionHtml = `
+                            <div class="subdivision-item p-3 border rounded-md shadow-sm mb-2">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h5 class="font-medium text-md text-gray-700">${subDivName}</h5>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-sm font-medium text-${subDivProgressColor}-800">${subDivProgress}%</span>
+                                        ${canAddTasks ? `
+                                        <button onclick="promptAddTask('${eventId}', '${deptName}', '${subDivName}')" class="bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600">Add Task</button>
+                                        ` : ''}
+                                        <button onclick="deleteSubdivision('${eventId}', '${deptName}', '${subDivName}')" class="text-red-500 hover:text-red-700 text-sm">Delete Sub-Divisi</button>
+                                    </div>
+                                </div>
+                                <div class="progress-bar mb-3">
+                                    <div class="progress-fill bg-${subDivProgressColor}-500" style="width: ${subDivProgress}%"></div>
+                                </div>
+                                <div class="nested-progress-container space-y-2" id="tasks-list-${deptName}-${subDivName}">
+                                    <!-- Tasks will be loaded here -->
+                                </div>
+                            </div>
+                        `;
+                        subdivisionsListEl.innerHTML += subdivisionHtml;
+
+                        const tasksListEl = document.getElementById(`tasks-list-${deptName}-${subDivName}`);
+                        const tasks = subdivision.tasks || {};
+
+                        for (const taskId of Object.keys(tasks)) {
+                            const task = tasks[taskId];
+                            const taskStatusColor = task.status === 'complete' ? 'green' : 'orange';
+                            // Bug Fix: Allow PIC to edit their own tasks
+                            const isPIC = currentUserData && currentUserData.uid === task.PIC;
+                            const canEditTask = isPIC || canEditAnyTaskInSubdivision; // PIC or anyone in the subdivision can edit
+
+                            tasksListEl.innerHTML += `
+                                <div class="task-item p-2 border rounded-md flex justify-between items-center">
+                                    <div>
+                                        <p class="font-normal text-gray-800">${task.title}</p>
+                                        <p class="text-xs text-gray-500">PIC: ${task.PICName || 'Unknown'} | Status: <span class="font-medium text-${taskStatusColor}-600">${task.status}</span></p>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        ${canEditTask ? `
+                                        <select onchange="updateTaskStatus('${eventId}', '${deptName}', '${subDivName}', '${taskId}', this.value)" class="border rounded-md text-sm px-2 py-1">
+                                            <option value="pending" ${task.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                            <option value="in process" ${task.status === 'in process' ? 'selected' : ''}>In Process</option>
+                                            <option value="complete" ${task.status === 'complete' ? 'selected' : ''}>Complete</option>
+                                            <option value="incomplete" ${task.status === 'incomplete' ? 'selected' : ''}>Incomplete</option>
+                                        </select>
+                                        <button onclick="deleteTask('${eventId}', '${deptName}', '${subDivName}', '${taskId}')" class="text-red-500 hover:text-red-700 text-sm">Delete</button>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+            });
+        }
+
+        function hideEventDetailsModal() {
+            document.getElementById('eventDetailsModal').classList.remove('active');
+            document.getElementById('eventDetailsModal').classList.add('hidden');
+            // Detach listener when modal is closed to prevent memory leaks
+            // const currentEventId = document.getElementById('detailEventTitle').textContent; // A bit hacky, but works if title is unique
+            eventsRef.off('value'); // Detach all listeners for eventsRef
+            loadEvents(); // Reload main events list to ensure consistency
+        }
+
+        // CRUD for Departments, Subdivisions, Tasks
+        async function promptAddSubdivision(eventId, departmentName) {
+            if (!currentUserData || currentUserData.role !== departmentName) {
+                alert('You do not have permission to add subdivisions to this department.');
+                return;
+            }
+
+            const availableSubdivisions = subDivisionOptions[departmentName] || [];
+            if (availableSubdivisions.length === 0) {
+                alert(`No predefined subdivisions for ${departmentName}.`);
+                return;
+            }
+
+            // The prompt above doesn't render HTML, so we'll use a custom modal or a simpler prompt
+            const selectedSubdivision = prompt(`Enter the name of the Sub-Divisi for ${departmentName} (e.g., ${availableSubdivisions.join(', ')}):`);
+
+            if (selectedSubdivision) {
+                if (!availableSubdivisions.includes(selectedSubdivision)) {
+                    alert(`"${selectedSubdivision}" is not a valid sub-division for ${departmentName}. Please choose from: ${availableSubdivisions.join(', ')}`);
+                    return;
+                }
+                await addOrUpdateSubdivision(eventId, departmentName, selectedSubdivision);
+            }
+        }
+
+        async function addOrUpdateSubdivision(eventId, departmentName, subdivisionName) {
+            const subDivRef = eventsRef.child(eventId).child('departments').child(departmentName).child('subdivisions').child(subdivisionName);
+            await subDivRef.update({ progress: 0 }); // Initialize progress
+            await calculateProgress(eventId); // Recalculate progress for event
+        }
+
+        async function promptAddTask(eventId, departmentName, subdivisionName) {
+            if (!currentUserData || currentUserData.role !== departmentName || currentUserData.subDivision !== subdivisionName) {
+                alert('You do not have permission to add tasks to this subdivision.');
+                return;
+            }
+
+            const taskTitle = prompt('Enter the new task title:');
+            if (taskTitle) {
+                const taskId = db.ref().push().key; // Generate unique ID for task
+                const taskData = {
+                    title: taskTitle,
+                    status: 'pending',
+                    PIC: currentUser.uid,
+                    PICName: currentUserData.name || currentUser.email.split('@')[0]
+                };
+                await addOrUpdateTask(eventId, departmentName, subdivisionName, taskId, taskData);
+            }
+        }
+
+        async function addOrUpdateTask(eventId, departmentName, subdivisionName, taskId, taskData) {
+            const taskRef = eventsRef.child(eventId).child('departments').child(departmentName).child('subdivisions').child(subdivisionName).child('tasks').child(taskId);
+            await taskRef.set(taskData);
+            await calculateProgress(eventId); // Recalculate progress for event
+        }
+
+        async function updateTaskStatus(eventId, departmentName, subdivisionName, taskId, newStatus) {
+            const taskRef = eventsRef.child(eventId).child('departments').child(departmentName).child('subdivisions').child(subdivisionName).child('tasks').child(taskId);
+            await taskRef.update({ status: newStatus });
+            await calculateProgress(eventId); // Recalculate progress for event
+        }
+
+        async function deleteTask(eventId, departmentName, subdivisionName, taskId) {
+            if (!confirm('Are you sure you want to delete this task?')) return;
+            const taskRef = eventsRef.child(eventId).child('departments').child(departmentName).child('subdivisions').child(subdivisionName).child('tasks').child(taskId);
+            await taskRef.remove();
+            await calculateProgress(eventId); // Recalculate progress for event
+        }
+
+        async function deleteSubdivision(eventId, departmentName, subdivisionName) {
+            if (!confirm('Are you sure you want to delete this subdivision and all its tasks?')) return;
+            const subDivRef = eventsRef.child(eventId).child('departments').child(departmentName).child('subdivisions').child(subdivisionName);
+            await subDivRef.remove();
+            await calculateProgress(eventId); // Recalculate progress for event
+        }
+
+        async function deleteDepartment(eventId, departmentName) {
+            if (!confirm('Are you sure you want to delete this department from the event and all its subdivisions/tasks?')) return;
+            const deptRef = eventsRef.child(eventId).child('departments').child(departmentName);
+            await deptRef.remove();
+            await calculateProgress(eventId); // Recalculate progress for event
+        }
+
+        // Progress Calculation Logic
+        async function calculateProgress(eventId) {
+            const eventRef = eventsRef.child(eventId);
+            const eventSnapshot = await eventRef.once('value');
+            const eventData = eventSnapshot.val();
+
+            if (!eventData || !eventData.departments) {
+                await eventRef.update({ progress: 0 });
+                return;
+            }
+
+            let totalDeptProgress = 0;
+            let deptCount = 0;
+
+            for (const deptName in eventData.departments) {
+                const department = eventData.departments[deptName];
+                let totalSubDivProgress = 0;
+                let subDivCount = 0;
+
+                if (department.subdivisions) {
+                    for (const subDivName in department.subdivisions) {
+                        const subdivision = department.subdivisions[subDivName];
+                        let completedTasks = 0;
+                        let totalTasks = 0;
+
+                        if (subdivision.tasks) {
+                            for (const taskId in subdivision.tasks) {
+                                totalTasks++;
+                                if (subdivision.tasks[taskId].status === 'complete') {
+                                    completedTasks++;
+                                }
+                            }
+                        }
+                        const subDivProgress = totalTasks > 0 ? completedTasks / totalTasks : 0;
+                        totalSubDivProgress += subDivProgress;
+                        subDivCount++;
+
+                        // Update subdivision progress in Firebase
+                        await eventRef.child('departments').child(deptName).child('subdivisions').child(subDivName).update({ progress: subDivProgress });
+                    }
+                }
+                const deptProgress = subDivCount > 0 ? totalSubDivProgress / subDivCount : 0;
+                totalDeptProgress += deptProgress;
+                deptCount++;
+
+                // Update department progress in Firebase
+                await eventRef.child('departments').child(deptName).update({ progress: deptProgress });
+            }
+
+            const overallEventProgress = deptCount > 0 ? totalDeptProgress / deptCount : 0;
+            // Update overall event progress in Firebase
+            await eventRef.update({ progress: overallEventProgress });
+        }
+
 
         // Reports functions
         function initReportModalEvents() {
@@ -1854,7 +1779,7 @@ Discord Server
                 // Create new report
                 reportData.timestamp = firebase.database.ServerValue.TIMESTAMP;
                 reportData.reporterId = currentUser.uid;
-                reportData.reporterName = currentUser.displayName || currentUser.email.split('@')[0];
+                reportData.reporterName = currentUserData.name || currentUser.email.split('@')[0];
                 reportsRef.push(reportData);
             }
 
@@ -1929,7 +1854,7 @@ Discord Server
             const chatMessage = {
                 text: message,
                 senderId: currentUser.uid,
-                senderName: currentUser.displayName || currentUser.email.split('@')[0],
+                senderName: currentUserData.name || currentUser.email.split('@')[0],
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             };
 
@@ -2042,7 +1967,7 @@ Discord Server
     document.getElementById('updateProfileBtn').addEventListener('click', function () {
         const name = document.getElementById('updateProfileName').value;
         const role = document.getElementById('updateProfileRole').value;
-    const subDivision = document.getElementById('updateProfileSubDivision')?.value || '';
+        const subDivision = document.getElementById('updateProfileSubDivision')?.value || '';
         const password = document.getElementById('updateProfilePassword').value;
 
         if (!name || !role) {
@@ -2051,9 +1976,9 @@ Discord Server
         }
 
         const updates = {
-        subDivision: subDivision,
             name,
             role,
+            subDivision,
             updatedAt: firebase.database.ServerValue.TIMESTAMP
         };
 
@@ -2064,7 +1989,7 @@ Discord Server
                 moderatorsRef.child(userId).update({
                     name: name,
                     role: role,
-        subDivision: subDivision
+                    subDivision: subDivision
                 });
     
             if (password) {
@@ -2076,6 +2001,11 @@ Discord Server
             } else {
                 alert('Profile updated successfully.');
             }
+            // Update currentUserData after successful profile update
+            currentUserData.name = name;
+            currentUserData.role = role;
+            currentUserData.subDivision = subDivision;
+            loadProfile(); // Reload profile section to reflect changes
         }).catch(error => {
             alert('Profile update failed: ' + error.message);
         });
@@ -2158,8 +2088,12 @@ function loadProfile() {
             document.getElementById('profileAvatar').textContent = user.name ? user.name.substring(0, 1).toUpperCase() : '?';
             document.getElementById('updateProfileName').value = user.name;
             document.getElementById('updateProfileRole').value = user.role;
+            document.getElementById('updateProfileSubDivision').value = user.subDivision || ''; // Set subDivision value
             document.getElementById('profileJoinDate').textContent = new Date(user.joinedAt || Date.now()).toLocaleDateString();
             document.getElementById('profileLastLogin').textContent = new Date().toLocaleString();
+
+            // Trigger updateSubDivisions to correctly enable/disable and filter sub-division dropdown
+            updateSubDivisions('updateProfileRole', 'updateProfileSubDivision');
         }
     });
 }
@@ -2170,6 +2104,8 @@ function loadProfile() {
 <script>
 // Tambahkan di bagian bawah script utama, atau setelah definisi fungsi setupUserPresence()
 
+// This setupUserPresence is already defined above, avoid re-definition
+/*
 function setupUserPresence() {
     const userId = currentUser.uid;
     const userStatusRef = db.ref('status/' + userId);
@@ -2196,6 +2132,7 @@ function setupUserPresence() {
         }
     });
 }
+*/
 
 // Perbarui loadProfile jadi realtime
 function loadProfileRealtime() {
@@ -2224,9 +2161,11 @@ function loadProfileRealtime() {
 // loadProfileRealtime();
 
 // Tambahkan update ke moderatorsRef saat user update profil
-function saveProfile() {
+// This saveProfile is for the initial profile completion, not the update profile section
+function saveProfileInitial() { 
     const name = document.getElementById('profileName').value;
     const role = document.getElementById('profileRole').value;
+    const subDivision = document.getElementById('profileSubDivision')?.value || '';
     const password = document.getElementById('profilePassword').value;
 
     if (!name || !role) {
@@ -2237,21 +2176,19 @@ function saveProfile() {
     const updates = {
         name: name,
         role: role,
-        profileComplete: true
+        subDivision: subDivision,
+        profileComplete: true,
+        joinedAt: new Date().toISOString()
     };
 
     const userId = currentUser.uid;
 
     usersRef.child(userId).update(updates).then(() => {
-                // Update moderatorsRef name and role too
-                moderatorsRef.child(userId).update({
-                    name: name,
-                    role: role
-                });
-    
         moderatorsRef.child(userId).update({
             name: name,
             role: role,
+            subDivision: subDivision,
+            joinedAt: updates.joinedAt,
             lastSeen: new Date().toISOString()
         });
 
@@ -2260,13 +2197,18 @@ function saveProfile() {
                 console.error('Error updating password:', error);
             });
         }
-
+        currentUserData = { ...currentUserData, ...updates }; // Update global user data
         document.getElementById('authModal').classList.remove('flex');
         document.getElementById('authModal').classList.add('hidden');
         document.getElementById('app').classList.remove('hidden');
         loadAppData();
     });
 }
+
+// Override the saveProfile function with the initial one
+document.getElementById('saveProfileBtn').removeEventListener('click', saveProfile);
+document.getElementById('saveProfileBtn').addEventListener('click', saveProfileInitial);
+
 
 // Gunakan user data terbaru saat kirim pesan chat
 function sendMessage() {
@@ -2315,6 +2257,8 @@ document.getElementById('moderatorSearch').addEventListener('input', function ()
 <script>
 // Tambahkan di bagian bawah script utama, atau setelah definisi fungsi setupUserPresence()
 
+// This setupUserPresence is already defined above, avoid re-definition
+/*
 function setupUserPresence() {
     const userId = currentUser.uid;
     const userStatusRef = db.ref('status/' + userId);
@@ -2341,8 +2285,11 @@ function setupUserPresence() {
         }
     });
 }
+*/
 
 // Perbarui loadProfile jadi realtime
+// This loadProfileRealtime is already defined above, avoid re-definition
+/*
 function loadProfileRealtime() {
     const uid = currentUser.uid;
     usersRef.child(uid).on('value', snapshot => {
@@ -2364,11 +2311,14 @@ function loadProfileRealtime() {
         }
     });
 }
+*/
 
 // Gunakan saat ganti tab ke profile atau saat login sukses
 // loadProfileRealtime();
 
 // Tambahkan update ke moderatorsRef saat user update profil
+// This saveProfile is already defined above, avoid re-definition
+/*
 function saveProfile() {
     const name = document.getElementById('profileName').value;
     const role = document.getElementById('profileRole').value;
@@ -2412,8 +2362,11 @@ function saveProfile() {
         loadAppData();
     });
 }
+*/
 
 // Gunakan user data terbaru saat kirim pesan chat
+// This sendMessage is already defined above, avoid re-definition
+/*
 function sendMessage() {
     const message = document.getElementById('chatInput').value.trim();
     if (!message) return;
@@ -2434,6 +2387,7 @@ function sendMessage() {
         document.getElementById('chatInput').value = '';
     });
 }
+*/
 
 // Ganti event click tombol kirim chat
 // document.getElementById('sendChatBtn').addEventListener('click', sendMessage);
@@ -2508,7 +2462,6 @@ document.getElementById('exportFinanceBtn').addEventListener('click', function()
 
         // Immediately mark online + lastSeen
         modRef.update({ status: 'online', lastSeen: new Date().toISOString() });
-
         // Keep refreshing lastSeen every 20s for better accuracy
         setLastSeen();
         window._lastSeenInterval && clearInterval(window._lastSeenInterval);
@@ -2613,27 +2566,90 @@ document.addEventListener('DOMContentLoaded', function () {
 function updateSubDivisions(roleSelectId, subDivSelectId) {
   const role = document.getElementById(roleSelectId).value;
   const subDiv = document.getElementById(subDivSelectId);
-  const options = subDiv.querySelectorAll('option[data-role]');
-
+  
+  // Clear existing options except the first one
+  subDiv.innerHTML = '<option value="">Pilih Sub-Divisi</option>';
+  
   if (role === "Founder" || role === "Co-Founder" || role === "") {
     subDiv.value = "";
     subDiv.disabled = true;
-    options.forEach(opt => opt.hidden = true);
     return;
   }
 
-  subDiv.disabled = false;
-  options.forEach(opt => {
-    opt.hidden = opt.getAttribute('data-role') !== role;
+  const availableSubdivisions = subDivisionOptions[role] || [];
+  availableSubdivisions.forEach(item => {
+    const option = document.createElement('option');
+    option.value = item;
+    option.textContent = item;
+    option.setAttribute('data-role', role); // Keep data-role for consistency
+    subDiv.appendChild(option);
   });
 
-  if (subDiv.selectedOptions.length > 0) {
-    const current = subDiv.selectedOptions[0];
-    if (current.getAttribute('data-role') !== role) {
-      subDiv.value = "";
-    }
+  subDiv.disabled = false;
+
+  // If there's a pre-selected value (e.g., from user data), try to set it
+  // This assumes `updateProfileSubDivision` might have a value from `user.subDivision`
+  if (subDiv.dataset.initialValue) {
+      subDiv.value = subDiv.dataset.initialValue;
+      delete subDiv.dataset.initialValue; // Clear after setting
+  } else if (currentUserData && currentUserData.subDivision && currentUserData.role === role) {
+      // If current user's subDivision matches the selected role, pre-select it
+      subDiv.value = currentUserData.subDivision;
+  } else {
+      subDiv.value = ""; // Reset if no matching sub-division
   }
 }
+
+// Override loadProfile to correctly set initial subDivision value
+const originalLoadProfile = loadProfile;
+loadProfile = function() {
+    originalLoadProfile(); // Call the original loadProfile first
+    const uid = currentUser.uid;
+    usersRef.child(uid).once('value').then(snapshot => {
+        const user = snapshot.val();
+        if (user && user.subDivision) {
+            // Store the initial value in a dataset attribute
+            document.getElementById('updateProfileSubDivision').dataset.initialValue = user.subDivision;
+            // Then call updateSubDivisions to populate and select
+            updateSubDivisions('updateProfileRole', 'updateProfileSubDivision');
+        }
+    });
+};
+
+// Fungsi baru untuk menampilkan/menyembunyikan sub-divisi dan memuat checkbox
+function toggleSubdivisions(departmentName, isChecked, eventId = null) {
+    const subDivContainer = document.getElementById(`subdivisions_for_${departmentName}`);
+    if (isChecked) {
+        subDivContainer.classList.remove('hidden');
+        loadSubdivisionCheckboxes(departmentName, {}, eventId); // Load empty or existing subdivisions
+    } else {
+        subDivContainer.classList.add('hidden');
+        subDivContainer.innerHTML = ''; // Clear checkboxes when department is unchecked
+    }
+}
+
+// Fungsi baru untuk memuat checkbox sub-divisi
+function loadSubdivisionCheckboxes(departmentName, existingSubdivisions = {}, eventId = null) {
+    const subDivContainer = document.getElementById(`subdivisions_for_${departmentName}`);
+    subDivContainer.innerHTML = ''; // Clear before adding
+
+    const availableSubdivisions = subDivisionOptions[departmentName] || [];
+    if (availableSubdivisions.length === 0) {
+        subDivContainer.innerHTML = '<p class="text-xs text-gray-500">No specific subdivisions for this department.</p>';
+        return;
+    }
+
+    availableSubdivisions.forEach(subDiv => {
+        const isSubDivChecked = existingSubdivisions[subDiv];
+        subDivContainer.innerHTML += `
+            <label class="inline-flex items-center">
+                <input type="checkbox" id="subdiv_${departmentName}_${subDiv}" value="${subDiv}" ${isSubDivChecked ? 'checked' : ''} class="h-4 w-4 text-gray-600 rounded">
+                <span class="ml-2 text-xs text-gray-600">${subDiv}</span>
+            </label>
+        `;
+    });
+}
+
 </script>
 
 </body>
