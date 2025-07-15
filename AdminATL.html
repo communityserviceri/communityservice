@@ -1,0 +1,306 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel | Community Service</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<!-- LOGIN PAGE -->
+<div id="loginPage" class="flex items-center justify-center min-h-screen">
+  <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md space-y-4">
+    <h2 class="text-2xl font-bold text-center text-gray-700">Admin Login</h2>
+    <input type="email" id="adminEmail" placeholder="Email Admin" class="w-full p-3 border rounded-lg" required />
+    <input type="password" id="adminPassword" placeholder="Password" class="w-full p-3 border rounded-lg" required />
+    <button onclick="adminLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg">Login</button>
+    <p id="status" class="text-center text-sm text-gray-500"></p>
+  </div>
+</div>
+
+<!-- DASHBOARD LAYOUT -->
+<div id="dashboardLayout" class="hidden min-h-screen flex flex-col">
+
+  <!-- HEADER -->
+  <header class="bg-white shadow flex items-center justify-between px-6 py-4">
+    <h1 class="text-xl font-semibold text-gray-700">Community Service Admin</h1>
+    <div class="flex items-center gap-4">
+      <button onclick="toggleSidebar()" class="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-lg text-sm">☰</button>
+      <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">Logout</button>
+    </div>
+  </header>
+
+  <div class="flex flex-1 overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="w-64 bg-white border-r shadow-md flex flex-col transition-all duration-300">
+      <nav class="flex-1 p-6 space-y-2">
+        <ul class="space-y-2">
+          <li><button onclick="showSection('dashboard')" class="text-left w-full text-gray-700 hover:text-blue-600">📊 Dashboard</button></li>
+          <li><button onclick="showSection('finance')" class="text-left w-full text-gray-700 hover:text-blue-600">💰 Keuangan</button></li>
+          <li><button onclick="showSection('moderator')" class="text-left w-full text-gray-700 hover:text-blue-600">🧑‍💼 Moderator</button></li>
+          <li><button onclick="showSection('tambahAkun')" class="text-left w-full text-gray-700 hover:text-blue-600">➕ Tambah Akun</button></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 p-6 overflow-y-auto space-y-6">
+
+      <!-- Dashboard Section -->
+      <div id="dashboardSection">
+        <h2 class="text-2xl font-bold text-gray-700 mb-4">Ringkasan</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-white p-4 rounded-lg shadow">
+            <h3 class="font-semibold text-gray-600">Keuangan</h3>
+            <canvas id="financeChart"></canvas>
+          </div>
+          <div class="bg-white p-4 rounded-lg shadow">
+            <h3 class="font-semibold text-gray-600">Moderator</h3>
+            <canvas id="roleChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Finance Section -->
+      <div id="financeSection" class="hidden">
+        <h2 class="text-2xl font-bold text-gray-700 mb-4">Detail Keuangan</h2>
+        <p class="text-gray-500">Grafik pemasukan dan pengeluaran selama periode tertentu.</p>
+        <canvas id="financeChartDetail"></canvas>
+      </div>
+
+      <!-- Moderator Section -->
+      <div id="moderatorSection" class="hidden">
+        <h2 class="text-2xl font-bold text-gray-700 mb-4">Data Moderator</h2>
+        <input type="text" id="searchModerator" placeholder="Cari nama moderator..." class="w-full p-2 border rounded-lg mb-4"/>
+        <select id="filterDepartemen" class="w-full p-2 border rounded-lg mb-4">
+          <option value="">Semua Departemen</option>
+          <option value="IT">IT</option>
+          <option value="Finance">Finance</option>
+          <option value="HR">HR</option>
+          <option value="Lainnya">Lainnya</option>
+        </select>
+        <div id="moderatorList" class="space-y-2"></div>
+        <canvas id="roleChartDetail"></canvas>
+      </div>
+
+      <!-- Tambah Akun Section -->
+      <div id="tambahAkunSection" class="hidden max-w-md bg-white p-6 rounded-lg shadow space-y-4">
+        <h3 class="text-2xl font-semibold text-gray-700">Tambah Akun Baru</h3>
+        <input type="email" id="email" placeholder="Email Baru" class="w-full p-3 border rounded-lg" />
+        <button onclick="addAccount()" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg">Tambah Akun</button>
+        <button id="resetBtn" onclick="resetForm()" class="hidden w-full bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-lg">Tambah Akun Lagi</button>
+        <p id="panelStatus" class="text-center text-sm text-gray-500"></p>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCdl3XJ-eUz8BELLaSOXeZFpg7FLDFk7l4",
+  authDomain: "community-service-f4540.firebaseapp.com",
+  databaseURL: "https://community-service-f4540-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "community-service-f4540",
+  storageBucket: "community-service-f4540.appspot.com",
+  messagingSenderId: "610712310542",
+  appId: "1:610712310542:web:12536a7c23d0b41db03d5f"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+window.adminLogin = function() {
+  const email = document.getElementById("adminEmail").value.trim();
+  const password = document.getElementById("adminPassword").value;
+  const status = document.getElementById("status");
+
+  if (!email || !password) {
+    status.innerText = "❌ Email dan password harus diisi!";
+    return;
+  }
+
+  signInWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {
+      const user = userCredential.user;
+      if (user.email !== "admin@atl.moderator.com") {
+        status.innerText = "❌ Hanya admin yang diizinkan!";
+        return;
+      }
+      document.getElementById("loginPage").classList.add("hidden");
+      document.getElementById("dashboardLayout").classList.remove("hidden");
+      window.showSection('dashboard');
+      loadCharts();
+    })
+    .catch((error) => {
+      status.innerText = "❌ Gagal login: " + error.message;
+    });
+};
+
+window.logout = function() {
+  signOut(auth).then(() => {
+    location.reload();
+  });
+};
+
+window.showSection = function(section) {
+  const sections = ['dashboardSection', 'financeSection', 'moderatorSection', 'tambahAkunSection'];
+  sections.forEach(id => document.getElementById(id).classList.add('hidden'));
+  if (section === 'dashboard') document.getElementById('dashboardSection').classList.remove('hidden');
+  if (section === 'finance') document.getElementById('financeSection').classList.remove('hidden');
+  if (section === 'moderator') document.getElementById('moderatorSection').classList.remove('hidden');
+  if (section === 'tambahAkun') document.getElementById('tambahAkunSection').classList.remove('hidden');
+};
+
+window.addAccount = function() {
+  const email = document.getElementById("email").value.trim();
+  const defaultPassword = "123456";
+  const status = document.getElementById("panelStatus");
+
+  if (!email) {
+    status.innerText = "❌ Email tidak boleh kosong!";
+    return;
+  }
+
+  createUserWithEmailAndPassword(auth, email, defaultPassword)
+    .then(() => {
+      status.innerText = `✅ Email "${email}" berhasil ditambahkan!`;
+      document.getElementById("email").disabled = true;
+      document.getElementById("resetBtn").classList.remove("hidden");
+    })
+    .catch((error) => {
+      status.innerText = "❌ Gagal tambah akun: " + error.message;
+    });
+};
+
+window.resetForm = function() {
+  document.getElementById("email").value = "";
+  document.getElementById("email").disabled = false;
+  document.getElementById("panelStatus").innerText = "";
+  document.getElementById("resetBtn").classList.add("hidden");
+};
+
+function loadCharts() {
+  const financeRef = ref(db, 'transaction');
+  const moderatorRef = ref(db, 'moderator');
+
+  let income = 0, expense = 0;
+
+  onValue(financeRef, (snapshot) => {
+    income = 0; expense = 0;
+    snapshot.forEach(child => {
+      const trx = child.val();
+      if (trx.type === 'income') income += trx.amount;
+      if (trx.type === 'expense') expense += trx.amount;
+    });
+
+    const financeCtx = document.getElementById('financeChart').getContext('2d');
+    new Chart(financeCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Income', 'Expense'],
+        datasets: [{ data: [income, expense], backgroundColor: ['#10b981', '#ef4444'] }]
+      },
+      options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    });
+
+    const financeDetailCtx = document.getElementById('financeChartDetail').getContext('2d');
+    new Chart(financeDetailCtx, {
+      type: 'pie',
+      data: {
+        labels: ['Income', 'Expense'],
+        datasets: [{ data: [income, expense], backgroundColor: ['#10b981', '#ef4444'] }]
+      },
+      options: { responsive: true }
+    });
+  });
+
+  onValue(moderatorRef, (snapshot) => {
+    const roles = {};
+    snapshot.forEach(child => {
+      const role = child.val().role || 'Lainnya';
+      roles[role] = (roles[role] || 0) + 1;
+    });
+
+    const roleCtx = document.getElementById('roleChart').getContext('2d');
+    new Chart(roleCtx, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(roles),
+        datasets: [{ data: Object.values(roles), backgroundColor: ['#3b82f6', '#6366f1', '#facc15', '#10b981', '#f472b6'] }]
+      },
+      options: { responsive: true }
+    });
+
+    const roleDetailCtx = document.getElementById('roleChartDetail').getContext('2d');
+    new Chart(roleDetailCtx, {
+      type: 'bar',
+      data: {
+        labels: Object.keys(roles),
+        datasets: [{ data: Object.values(roles), backgroundColor: '#3b82f6' }]
+      },
+      options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    });
+  });
+}
+
+  function toggleSidebar() {
+    // Fix: expose function to global scope
+    window.toggleSidebar = toggleSidebar;
+    const sidebar = document.getElementById("sidebar");
+    sidebar.classList.toggle("hidden");
+  }
+
+  const searchInput = document.getElementById("searchModerator");
+  const filterSelect = document.getElementById("filterDepartemen");
+
+  if (searchInput && filterSelect) {
+    searchInput.addEventListener("input", filterModerators);
+    filterSelect.addEventListener("change", filterModerators);
+  }
+
+  function filterModerators() {
+    const keyword = searchInput.value.toLowerCase();
+    const department = filterSelect.value;
+
+    document.querySelectorAll("#moderatorList .moderator-card").forEach(card => {
+      const name = card.dataset.name.toLowerCase();
+      const dept = card.dataset.departemen;
+      const matchName = name.includes(keyword);
+      const matchDept = !department || dept === department;
+      card.style.display = matchName && matchDept ? "" : "none";
+    });
+  }
+
+  // Contoh dummy data moderator yang akan dirender ke dalam #moderatorList
+  const dummyModerators = [
+    { name: "Rina", departemen: "IT" },
+    { name: "Dani", departemen: "Finance" },
+    { name: "Tari", departemen: "HR" },
+    { name: "Andi", departemen: "IT" },
+  ];
+
+  const listContainer = document.getElementById("moderatorList");
+  if (listContainer) {
+    dummyModerators.forEach(mod => {
+      const div = document.createElement("div");
+      div.className = "p-4 bg-white rounded-lg shadow moderator-card";
+      div.dataset.name = mod.name;
+      div.dataset.departemen = mod.departemen;
+      div.innerHTML = `<strong>${mod.name}</strong><br><small>${mod.departemen}</small>`;
+      listContainer.appendChild(div);
+    });
+  }
+</script>
+
+</body>
+</html>
