@@ -837,7 +837,7 @@ const subDivisionOptions = {
             const updates = {
                 name: name,
                 role: role,
-                subDivision: subDivision, // <-- TAMBAHAN UNTUK BUG FIX SUBDIV
+                subDivision: subDivision, // ✅ Pastikan ini ada
                 profileComplete: true,
                 joinedAt: new Date().toISOString() // Set joinedAt only on initial profile save
             };
@@ -850,7 +850,7 @@ const subDivisionOptions = {
                 moderatorsRef.child(userId).update({
                     name: name,
                     role: role,
-                    subDivision: subDivision,
+                    subDivision: subDivision, // ✅ Pastikan ini ada
                     joinedAt: updates.joinedAt, // Ensure joinedAt is consistent
                     lastSeen: new Date().toISOString()
                 });
@@ -993,7 +993,8 @@ const subDivisionOptions = {
             const moderatorsList = document.getElementById('moderatorsList');
             moderatorsList.innerHTML = '<div class="flex items-center justify-center py-12"><div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div></div>';
 
-            moderatorsRef.orderByChild('role').off(); moderatorsRef.orderByChild('role').on('value', snapshot => {
+            moderatorsRef.orderByChild('role').off(); 
+            moderatorsRef.orderByChild('role').on('value', snapshot => {
                 const moderators = snapshot.val();
                 if (!moderators) {
                     moderatorsList.innerHTML = '<p class="text-center py-8 text-gray-500">No moderators found</p>';
@@ -1001,8 +1002,6 @@ const subDivisionOptions = {
                     return;
                 }
 
-                let html = '';
-                let onlineCount = 0;
                 const moderatorArray = Object.entries(moderators);
 
                 // Sort by role hierarchy: Admin > Staff > Helper
@@ -1014,28 +1013,21 @@ const subDivisionOptions = {
                     return roleOrder.indexOf(roleA) - roleOrder.indexOf(roleB);
                 });
 
-                moderatorArray.forEach(([id, mod]) => {
-                    // Check status from /status node for real-time presence
-                    db.ref('status/' + id).on('value', statusSnap => {
-                        const status = statusSnap.val();
-                        const isOnline = status && status.status === 'online';
-                        
-                        // Re-render the specific moderator card to update online status
-                        const existingCard = document.getElementById(`mod-card-${id}`);
-                        if (existingCard) {
-                            existingCard.outerHTML = createModeratorCard(id, mod, isOnline);
-                        } else {
-                            // If card doesn't exist (e.g., initial load), append it
-                            // This part might need optimization for large lists to avoid re-rendering everything
-                            // For now, we'll just build the full list and update counts
-                        }
+                // ✅ Menggunakan Promise.all untuk menunggu semua status dimuat sebelum merender
+                const moderatorCardsPromises = moderatorArray.map(([id, mod]) => {
+                    return new Promise(resolve => {
+                        db.ref('status/' + id).on('value', statusSnap => {
+                            const status = statusSnap.val();
+                            const isOnline = status && status.status === 'online';
+                            resolve(createModeratorCard(id, mod, isOnline));
+                        });
                     });
-                    html += createModeratorCard(id, mod, false); // Initial render as offline, will be updated by status listener
                 });
 
-                moderatorsList.innerHTML = html;
-                document.getElementById('moderatorCount').textContent = moderatorArray.length;
-                // Online count will be updated by individual status listeners
+                Promise.all(moderatorCardsPromises).then(cardsHtml => {
+                    moderatorsList.innerHTML = cardsHtml.join('');
+                    document.getElementById('moderatorCount').textContent = moderatorArray.length;
+                });
             });
 
             // Update online count based on status changes
@@ -2072,7 +2064,8 @@ function loadFinance() {
 }
 
 // ✅ Tambahan fungsi: loadProfile
-function loadProfile() {
+const originalLoadProfile = loadProfile; // Simpan referensi ke fungsi asli
+loadProfile = function() { // Override fungsi loadProfile
     const uid = currentUser.uid;
     usersRef.child(uid).once('value').then(snapshot => {
         const user = snapshot.val();
@@ -2081,8 +2074,8 @@ function loadProfile() {
             document.getElementById('profileRoleBadge').textContent = user.role || 'Member';
             const color = roleColors[user.role] || 'gray';
             document.getElementById('profileRoleBadge').style.setProperty('--badge-bg', `var(--tw-bg-opacity, 1)`);
-            document.getElementById('profileRoleBadge').style.backgroundColor = `${colorMap(color, 100)}`;
-            document.getElementById('profileRoleBadge').style.color = `${colorMap(color, 800)}`;
+            document.getElementById('profileRoleBadge').style.backgroundColor = `${colorMap(color, 100)}`; // ✅ Menggunakan colorMap
+            document.getElementById('profileRoleBadge').style.color = `${colorMap(color, 800)}`; // ✅ Menggunakan colorMap
 
             document.getElementById('profileEmail').textContent = currentUser.email;
             document.getElementById('profileAvatar').textContent = user.name ? user.name.substring(0, 1).toUpperCase() : '?';
@@ -2093,10 +2086,12 @@ function loadProfile() {
             document.getElementById('profileLastLogin').textContent = new Date().toLocaleString();
 
             // Trigger updateSubDivisions to correctly enable/disable and filter sub-division dropdown
+            // Store the initial value in a dataset attribute before calling updateSubDivisions
+            document.getElementById('updateProfileSubDivision').dataset.initialValue = user.subDivision || '';
             updateSubDivisions('updateProfileRole', 'updateProfileSubDivision');
         }
     });
-}
+};
 
 </script>
 <!-- ✅ PATCHED CHAT, PROFILE, AND SEARCH SECTION START -->
@@ -2601,20 +2596,20 @@ function updateSubDivisions(roleSelectId, subDivSelectId) {
 }
 
 // Override loadProfile to correctly set initial subDivision value
-const originalLoadProfile = loadProfile;
-loadProfile = function() {
-    originalLoadProfile(); // Call the original loadProfile first
-    const uid = currentUser.uid;
-    usersRef.child(uid).once('value').then(snapshot => {
-        const user = snapshot.val();
-        if (user && user.subDivision) {
-            // Store the initial value in a dataset attribute
-            document.getElementById('updateProfileSubDivision').dataset.initialValue = user.subDivision;
-            // Then call updateSubDivisions to populate and select
-            updateSubDivisions('updateProfileRole', 'updateProfileSubDivision');
-        }
-    });
-};
+// const originalLoadProfile = loadProfile; // Sudah didefinisikan di atas
+// loadProfile = function() { // Sudah didefinisikan di atas
+//     originalLoadProfile(); // Call the original loadProfile first
+//     const uid = currentUser.uid;
+//     usersRef.child(uid).once('value').then(snapshot => {
+//         const user = snapshot.val();
+//         if (user && user.subDivision) {
+//             // Store the initial value in a dataset attribute
+//             document.getElementById('updateProfileSubDivision').dataset.initialValue = user.subDivision;
+//             // Then call updateSubDivisions to populate and select
+//             updateSubDivisions('updateProfileRole', 'updateProfileSubDivision');
+//         }
+//     });
+// };
 
 // Fungsi baru untuk menampilkan/menyembunyikan sub-divisi dan memuat checkbox
 function toggleSubdivisions(departmentName, isChecked, eventId = null) {
