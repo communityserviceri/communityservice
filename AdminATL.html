@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -6,6 +5,415 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Panel | Community Service</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script type="module">
+    // Firebase Finance Integration
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCdl3XJ-eUz8BELLaSOXeZFpg7FLDFk7l4",
+      authDomain: "community-service-f4540.firebaseapp.com",
+      databaseURL: "https://community-service-f4540-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "community-service-f4540",
+      storageBucket: "community-service-f4540.appspot.com",
+      messagingSenderId: "610712310542",
+      appId: "1:610712310542:web:12536a7c23d0b41db03d5f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    // Firebase References (disesuaikan dengan code (8).html)
+    const usersRef = ref(db, 'users');
+    const moderatorsRef = ref(db, 'moderators');
+    const eventsRef = ref(db, 'events');
+    const transactionsRef = ref(db, 'transactions');
+    const statusRef = ref(db, 'status'); // Untuk status online/offline
+
+    // --- Finance Functions ---
+    function loadFinance() {
+      const transactionsList = document.getElementById('transactionsList');
+      const totalBalanceEl = document.getElementById('totalBalance');
+      const monthlyIncomeEl = document.getElementById('monthlyIncome');
+      const monthlyExpensesEl = document.getElementById('monthlyExpenses');
+
+      onValue(transactionsRef, snapshot => {
+        const transactions = snapshot.val();
+        if (!transactions) {
+          transactionsList.innerHTML = '<p class="text-center py-8 text-gray-500">No transactions yet</p>';
+          totalBalanceEl.textContent = 'Rp 0';
+          monthlyIncomeEl.textContent = 'Rp 0';
+          monthlyExpensesEl.textContent = 'Rp 0';
+          return;
+        }
+
+        const now = new Date();
+        const thisMonth = now.getMonth();
+        const thisYear = now.getFullYear();
+
+        let html = '';
+        let balance = 0;
+        let income = 0;
+        let expenses = 0;
+
+        // Sort transactions by date (newest first)
+        const sortedTransactions = Object.entries(transactions).sort((a, b) => {
+            const dateA = new Date(a[1].date);
+            const dateB = new Date(b[1].date);
+            return dateB - dateA;
+        });
+
+        sortedTransactions.forEach(([id, trx]) => {
+          const trxDate = new Date(trx.date);
+          const amount = parseInt(trx.amount) || 0;
+          const isIncome = trx.type === 'income';
+
+          if (isIncome) balance += amount;
+          else balance -= amount;
+
+          if (trxDate.getMonth() === thisMonth && trxDate.getFullYear() === thisYear) {
+            if (isIncome) income += amount;
+            else expenses += amount;
+          }
+
+          html += `
+            <div class="bg-white p-4 shadow rounded-md flex justify-between items-center">
+              <div>
+                <h4 class="font-medium text-gray-900">${trx.description}</h4>
+                <p class="text-sm text-gray-500">${trx.category} • ${trx.date}</p>
+              </div>
+              <div class="text-${isIncome ? 'green' : 'red'}-600 font-bold">
+                ${isIncome ? '+' : '-'}Rp ${amount.toLocaleString()}
+              </div>
+            </div>
+          `;
+        });
+
+        transactionsList.innerHTML = html;
+        totalBalanceEl.textContent = `Rp ${balance.toLocaleString()}`;
+        monthlyIncomeEl.textContent = `Rp ${income.toLocaleString()}`;
+        monthlyExpensesEl.textContent = `Rp ${expenses.toLocaleString()}`;
+
+        // Update Finance Chart (Dashboard)
+        updateFinanceChart(income, expenses);
+      });
+    }
+
+    let financeChartInstance = null;
+    function updateFinanceChart(income, expenses) {
+        const financeCtx = document.getElementById('financeChart').getContext('2d');
+        if (financeChartInstance) {
+            financeChartInstance.destroy();
+        }
+        financeChartInstance = new Chart(financeCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Income', 'Expenses'],
+                datasets: [{
+                    label: 'Monthly Overview',
+                    data: [income, expenses],
+                    backgroundColor: ['#10b981', '#ef4444'], // green for income, red for expenses
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    // --- Moderator Functions ---
+    let roleChartInstance = null;
+    function loadModerators() {
+      const roles = {};
+      const listContainer = document.getElementById("moderatorList");
+      listContainer.innerHTML = "";
+
+      onValue(moderatorsRef, (snapshot) => {
+        const moderators = snapshot.val();
+        if (!moderators) {
+            listContainer.innerHTML = '<p class="text-center py-8 text-gray-500">No moderators found</p>';
+            if (roleChartInstance) roleChartInstance.destroy();
+            return;
+        }
+
+        // Clear previous roles data
+        for (const key in roles) { delete roles[key]; }
+
+        const moderatorArray = Object.entries(moderators);
+
+        // Fetch status for each moderator
+        const moderatorCardsPromises = moderatorArray.map(([id, mod]) => {
+            return new Promise(resolve => {
+                onValue(ref(db, `status/${id}`), (statusSnap) => {
+                    const status = statusSnap.val();
+                    const isOnline = status && status.status === 'online';
+                    resolve({ id, mod, isOnline });
+                }, { onlyOnce: true }); // Use onlyOnce to avoid re-rendering on every status change
+            });
+        });
+
+        Promise.all(moderatorCardsPromises).then(moderatorData => {
+            listContainer.innerHTML = ""; // Clear list before re-populating
+
+            moderatorData.forEach(({ id, mod, isOnline }) => {
+                const role = mod.role || 'Lainnya';
+                roles[role] = (roles[role] || 0) + 1;
+
+                const statusColor = isOnline ? 'green' : 'gray';
+                const statusText = isOnline ? 'Online' : 'Offline';
+
+                const div = document.createElement("div");
+                div.className = `p-4 bg-white rounded-lg shadow moderator-card relative`;
+                div.dataset.name = mod.name || "Unknown";
+                div.dataset.departemen = mod.role || "Unknown";
+                div.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-${statusColor}-100 flex items-center justify-center font-bold text-${statusColor}-600 mr-3">
+                            ${mod.name ? mod.name.substring(0, 1).toUpperCase() : '?'}
+                        </div>
+                        <div>
+                            <strong class="text-gray-800">${mod.name || 'Unknown'}</strong><br>
+                            <small class="text-gray-600">${mod.role || 'Member'} ${mod.subDivision ? ' - ' + mod.subDivision : ''}</small><br>
+                            <span class="text-xs text-${statusColor}-500">${statusText}</span>
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(div);
+            });
+
+            // Update Role Chart (Dashboard)
+            const roleCtx = document.getElementById('roleChart').getContext('2d');
+            if (roleChartInstance) {
+                roleChartInstance.destroy();
+            }
+            roleChartInstance = new Chart(roleCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(roles),
+                    datasets: [{
+                        data: Object.values(roles),
+                        backgroundColor: ['#3b82f6', '#6366f1', '#facc15', '#10b981', '#f472b6', '#8b5cf6', '#06b6d4', '#f97316']
+                    }]
+                },
+                options: { responsive: true }
+            });
+        });
+      });
+    }
+
+    // --- Event/Task Functions ---
+    let eventsChartInstance = null;
+    function loadEventsSummary() {
+        const eventsSummaryList = document.getElementById('eventsSummaryList');
+        eventsSummaryList.innerHTML = '<p class="text-center py-8 text-gray-500">Loading events...</p>';
+
+        onValue(eventsRef, (snapshot) => {
+            const events = snapshot.val();
+            if (!events) {
+                eventsSummaryList.innerHTML = '<p class="text-center py-8 text-gray-500">No events found</p>';
+                if (eventsChartInstance) eventsChartInstance.destroy();
+                return;
+            }
+
+            let html = '';
+            let totalEvents = 0;
+            let completedEvents = 0;
+            let inProgressEvents = 0;
+
+            Object.entries(events).forEach(([id, event]) => {
+                totalEvents++;
+                const progress = event.progress ? (event.progress * 100).toFixed(0) : 0;
+                const progressColor = progress == 100 ? 'green' : 'blue';
+
+                if (progress == 100) completedEvents++;
+                else if (progress > 0) inProgressEvents++;
+
+                html += `
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h4 class="font-medium text-gray-900">${event.title}</h4>
+                        <p class="text-sm text-gray-500">Date: ${new Date(event.executionDateTime).toLocaleDateString()}</p>
+                        <div class="mt-2">
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-${progressColor}-800">Progress: ${progress}%</span>
+                            </div>
+                            <div class="progress-bar h-2 bg-gray-200 rounded-full">
+                                <div class="progress-fill h-full bg-${progressColor}-500 rounded-full" style="width: ${progress}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            eventsSummaryList.innerHTML = html;
+
+            // Update Events Chart (Dashboard)
+            const eventsCtx = document.getElementById('eventsChart').getContext('2d');
+            if (eventsChartInstance) {
+                eventsChartInstance.destroy();
+            }
+            eventsChartInstance = new Chart(eventsCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Completed', 'In Progress', 'Not Started'],
+                    datasets: [{
+                        data: [completedEvents, inProgressEvents, totalEvents - completedEvents - inProgressEvents],
+                        backgroundColor: ['#10b981', '#3b82f6', '#ef4444'], // green, blue, red
+                    }]
+                },
+                options: { responsive: true }
+            });
+        });
+    }
+
+
+    // --- Authentication and UI Control ---
+    function adminLogin() {
+      const email = document.getElementById("adminEmail").value.trim();
+      const password = document.getElementById("adminPassword").value.trim();
+      const statusEl = document.getElementById("status");
+
+      if (!email || !password) {
+        statusEl.innerText = "Email dan password tidak boleh kosong!";
+        return;
+      }
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          statusEl.innerText = "Login berhasil!";
+          document.getElementById("loginPage").classList.add("hidden");
+          document.getElementById("dashboardLayout").classList.remove("hidden");
+          loadInitialData(); // Load all data after successful login
+        })
+        .catch((error) => {
+          statusEl.innerText = "Gagal login: " + error.message;
+        });
+    }
+
+    window.addAccount = function() {
+      const email = document.getElementById("email").value.trim();
+      const defaultPassword = "123456"; // Default password for new accounts
+      const status = document.getElementById("panelStatus");
+
+      if (!email) {
+        status.innerText = "❌ Email tidak boleh kosong!";
+        return;
+      }
+
+      createUserWithEmailAndPassword(auth, email, defaultPassword)
+        .then((userCredential) => {
+          const uid = userCredential.user.uid;
+          // Save user data to 'users' and 'moderators' nodes
+          const userData = {
+              name: email.split('@')[0], // Default name from email
+              role: 'Member', // Default role
+              subDivision: '',
+              profileComplete: false, // Mark as incomplete for first login setup
+              joinedAt: new Date().toISOString(),
+              lastSeen: new Date().toISOString()
+          };
+          ref(db, `users/${uid}`).set(userData);
+          ref(db, `moderators/${uid}`).set(userData);
+
+          status.innerText = `✅ Email "${email}" berhasil ditambahkan! Password default: ${defaultPassword}`;
+          document.getElementById("email").disabled = true;
+          document.getElementById("resetBtn").classList.remove("hidden");
+        })
+        .catch((error) => {
+          status.innerText = "❌ Gagal tambah akun: " + error.message;
+        });
+    };
+
+    window.logout = function() {
+      signOut(auth).then(() => {
+        location.reload(); // Reload page after logout
+      });
+    };
+
+    window.showSection = function(section) {
+      const sections = ['dashboardSection', 'financeSection', 'moderatorSection', 'tambahAkunSection', 'eventsSection'];
+      sections.forEach(id => document.getElementById(id).classList.add('hidden'));
+      document.getElementById(section + 'Section').classList.remove('hidden');
+
+      // Load data specific to the section when shown
+      if (section === 'finance') {
+          loadFinance();
+      } else if (section === 'moderator') {
+          loadModerators();
+      } else if (section === 'dashboard') {
+          loadFinance(); // Reload finance data for dashboard chart
+          loadModerators(); // Reload moderator data for dashboard chart
+          loadEventsSummary(); // Reload events data for dashboard chart
+      } else if (section === 'events') {
+          loadEventsSummary(); // Load events for the dedicated section
+      }
+    };
+
+    window.resetForm = function() {
+      document.getElementById("email").value = "";
+      document.getElementById("email").disabled = false;
+      document.getElementById("panelStatus").innerText = "";
+      document.getElementById("resetBtn").classList.add("hidden");
+    };
+
+    window.toggleSidebar = function() {
+      const sidebar = document.getElementById("sidebar");
+      sidebar.classList.toggle("hidden");
+    };
+
+    function filterModerators() {
+      const keyword = document.getElementById("searchModerator").value.toLowerCase();
+      const department = document.getElementById("filterDepartemen").value;
+
+      document.querySelectorAll("#moderatorList .moderator-card").forEach(card => {
+        const name = card.dataset.name.toLowerCase();
+        const dept = card.dataset.departemen;
+        const matchName = name.includes(keyword);
+        const matchDept = !department || dept === department;
+        card.style.display = matchName && matchDept ? "" : "none";
+      });
+    }
+
+    // Initial data load after successful login or on page load if already authenticated
+    function loadInitialData() {
+        loadFinance();
+        loadModerators();
+        loadEventsSummary();
+        showSection('dashboard'); // Default to dashboard
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const searchInput = document.getElementById("searchModerator");
+      const filterSelect = document.getElementById("filterDepartemen");
+      const loginBtn = document.querySelector("button.bg-blue-600");
+
+      if (searchInput && filterSelect) {
+        searchInput.addEventListener("input", filterModerators);
+        filterSelect.addEventListener("change", filterModerators);
+      }
+
+      if (loginBtn) {
+        loginBtn.addEventListener("click", adminLogin);
+      }
+
+      // Check auth state on page load
+      auth.onAuthStateChanged(user => {
+        if (user) {
+          document.getElementById("loginPage").classList.add("hidden");
+          document.getElementById("dashboardLayout").classList.remove("hidden");
+          loadInitialData();
+        } else {
+          document.getElementById("loginPage").classList.remove("hidden");
+          document.getElementById("dashboardLayout").classList.add("hidden");
+        }
+      });
+    });
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -16,7 +424,7 @@
     <h2 class="text-2xl font-bold text-center text-gray-700">Admin Login</h2>
     <input type="email" id="adminEmail" placeholder="Email Admin" class="w-full p-3 border rounded-lg" required />
     <input type="password" id="adminPassword" placeholder="Password" class="w-full p-3 border rounded-lg" required />
-    <button onclick="adminLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg">Login</button>
+    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg">Login</button>
     <p id="status" class="text-center text-sm text-gray-500"></p>
   </div>
 </div>
@@ -42,6 +450,7 @@
           <li><button onclick="showSection('dashboard')" class="text-left w-full text-gray-700 hover:text-blue-600">📊 Dashboard</button></li>
           <li><button onclick="showSection('finance')" class="text-left w-full text-gray-700 hover:text-blue-600">💰 Keuangan</button></li>
           <li><button onclick="showSection('moderator')" class="text-left w-full text-gray-700 hover:text-blue-600">🧑‍💼 Moderator</button></li>
+          <li><button onclick="showSection('events')" class="text-left w-full text-gray-700 hover:text-blue-600">🗓️ Events</button></li>
           <li><button onclick="showSection('tambahAkun')" class="text-left w-full text-gray-700 hover:text-blue-600">➕ Tambah Akun</button></li>
         </ul>
       </nav>
@@ -53,14 +462,18 @@
       <!-- Dashboard Section -->
       <div id="dashboardSection">
         <h2 class="text-2xl font-bold text-gray-700 mb-4">Ringkasan</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div class="bg-white p-4 rounded-lg shadow">
-            <h3 class="font-semibold text-gray-600">Keuangan</h3>
+            <h3 class="font-semibold text-gray-600 mb-2">Keuangan Bulanan</h3>
             <canvas id="financeChart"></canvas>
           </div>
           <div class="bg-white p-4 rounded-lg shadow">
-            <h3 class="font-semibold text-gray-600">Moderator</h3>
+            <h3 class="font-semibold text-gray-600 mb-2">Distribusi Peran Moderator</h3>
             <canvas id="roleChart"></canvas>
+          </div>
+          <div class="bg-white p-4 rounded-lg shadow">
+            <h3 class="font-semibold text-gray-600 mb-2">Status Event</h3>
+            <canvas id="eventsChart"></canvas>
           </div>
         </div>
       </div>
@@ -68,8 +481,27 @@
       <!-- Finance Section -->
       <div id="financeSection" class="hidden">
         <h2 class="text-2xl font-bold text-gray-700 mb-4">Detail Keuangan</h2>
-        <p class="text-gray-500">Grafik pemasukan dan pengeluaran selama periode tertentu.</p>
-        <canvas id="financeChartDetail"></canvas>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-white p-4 shadow rounded-lg">
+                <h3 class="text-sm font-medium text-gray-500">Total Saldo</h3>
+                <p class="text-2xl font-semibold text-gray-900" id="totalBalance">Rp 0</p>
+            </div>
+            <div class="bg-white p-4 shadow rounded-lg">
+                <h3 class="text-sm font-medium text-gray-500">Pemasukan Bulanan</h3>
+                <p class="text-2xl font-semibold text-green-600" id="monthlyIncome">Rp 0</p>
+            </div>
+            <div class="bg-white p-4 shadow rounded-lg">
+                <h3 class="text-sm font-medium text-gray-500">Pengeluaran Bulanan</h3>
+                <p class="text-2xl font-semibold text-red-600" id="monthlyExpenses">Rp 0</p>
+            </div>
+        </div>
+        <h3 class="text-xl font-bold text-gray-700 mb-3">Daftar Transaksi</h3>
+        <div class="space-y-2" id="transactionsList">
+            <!-- Transactions will be loaded here -->
+            <div class="flex items-center justify-center py-12">
+                <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+        </div>
       </div>
 
       <!-- Moderator Section -->
@@ -78,13 +510,28 @@
         <input type="text" id="searchModerator" placeholder="Cari nama moderator..." class="w-full p-2 border rounded-lg mb-4"/>
         <select id="filterDepartemen" class="w-full p-2 border rounded-lg mb-4">
           <option value="">Semua Departemen</option>
-          <option value="IT">IT</option>
+          <option value="Founder">Founder</option>
+          <option value="Co-Founder">Co-Founder</option>
+          <option value="Education">Education</option>
+          <option value="Moderation">Moderation</option>
+          <option value="Events">Events</option>
+          <option value="Creative">Creative</option>
+          <option value="Technology">Technology</option>
           <option value="Finance">Finance</option>
-          <option value="HR">HR</option>
           <option value="Lainnya">Lainnya</option>
         </select>
         <div id="moderatorList" class="space-y-2"></div>
-        <canvas id="roleChartDetail"></canvas>
+      </div>
+
+      <!-- Events Section -->
+      <div id="eventsSection" class="hidden">
+        <h2 class="text-2xl font-bold text-gray-700 mb-4">Daftar Events</h2>
+        <div class="space-y-4" id="eventsSummaryList">
+            <!-- Events will be loaded here -->
+            <div class="flex items-center justify-center py-12">
+                <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+        </div>
       </div>
 
       <!-- Tambah Akun Section -->
@@ -99,208 +546,6 @@
     </main>
   </div>
 </div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCdl3XJ-eUz8BELLaSOXeZFpg7FLDFk7l4",
-  authDomain: "community-service-f4540.firebaseapp.com",
-  databaseURL: "https://community-service-f4540-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "community-service-f4540",
-  storageBucket: "community-service-f4540.appspot.com",
-  messagingSenderId: "610712310542",
-  appId: "1:610712310542:web:12536a7c23d0b41db03d5f"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getDatabase(app);
-
-window.adminLogin = function() {
-  const email = document.getElementById("adminEmail").value.trim();
-  const password = document.getElementById("adminPassword").value;
-  const status = document.getElementById("status");
-
-  if (!email || !password) {
-    status.innerText = "❌ Email dan password harus diisi!";
-    return;
-  }
-
-  signInWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-      const user = userCredential.user;
-      if (user.email !== "admin@atl.moderator.com") {
-        status.innerText = "❌ Hanya admin yang diizinkan!";
-        return;
-      }
-      document.getElementById("loginPage").classList.add("hidden");
-      document.getElementById("dashboardLayout").classList.remove("hidden");
-      window.showSection('dashboard');
-      loadCharts();
-    })
-    .catch((error) => {
-      status.innerText = "❌ Gagal login: " + error.message;
-    });
-};
-
-window.logout = function() {
-  signOut(auth).then(() => {
-    location.reload();
-  });
-};
-
-window.showSection = function(section) {
-  const sections = ['dashboardSection', 'financeSection', 'moderatorSection', 'tambahAkunSection'];
-  sections.forEach(id => document.getElementById(id).classList.add('hidden'));
-  if (section === 'dashboard') document.getElementById('dashboardSection').classList.remove('hidden');
-  if (section === 'finance') document.getElementById('financeSection').classList.remove('hidden');
-  if (section === 'moderator') document.getElementById('moderatorSection').classList.remove('hidden');
-  if (section === 'tambahAkun') document.getElementById('tambahAkunSection').classList.remove('hidden');
-};
-
-window.addAccount = function() {
-  const email = document.getElementById("email").value.trim();
-  const defaultPassword = "123456";
-  const status = document.getElementById("panelStatus");
-
-  if (!email) {
-    status.innerText = "❌ Email tidak boleh kosong!";
-    return;
-  }
-
-  createUserWithEmailAndPassword(auth, email, defaultPassword)
-    .then(() => {
-      status.innerText = `✅ Email "${email}" berhasil ditambahkan!`;
-      document.getElementById("email").disabled = true;
-      document.getElementById("resetBtn").classList.remove("hidden");
-    })
-    .catch((error) => {
-      status.innerText = "❌ Gagal tambah akun: " + error.message;
-    });
-};
-
-window.resetForm = function() {
-  document.getElementById("email").value = "";
-  document.getElementById("email").disabled = false;
-  document.getElementById("panelStatus").innerText = "";
-  document.getElementById("resetBtn").classList.add("hidden");
-};
-
-function loadCharts() {
-  const financeRef = ref(db, 'transaction');
-  const moderatorRef = ref(db, 'moderator');
-
-  let income = 0, expense = 0;
-
-  onValue(financeRef, (snapshot) => {
-    income = 0; expense = 0;
-    snapshot.forEach(child => {
-      const trx = child.val();
-      if (trx.type === 'income') income += trx.amount;
-      if (trx.type === 'expense') expense += trx.amount;
-    });
-
-    const financeCtx = document.getElementById('financeChart').getContext('2d');
-    new Chart(financeCtx, {
-      type: 'bar',
-      data: {
-        labels: ['Income', 'Expense'],
-        datasets: [{ data: [income, expense], backgroundColor: ['#10b981', '#ef4444'] }]
-      },
-      options: { responsive: true, scales: { y: { beginAtZero: true } } }
-    });
-
-    const financeDetailCtx = document.getElementById('financeChartDetail').getContext('2d');
-    new Chart(financeDetailCtx, {
-      type: 'pie',
-      data: {
-        labels: ['Income', 'Expense'],
-        datasets: [{ data: [income, expense], backgroundColor: ['#10b981', '#ef4444'] }]
-      },
-      options: { responsive: true }
-    });
-  });
-
-  onValue(moderatorRef, (snapshot) => {
-    const roles = {};
-    snapshot.forEach(child => {
-      const role = child.val().role || 'Lainnya';
-      roles[role] = (roles[role] || 0) + 1;
-    });
-
-    const roleCtx = document.getElementById('roleChart').getContext('2d');
-    new Chart(roleCtx, {
-      type: 'doughnut',
-      data: {
-        labels: Object.keys(roles),
-        datasets: [{ data: Object.values(roles), backgroundColor: ['#3b82f6', '#6366f1', '#facc15', '#10b981', '#f472b6'] }]
-      },
-      options: { responsive: true }
-    });
-
-    const roleDetailCtx = document.getElementById('roleChartDetail').getContext('2d');
-    new Chart(roleDetailCtx, {
-      type: 'bar',
-      data: {
-        labels: Object.keys(roles),
-        datasets: [{ data: Object.values(roles), backgroundColor: '#3b82f6' }]
-      },
-      options: { responsive: true, scales: { y: { beginAtZero: true } } }
-    });
-  });
-}
-
-  function toggleSidebar() {
-    // Fix: expose function to global scope
-    window.toggleSidebar = toggleSidebar;
-    const sidebar = document.getElementById("sidebar");
-    sidebar.classList.toggle("hidden");
-  }
-
-  const searchInput = document.getElementById("searchModerator");
-  const filterSelect = document.getElementById("filterDepartemen");
-
-  if (searchInput && filterSelect) {
-    searchInput.addEventListener("input", filterModerators);
-    filterSelect.addEventListener("change", filterModerators);
-  }
-
-  function filterModerators() {
-    const keyword = searchInput.value.toLowerCase();
-    const department = filterSelect.value;
-
-    document.querySelectorAll("#moderatorList .moderator-card").forEach(card => {
-      const name = card.dataset.name.toLowerCase();
-      const dept = card.dataset.departemen;
-      const matchName = name.includes(keyword);
-      const matchDept = !department || dept === department;
-      card.style.display = matchName && matchDept ? "" : "none";
-    });
-  }
-
-  // Contoh dummy data moderator yang akan dirender ke dalam #moderatorList
-  const dummyModerators = [
-    { name: "Rina", departemen: "IT" },
-    { name: "Dani", departemen: "Finance" },
-    { name: "Tari", departemen: "HR" },
-    { name: "Andi", departemen: "IT" },
-  ];
-
-  const listContainer = document.getElementById("moderatorList");
-  if (listContainer) {
-    dummyModerators.forEach(mod => {
-      const div = document.createElement("div");
-      div.className = "p-4 bg-white rounded-lg shadow moderator-card";
-      div.dataset.name = mod.name;
-      div.dataset.departemen = mod.departemen;
-      div.innerHTML = `<strong>${mod.name}</strong><br><small>${mod.departemen}</small>`;
-      listContainer.appendChild(div);
-    });
-  }
-</script>
 
 </body>
 </html>
