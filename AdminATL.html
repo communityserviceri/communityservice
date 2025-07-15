@@ -50,7 +50,7 @@
     // Firebase Finance Integration
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getDatabase, ref, onValue, update, push, remove, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCdl3XJ-eUz8BELLaSOXeZFpg7FLDFk7l4",
@@ -72,6 +72,7 @@
     const eventsRef = ref(db, 'events');
     const transactionsRef = ref(db, 'transactions');
     const statusRef = ref(db, 'status'); // Untuk status online/offline
+    const reportsRef = ref(db, 'reports'); // NEW: For reports monitoring
 
     // Role and Sub-Division Options (from code (8).html)
     const roleColors = {
@@ -521,6 +522,178 @@
         }
     }
 
+    // --- Reports Functions ---
+    window.loadReports = function() {
+        const reportsList = document.getElementById('reportsList');
+        reportsList.innerHTML = '<div class="flex items-center justify-center py-12"><div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div></div>';
+
+        const filter = document.getElementById('reportFilter').value;
+        let reportsQuery = reportsRef;
+
+        if (filter !== 'all') {
+            reportsQuery = query(reportsRef, orderByChild('status'), equalTo(filter));
+        } else {
+            reportsQuery = query(reportsRef, orderByChild('timestamp')); // Order by timestamp for 'all'
+        }
+
+        onValue(reportsQuery, snapshot => {
+            const reports = snapshot.val();
+            if (!reports) {
+                reportsList.innerHTML = '<p class="text-center py-8 text-gray-500">No reports found</p>';
+                document.getElementById('pendingReportCount').textContent = '0';
+                return;
+            }
+
+            let html = '';
+            let pendingCount = 0;
+            const reportArray = Object.entries(reports);
+
+            // Sort reports by timestamp (newest first)
+            reportArray.sort((a, b) => b[1].timestamp - a[1].timestamp);
+
+            reportArray.forEach(([id, report]) => {
+                if (report.status === 'Pending') pendingCount++;
+
+                const categoryColor = 
+                    report.category === 'Behavior' ? 'red' : 
+                    report.category === 'Spam' ? 'orange' : 
+                    report.category === 'Harassment' ? 'purple' : 
+                    report.category === 'Scam' ? 'yellow' : 'gray';
+                
+                const statusColor = 
+                    report.status === 'Pending' ? 'blue' : 
+                    report.status === 'Resolved' ? 'green' : 'gray';
+
+                html += `
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-medium text-gray-900">Reported: ${report.reportedUser || 'Unknown'}</h3>
+                                <div class="flex items-center space-x-2 mt-1">
+                                    <span class="inline-block px-2 py-1 rounded-full text-xs font-medium bg-${categoryColor}-100 text-${categoryColor}-800">
+                                        ${report.category}
+                                    </span>
+                                    <span class="inline-block px-2 py-1 rounded-full text-xs font-medium bg-${statusColor}-100 text-${statusColor}-800">
+                                        ${report.status}
+                                    </span>
+                                    <span class="text-sm text-gray-500">${formatTime(report.timestamp)}</span>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button onclick="window.openReportModal('${id}')" class="p-1 text-blue-600 hover:text-blue-800">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                </button>
+                                <button onclick="window.deleteReport('${id}')" class="p-1 text-red-600 hover:text-red-800">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="mt-3 text-gray-600">${report.description || 'No details provided'}</p>
+                        ${report.reporterId ? `<p class="mt-2 text-sm text-gray-500">Reported by ${report.reporterName || 'unknown'}</p>` : ''}
+                    </div>
+                `;
+            });
+
+            reportsList.innerHTML = html;
+            document.getElementById('pendingReportCount').textContent = pendingCount;
+        });
+    }
+
+    window.openReportModal = function(reportId = null) {
+        document.getElementById('reportModal').classList.add('active');
+        document.getElementById('reportModal').classList.remove('hidden');
+        document.getElementById('reportId').value = reportId || '';
+
+        if (reportId) {
+            onValue(ref(db, `reports/${reportId}`), (snapshot) => {
+                const report = snapshot.val();
+                if (report) {
+                    document.getElementById('reportUser').value = report.reportedUser || '';
+                    document.getElementById('reportCategory').value = report.category || 'Behavior';
+                    document.getElementById('reportDescription').value = report.description || '';
+                    document.getElementById('reportStatus').value = report.status || 'Pending';
+                }
+            }, { onlyOnce: true });
+        } else {
+            document.getElementById('reportUser').value = '';
+            document.getElementById('reportCategory').value = 'Behavior';
+            document.getElementById('reportDescription').value = '';
+            document.getElementById('reportStatus').value = 'Pending';
+        }
+    }
+
+    window.closeReportModal = function() {
+        document.getElementById('reportModal').classList.remove('active');
+        document.getElementById('reportModal').classList.add('hidden');
+    }
+
+    window.saveReport = function() {
+        const reportId = document.getElementById('reportId').value;
+        const reportedUser = document.getElementById('reportUser').value;
+        const category = document.getElementById('reportCategory').value;
+        const description = document.getElementById('reportDescription').value;
+        const status = document.getElementById('reportStatus').value;
+
+        if (!reportedUser || !description) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        const reportData = {
+            reportedUser,
+            category,
+            description,
+            status,
+            updatedAt: new Date().toISOString() // Use ISO string for consistency
+        };
+
+        if (reportId) {
+            update(ref(db, `reports/${reportId}`), reportData)
+                .then(() => {
+                    alert('Report updated successfully!');
+                    window.closeReportModal();
+                    window.loadReports();
+                })
+                .catch(error => alert('Error updating report: ' + error.message));
+        } else {
+            // For new reports, add timestamp and reporter info (if admin is logged in)
+            reportData.timestamp = new Date().toISOString(); // Use ISO string
+            // In a real admin panel, you might want to get the admin's UID/Name
+            // For simplicity, we'll just add a placeholder or leave it out if not available
+            reportData.reporterId = auth.currentUser ? auth.currentUser.uid : 'admin_unknown';
+            reportData.reporterName = auth.currentUser ? auth.currentUser.email : 'Admin';
+
+            push(reportsRef, reportData)
+                .then(() => {
+                    alert('Report submitted successfully!');
+                    window.closeReportModal();
+                    window.loadReports();
+                })
+                .catch(error => alert('Error submitting report: ' + error.message));
+        }
+    }
+
+    window.deleteReport = function(reportId) {
+        if (confirm('Are you sure you want to delete this report? This action cannot be undone.')) {
+            remove(ref(db, `reports/${reportId}`))
+                .then(() => {
+                    alert('Report deleted successfully!');
+                    window.loadReports();
+                })
+                .catch(error => alert('Error deleting report: ' + error.message));
+        }
+    }
+
+    function formatTime(isoString) {
+        if (!isoString) return 'Unknown time';
+        const date = new Date(isoString);
+        return date.toLocaleString();
+    }
+
 
     // --- Authentication and UI Control ---
     function adminLogin() {
@@ -586,7 +759,7 @@
     };
 
     window.showSection = function(section) {
-      const sections = ['dashboardSection', 'financeSection', 'moderatorSection', 'tambahAkunSection', 'eventsSection'];
+      const sections = ['dashboardSection', 'financeSection', 'moderatorSection', 'tambahAkunSection', 'eventsSection', 'reportsSection']; // Added reportsSection
       sections.forEach(id => document.getElementById(id).classList.add('hidden'));
       document.getElementById(section + 'Section').classList.remove('hidden');
 
@@ -595,12 +768,15 @@
           loadFinance();
       } else if (section === 'moderator') {
           loadModerators();
-      } else if (section === 'dashboard') {
-          loadFinance(); // Reload finance data for dashboard chart
-          loadModerators(); // Reload moderator data for dashboard chart
-          loadEventsSummary(); // Reload events data for dashboard chart
       } else if (section === 'events') {
-          loadEventsSummary(); // Load events for the dedicated section
+          loadEventsSummary();
+      } else if (section === 'reports') { // NEW: Load reports when reports section is active
+          window.loadReports();
+      } else if (section === 'dashboard') {
+          loadFinance();
+          loadModerators();
+          loadEventsSummary();
+          // No reports chart on dashboard for now, but could be added
       }
     };
 
@@ -634,13 +810,15 @@
         loadFinance();
         loadModerators();
         loadEventsSummary();
-        showSection('dashboard'); // Default to dashboard
+        // No reports loaded initially for dashboard, only when reports section is opened
+        window.showSection('dashboard'); // Default to dashboard
     }
 
     document.addEventListener("DOMContentLoaded", () => {
       const searchInput = document.getElementById("searchModerator");
       const filterSelect = document.getElementById("filterDepartemen");
       const loginBtn = document.querySelector("button.bg-blue-600");
+      const reportFilterSelect = document.getElementById('reportFilter'); // NEW
 
       if (searchInput && filterSelect) {
         searchInput.addEventListener("input", filterModerators);
@@ -649,6 +827,10 @@
 
       if (loginBtn) {
         loginBtn.addEventListener("click", adminLogin);
+      }
+
+      if (reportFilterSelect) { // NEW: Add event listener for report filter
+          reportFilterSelect.addEventListener('change', window.loadReports);
       }
 
       // Check auth state on page load
@@ -686,8 +868,8 @@
   <header class="bg-white shadow flex items-center justify-between px-6 py-4">
     <h1 class="text-xl font-semibold text-gray-700">Community Service Admin</h1>
     <div class="flex items-center gap-4">
-      <button onclick="toggleSidebar()" class="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-lg text-sm">☰</button>
-      <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">Logout</button>
+      <button onclick="window.toggleSidebar()" class="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-lg text-sm">☰</button>
+      <button onclick="window.logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">Logout</button>
     </div>
   </header>
 
@@ -701,6 +883,7 @@
           <li><button onclick="window.showSection('finance')" class="text-left w-full text-gray-700 hover:text-blue-600">💰 Keuangan</button></li>
           <li><button onclick="window.showSection('moderator')" class="text-left w-full text-gray-700 hover:text-blue-600">🧑‍💼 Moderator</button></li>
           <li><button onclick="window.showSection('events')" class="text-left w-full text-gray-700 hover:text-blue-600">🗓️ Events</button></li>
+          <li><button onclick="window.showSection('reports')" class="text-left w-full text-gray-700 hover:text-blue-600">⚠️ Reports</button></li> <!-- NEW -->
           <li><button onclick="window.showSection('tambahAkun')" class="text-left w-full text-gray-700 hover:text-blue-600">➕ Tambah Akun</button></li>
         </ul>
       </nav>
@@ -740,8 +923,7 @@
                 <h3 class="text-sm font-medium text-gray-500">Pemasukan Bulanan</h3>
                 <p class="text-2xl font-semibold text-green-600" id="monthlyIncome">Rp 0</p>
             </div>
-            <div class="bg-white p-4 shadow rounded-lg">
-                <h3 class="text-sm font-medium text-gray-500">Pengeluaran Bulanan</h3>
+            <div class="bg-sm font-medium text-gray-500">Pengeluaran Bulanan</h3>
                 <p class="text-2xl font-semibold text-red-600" id="monthlyExpenses">Rp 0</p>
             </div>
         </div>
@@ -778,6 +960,36 @@
         <h2 class="text-2xl font-bold text-gray-700 mb-4">Daftar Events</h2>
         <div class="space-y-4" id="eventsSummaryList">
             <!-- Events will be loaded here -->
+            <div class="flex items-center justify-center py-12">
+                <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+        </div>
+      </div>
+
+      <!-- Reports Section -->
+      <div id="reportsSection" class="hidden"> <!-- NEW -->
+        <h2 class="text-2xl font-bold text-gray-700 mb-4">Monitoring Laporan</h2>
+        <div class="flex justify-between items-center mb-4">
+            <div class="flex space-x-2">
+                <select class="border border-gray-300 rounded-md px-3 py-2" id="reportFilter">
+                    <option value="all">Semua Laporan</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Resolved">Resolved</option>
+                    <option value="Ignored">Ignored</option>
+                </select>
+                <button class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 flex items-center" onclick="window.openReportModal()">
+                    <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                    </svg>
+                    Laporan Baru
+                </button>
+            </div>
+            <div class="text-sm text-gray-500">
+                Laporan Pending: <span id="pendingReportCount" class="font-bold text-red-600">0</span>
+            </div>
+        </div>
+        <div class="space-y-4" id="reportsList">
+            <!-- Reports will be loaded here -->
             <div class="flex items-center justify-center py-12">
                 <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
             </div>
@@ -864,6 +1076,46 @@
         <h3 class="text-xl font-bold text-gray-800 mb-3">Departments Involved</h3>
         <div id="eventDetailsDepartmentsList" class="space-y-4">
             <!-- Departments, Subdivisions, and Tasks will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Report Modal -->
+<div id="reportModal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md max-h-screen overflow-y-auto">
+        <h2 class="text-xl font-bold text-purple-700 mb-4">Laporan Baru / Edit Laporan</h2>
+        <input type="hidden" id="reportId">
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">User Dilaporkan</label>
+                <input class="w-full border border-gray-300 rounded-md px-3 py-2" id="reportUser" placeholder="Username atau ID" type="text"/>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                <select class="w-full border border-gray-300 rounded-md px-3 py-2" id="reportCategory">
+                    <option value="Behavior">Perilaku Tidak Pantas</option>
+                    <option value="Spam">Spam</option>
+                    <option value="Harassment">Pelecehan</option>
+                    <option value="Scam">Penipuan</option>
+                    <option value="Other">Lainnya</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
+                <textarea class="w-full border border-gray-300 rounded-md px-3 py-2" id="reportDescription" placeholder="Berikan informasi detail tentang masalah..." rows="4"></textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select class="w-full border border-gray-300 rounded-md px-3 py-2" id="reportStatus">
+                    <option value="Pending">Pending</option>
+                    <option value="Resolved">Selesai</option>
+                    <option value="Ignored">Diabaikan</option>
+                </select>
+            </div>
+        </div>
+        <div class="flex justify-end space-x-3 mt-6">
+            <button class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100" onclick="window.closeReportModal()">Batal</button>
+            <button class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700" onclick="window.saveReport()">Simpan Laporan</button>
         </div>
     </div>
 </div>
