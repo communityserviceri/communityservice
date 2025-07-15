@@ -1314,249 +1314,6 @@ const subDivisionOptions = {
             const now = new Date();
             const eventDate = new Date(dateTimeString);
             const diffInMs = eventDate - now;
-            const diffInDays = Math.floor((now - lastSeen) / (1000 * 60));
-            
-            if (diffInMinutes < 1) return 'just now';
-            if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes === 1 ? '' : 's'} ago`;
-            if (diffInMinutes < 24 * 60) return `${Math.floor(diffInMinutes / 60)} hour${Math.floor(diffInMinutes / 60) === 1 ? '' : 's'} ago`;
-            return `${Math.floor(diffInMinutes / (60 * 24))} day${Math.floor(diffInMinutes / (60 * 24)) === 1 ? '' : 's'} ago`;
-        }
-
-        // Events functions
-        function initEventModalEvents() {
-            // Event modal buttons (Add/Edit Event)
-            document.getElementById('addEventBtn').addEventListener('click', function() {
-                showEventModal();
-            });
-
-            document.getElementById('cancelEventBtn').addEventListener('click', function() {
-                hideEventModal();
-            });
-
-            document.getElementById('saveEventBtn').addEventListener('click', function() {
-                saveEvent();
-            });
-        }
-
-        function showEventModal(eventId = null) {
-            document.getElementById('eventModal').classList.add('active');
-            document.getElementById('eventModal').classList.remove('hidden');
-            document.getElementById('eventId').value = eventId || '';
-            document.getElementById('eventModalTitle').textContent = eventId ? 'Edit Event' : 'Add New Event';
-
-            const eventDepartmentsList = document.getElementById('eventDepartmentsList');
-            eventDepartmentsList.innerHTML = '';
-            const allDepartments = Object.keys(roleColors).filter(role => role !== 'Founder' && role !== 'Co-Founder');
-
-            // Clear previous department/subdivision selections
-            document.getElementById('eventTitle').value = '';
-            document.getElementById('eventDescription').value = '';
-            document.getElementById('estimatedBudget').value = '';
-            document.getElementById('executionDateTime').value = '';
-            eventDepartmentsList.innerHTML = ''; // Clear previous checkboxes
-
-            if (eventId) {
-                eventsRef.child(eventId).once('value').then(snapshot => {
-                    const event = snapshot.val();
-                    if (event) {
-                        document.getElementById('eventTitle').value = event.title || '';
-                        document.getElementById('eventDescription').value = event.description || '';
-                        document.getElementById('estimatedBudget').value = event.estimatedBudget || '';
-                        document.getElementById('executionDateTime').value = event.executionDateTime || '';
-                        
-                        allDepartments.forEach(dept => {
-                            const isDeptChecked = event.departments && event.departments[dept];
-                            let deptHtml = `
-                                <div class="flex flex-col mb-2">
-                                    <label class="inline-flex items-center">
-                                        <input type="checkbox" id="dept_${dept}" value="${dept}" ${isDeptChecked ? 'checked' : ''} class="h-4 w-4 text-blue-600 rounded" onchange="toggleSubdivisions('${dept}', this.checked, '${eventId}')">
-                                        <span class="ml-2 text-sm font-medium text-gray-700">${dept}</span>
-                                    </label>
-                                    <div id="subdivisions_for_${dept}" class="ml-6 mt-1 space-y-1 ${isDeptChecked ? '' : 'hidden'}">
-                                        <!-- Subdivisions will be loaded here dynamically -->
-                                    </div>
-                                </div>
-                            `;
-                            eventDepartmentsList.innerHTML += deptHtml;
-                            if (isDeptChecked) {
-                                loadSubdivisionCheckboxes(dept, event.departments[dept]?.subdivisions || {}, eventId);
-                            }
-                        });
-                    }
-                });
-            } else {
-                allDepartments.forEach(dept => {
-                    eventDepartmentsList.innerHTML += `
-                        <div class="flex flex-col mb-2">
-                            <label class="inline-flex items-center">
-                                <input type="checkbox" id="dept_${dept}" value="${dept}" class="h-4 w-4 text-blue-600 rounded" onchange="toggleSubdivisions('${dept}', this.checked)">
-                                <span class="ml-2 text-sm font-medium text-gray-700">${dept}</span>
-                            </label>
-                            <div id="subdivisions_for_${dept}" class="ml-6 mt-1 space-y-1 hidden">
-                                <!-- Subdivisions will be loaded here dynamically -->
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-        }
-
-        function hideEventModal() {
-            document.getElementById('eventModal').classList.remove('active');
-            document.getElementById('eventModal').classList.add('hidden');
-        }
-
-        function loadEvents() {
-            const eventsList = document.getElementById('eventsList');
-            eventsList.innerHTML = '<div class="flex items-center justify-center py-12"><div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div></div>';
-
-            eventsRef.orderByChild('executionDateTime').off(); 
-            eventsRef.orderByChild('executionDateTime').on('value', snapshot => {
-                const events = snapshot.val();
-                if (!events) {
-                    eventsList.innerHTML = '<p class="text-center py-8 text-gray-500">No events scheduled yet</p>';
-                    document.getElementById('activeEventCount').textContent = '0';
-                    return;
-                }
-
-                let html = '';
-                let activeCount = 0;
-                const eventArray = Object.entries(events);
-
-                eventArray.forEach(([id, event]) => {
-                    const eventDate = new Date(event.executionDateTime);
-                    const now = new Date();
-                    // Consider event active if its execution date is in the future or today
-                    const isActive = eventDate >= now; 
-                    if (isActive) activeCount++;
-
-                    const progress = event.progress ? (event.progress * 100).toFixed(0) : 0;
-                    const progressColor = progress == 100 ? 'green' : 'blue';
-
-                    html += `
-                        <div class="bg-white p-4 rounded-lg shadow" data-event-id="${id}">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h3 class="font-medium text-lg text-gray-900">${event.title}</h3>
-                                    <p class="text-sm text-gray-500">${event.description}</p>
-                                    <p class="text-sm text-gray-500">Budget: Rp ${event.estimatedBudget ? event.estimatedBudget.toLocaleString() : '0'}</p>
-                                    <p class="text-sm text-gray-500">Date: ${new Date(event.executionDateTime).toLocaleString()}</p>
-                                </div>
-                                <div class="flex space-x-2">
-                                    <button onclick="showEventModal('${id}')" class="p-1 text-blue-600 hover:text-blue-800">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
-                                    </button>
-                                    <button onclick="deleteEvent('${id}')" class="p-1 text-red-600 hover:text-red-800">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                    <button onclick="showEventDetailsModal('${id}')" class="p-1 text-purple-600 hover:text-purple-800">
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="mt-4">
-                                <div class="flex justify-between mb-1">
-                                    <span class="text-sm font-medium text-${progressColor}-800">Progress: ${progress}%</span>
-                                    <span class="text-sm text-gray-500">${formatDateDistance(event.executionDateTime)}</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill bg-${progressColor}-500" style="width: ${progress}%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                eventsList.innerHTML = html;
-                document.getElementById('activeEventCount').textContent = activeCount;
-            });
-        }
-
-        async function saveEvent() {
-            const eventId = document.getElementById('eventId').value;
-            const title = document.getElementById('eventTitle').value;
-            const description = document.getElementById('eventDescription').value;
-            const estimatedBudget = parseFloat(document.getElementById('estimatedBudget').value) || 0;
-            const executionDateTime = document.getElementById('executionDateTime').value;
-            
-            const selectedDepartments = {};
-            document.querySelectorAll('#eventDepartmentsList input[type="checkbox"][id^="dept_"]:checked').forEach(deptCheckbox => {
-                const deptName = deptCheckbox.value;
-                selectedDepartments[deptName] = { progress: 0, subdivisions: {} }; // Initialize department with 0 progress and empty subdivisions
-
-                // Collect selected subdivisions for this department
-                document.querySelectorAll(`#subdivisions_for_${deptName} input[type="checkbox"]:checked`).forEach(subDivCheckbox => {
-                    const subDivName = subDivCheckbox.value;
-                    selectedDepartments[deptName].subdivisions[subDivName] = { progress: 0 }; // Initialize subdivision with 0 progress
-                });
-            });
-
-            if (!title || !executionDateTime || Object.keys(selectedDepartments).length === 0) {
-                alert('Please fill in title, execution date/time, and select at least one department.');
-                return;
-            }
-
-            const eventData = {
-                title,
-                description,
-                estimatedBudget,
-                executionDateTime,
-                departments: selectedDepartments,
-                updatedAt: firebase.database.ServerValue.TIMESTAMP
-            };
-
-            if (eventId) {
-                // Update existing event
-                const existingEvent = (await eventsRef.child(eventId).once('value')).val();
-                if (existingEvent && existingEvent.departments) {
-                    // Preserve existing department and subdivision structure if re-selected
-                    Object.keys(selectedDepartments).forEach(deptName => {
-                        if (existingEvent.departments[deptName]) {
-                            selectedDepartments[deptName].progress = existingEvent.departments[deptName].progress || 0;
-                            if (existingEvent.departments[deptName].subdivisions) {
-                                Object.keys(selectedDepartments[deptName].subdivisions).forEach(subDivName => {
-                                    if (existingEvent.departments[deptName].subdivisions[subDivName]) {
-                                        selectedDepartments[deptName].subdivisions[subDivName] = existingEvent.departments[deptName].subdivisions[subDivName];
-                                    }
-                                });
-                            }
-                        }
-                    });
-                }
-                eventData.departments = selectedDepartments;
-                await eventsRef.child(eventId).update(eventData);
-            } else {
-                // Create new event
-                eventData.createdAt = firebase.database.ServerValue.TIMESTAMP;
-                eventData.createdBy = currentUser.uid;
-                const newEventRef = eventsRef.push();
-                await newEventRef.set(eventData);
-            }
-
-            hideEventModal();
-            loadEvents(); // Reload events to show updates
-        }
-
-        function deleteEvent(eventId) {
-            if (confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
-                eventsRef.child(eventId).remove().then(() => {
-                    alert('Event deleted successfully.');
-                    loadEvents(); // Reload events after deletion
-                }).catch(error => {
-                    alert('Error deleting event: ' + error.message);
-                });
-            }
-        }
-
-        function formatDateDistance(dateTimeString) {
-            const now = new Date();
-            const eventDate = new Date(dateTimeString);
-            const diffInMs = eventDate - now;
             const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
             
             if (diffInDays < 0) return 'Event passed';
@@ -2306,37 +2063,6 @@ function loadFinance() {
     });
 }
 
-// ✅ Tambahan fungsi: loadProfile
-// Hapus definisi originalLoadProfile dan override loadProfile yang lama
-// const originalLoadProfile = loadProfile; // Simpan referensi ke fungsi asli
-// loadProfile = function() { // Override fungsi loadProfile
-//     const uid = currentUser.uid;
-//     usersRef.child(uid).once('value').then(snapshot => {
-//         const user = snapshot.val();
-//         if (user) {
-//             document.getElementById('profileDisplayName').textContent = user.name || 'Unknown';
-//             document.getElementById('profileRoleBadge').textContent = user.role || 'Member';
-//             const color = roleColors[user.role] || 'gray';
-//             document.getElementById('profileRoleBadge').style.setProperty('--badge-bg', `var(--tw-bg-opacity, 1)`);
-//             document.getElementById('profileRoleBadge').style.backgroundColor = `${colorMap(color, 100)}`; // ✅ Menggunakan colorMap
-//             document.getElementById('profileRoleBadge').style.color = `${colorMap(color, 800)}`; // ✅ Menggunakan colorMap
-
-//             document.getElementById('profileEmail').textContent = currentUser.email;
-//             document.getElementById('profileAvatar').textContent = user.name ? user.name.substring(0, 1).toUpperCase() : '?';
-//             document.getElementById('updateProfileName').value = user.name;
-//             document.getElementById('updateProfileRole').value = user.role;
-//             document.getElementById('updateProfileSubDivision').value = user.subDivision || ''; // Set subDivision value
-//             document.getElementById('profileJoinDate').textContent = new Date(user.joinedAt || Date.now()).toLocaleDateString();
-//             document.getElementById('profileLastLogin').textContent = new Date().toLocaleString();
-
-//             // Trigger updateSubDivisions to correctly enable/disable and filter sub-division dropdown
-//             // Store the initial value in a dataset attribute before calling updateSubDivisions
-//             document.getElementById('updateProfileSubDivision').dataset.initialValue = user.subDivision || '';
-//             updateSubDivisions('updateProfileRole', 'updateProfileSubDivision');
-//         }
-//     });
-// };
-
 // Definisi loadProfile yang sudah dikonsolidasi dan diperbaiki
 function loadProfile() {
     const uid = currentUser.uid;
@@ -2435,6 +2161,8 @@ function loadProfileRealtime() {
 
 // Tambahkan update ke moderatorsRef saat user update profil
 // This saveProfile is for the initial profile completion, not the update profile section
+// Hapus event listener lama untuk saveProfileBtn agar tidak duplikasi
+document.getElementById('saveProfileBtn').removeEventListener('click', saveProfile);
 function saveProfileInitial() { 
     const name = document.getElementById('profileName').value;
     const role = document.getElementById('profileRole').value;
@@ -2479,7 +2207,6 @@ function saveProfileInitial() {
 }
 
 // Override the saveProfile function with the initial one
-document.getElementById('saveProfileBtn').removeEventListener('click', saveProfile);
 document.getElementById('saveProfileBtn').addEventListener('click', saveProfileInitial);
 
 
@@ -2488,24 +2215,23 @@ function sendMessage() {
     const message = document.getElementById('chatInput').value.trim();
     if (!message) return;
 
-    usersRef.child(currentUser.uid).once('value').then(snapshot => {
-        const user = snapshot.val();
-        const name = user.name || 'Unknown';
-        const role = user.role || 'Member';
+    // Menggunakan currentUserData yang sudah tersedia secara global
+    const senderName = currentUserData.name || currentUser.email.split('@')[0];
+    const senderRole = currentUserData.role || 'Member';
 
-        chatRef.push({
-            uid: currentUser.uid,
-            name: name,
-            role: role,
-            message: message,
-            timestamp: firebase.database.ServerValue.TIMESTAMP
-        });
-
-        document.getElementById('chatInput').value = '';
+    chatRef.push({
+        senderId: currentUser.uid, // Menggunakan senderId agar konsisten
+        senderName: senderName,    // Menggunakan senderName
+        role: senderRole,          // Menambahkan role jika diperlukan di chat
+        text: message,             // Menggunakan text agar konsisten dengan loadChat
+        timestamp: firebase.database.ServerValue.TIMESTAMP
     });
+
+    document.getElementById('chatInput').value = '';
 }
 
 // Ganti event click tombol kirim chat
+// Hapus baris ini karena sudah ada di loadChat()
 // document.getElementById('sendChatBtn').addEventListener('click', sendMessage);
 </script>
 <script>
@@ -2872,22 +2598,6 @@ function updateSubDivisions(roleSelectId, subDivSelectId) {
       subDiv.value = ""; // Reset if no matching sub-division
   }
 }
-
-// Override loadProfile to correctly set initial subDivision value
-// const originalLoadProfile = loadProfile; // Sudah didefinisikan di atas
-// loadProfile = function() { // Sudah didefinisikan di atas
-//     originalLoadProfile(); // Call the original loadProfile first
-//     const uid = currentUser.uid;
-//     usersRef.child(uid).once('value').then(snapshot => {
-//         const user = snapshot.val();
-//         if (user && user.subDivision) {
-//             // Store the initial value in a dataset attribute
-//             document.getElementById('updateProfileSubDivision').dataset.initialValue = user.subDivision;
-//             // Then call updateSubDivisions to populate and select
-//             updateSubDivisions('updateProfileRole', 'updateProfileSubDivision');
-//         }
-//     });
-// };
 
 // Fungsi baru untuk menampilkan/menyembunyikan sub-divisi dan memuat checkbox
 function toggleSubdivisions(departmentName, isChecked, eventId = null) {
