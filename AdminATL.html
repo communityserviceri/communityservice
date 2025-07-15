@@ -95,6 +95,12 @@
         "Finance": ["Bendahara", "Pembukuan", "Donasi", "Anggaran", "Laporan Keuangan"]
     };
 
+    // Chart Instances
+    let financeChartInstance = null;
+    let roleChartInstance = null;
+    let eventsChartInstance = null;
+    let reportsChartInstance = null; // NEW: For reports chart
+
     // --- Finance Functions ---
     function loadFinance() {
       const transactionsList = document.getElementById('transactionsList');
@@ -164,7 +170,6 @@
       });
     }
 
-    let financeChartInstance = null;
     function updateFinanceChart(income, expenses) {
         const financeCtx = document.getElementById('financeChart').getContext('2d');
         if (financeChartInstance) {
@@ -192,7 +197,6 @@
     }
 
     // --- Moderator Functions ---
-    let roleChartInstance = null;
     function loadModerators() {
       const roles = {};
       const listContainer = document.getElementById("moderatorList");
@@ -353,7 +357,6 @@
     }
 
     // --- Event/Task Functions ---
-    let eventsChartInstance = null;
     function loadEventsSummary() {
         const eventsSummaryList = document.getElementById('eventsSummaryList');
         eventsSummaryList.innerHTML = '<p class="text-center py-8 text-gray-500">Loading events...</p>';
@@ -523,6 +526,24 @@
     }
 
     // --- Reports Functions ---
+    function updateReportsChart(pending, resolved, ignored) {
+        const reportsCtx = document.getElementById('reportsChart').getContext('2d');
+        if (reportsChartInstance) {
+            reportsChartInstance.destroy();
+        }
+        reportsChartInstance = new Chart(reportsCtx, {
+            type: 'doughnut', // Or 'bar', depending on preference
+            data: {
+                labels: ['Pending', 'Resolved', 'Ignored'],
+                datasets: [{
+                    data: [pending, resolved, ignored],
+                    backgroundColor: ['#3b82f6', '#10b981', '#6b7280'], // blue, green, gray
+                }]
+            },
+            options: { responsive: true }
+        });
+    }
+
     window.loadReports = function() {
         const reportsList = document.getElementById('reportsList');
         reportsList.innerHTML = '<div class="flex items-center justify-center py-12"><div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div></div>';
@@ -541,11 +562,14 @@
             if (!reports) {
                 reportsList.innerHTML = '<p class="text-center py-8 text-gray-500">No reports found</p>';
                 document.getElementById('pendingReportCount').textContent = '0';
+                if (reportsChartInstance) reportsChartInstance.destroy(); // Destroy chart if no data
                 return;
             }
 
             let html = '';
             let pendingCount = 0;
+            let resolvedCount = 0; // NEW
+            let ignoredCount = 0; // NEW
             const reportArray = Object.entries(reports);
 
             // Sort reports by timestamp (newest first)
@@ -553,15 +577,17 @@
 
             reportArray.forEach(([id, report]) => {
                 if (report.status === 'Pending') pendingCount++;
+                else if (report.status === 'Resolved') resolvedCount++; // NEW
+                else if (report.status === 'Ignored') ignoredCount++; // NEW
 
-                const categoryColor = 
-                    report.category === 'Behavior' ? 'red' : 
-                    report.category === 'Spam' ? 'orange' : 
-                    report.category === 'Harassment' ? 'purple' : 
+                const categoryColor =
+                    report.category === 'Behavior' ? 'red' :
+                    report.category === 'Spam' ? 'orange' :
+                    report.category === 'Harassment' ? 'purple' :
                     report.category === 'Scam' ? 'yellow' : 'gray';
-                
-                const statusColor = 
-                    report.status === 'Pending' ? 'blue' : 
+
+                const statusColor =
+                    report.status === 'Pending' ? 'blue' :
                     report.status === 'Resolved' ? 'green' : 'gray';
 
                 html += `
@@ -600,6 +626,9 @@
 
             reportsList.innerHTML = html;
             document.getElementById('pendingReportCount').textContent = pendingCount;
+
+            // Update Reports Chart (Dashboard)
+            updateReportsChart(pendingCount, resolvedCount, ignoredCount); // NEW
         });
     }
 
@@ -776,7 +805,7 @@
           loadFinance();
           loadModerators();
           loadEventsSummary();
-          // No reports chart on dashboard for now, but could be added
+          loadReports(); // Load reports for dashboard chart
       }
     };
 
@@ -810,7 +839,7 @@
         loadFinance();
         loadModerators();
         loadEventsSummary();
-        // No reports loaded initially for dashboard, only when reports section is opened
+        loadReports(); // NEW: Load reports for dashboard chart
         window.showSection('dashboard'); // Default to dashboard
     }
 
@@ -907,6 +936,11 @@
           <div class="bg-white p-4 rounded-lg shadow">
             <h3 class="font-semibold text-gray-600 mb-2">Status Event</h3>
             <canvas id="eventsChart"></canvas>
+          </div>
+          <!-- NEW: Reports Chart for Dashboard -->
+          <div class="bg-white p-4 rounded-lg shadow">
+            <h3 class="font-semibold text-gray-600 mb-2">Status Laporan</h3>
+            <canvas id="reportsChart"></canvas>
           </div>
         </div>
       </div>
