@@ -5,11 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Panel | Community Service</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom styles for modals and progress bars */
+    .modal {
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease-in-out;
+    }
+    .modal.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    .progress-bar {
+        height: 8px;
+        border-radius: 4px;
+        background-color: #e0e0e0;
+    }
+    .progress-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+    .nested-progress-container {
+        margin-left: 1rem;
+        border-left: 2px solid #e0e0e0;
+        padding-left: 1rem;
+    }
+    .department-item, .subdivision-item {
+        background-color: #f9fafb;
+        padding: 0.75rem;
+        border-radius: 0.375rem;
+        margin-bottom: 0.5rem;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+    .task-item {
+        background-color: #ffffff;
+        padding: 0.5rem;
+        border-radius: 0.375rem;
+        margin-bottom: 0.25rem;
+        border: 1px solid #e5e7eb;
+    }
+  </style>
   <script type="module">
     // Firebase Finance Integration
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCdl3XJ-eUz8BELLaSOXeZFpg7FLDFk7l4",
@@ -31,6 +72,27 @@
     const eventsRef = ref(db, 'events');
     const transactionsRef = ref(db, 'transactions');
     const statusRef = ref(db, 'status'); // Untuk status online/offline
+
+    // Role and Sub-Division Options (from code (8).html)
+    const roleColors = {
+        "Founder": "red",
+        "Co-Founder": "orange",
+        "Education": "indigo",
+        "Moderation": "blue",
+        "Events": "green",
+        "Creative": "purple",
+        "Technology": "teal",
+        "Finance": "yellow"
+    };
+
+    const subDivisionOptions = {
+        "Education": ["Koordinator Edukasi", "Mentor", "Pemateri", "Notulen"],
+        "Moderation": ["Head Moderator", "Moderator", "Helper", "Support Staff"],
+        "Events": ["Event Coordinator", "MC", "Host", "Giveaway Staff"],
+        "Creative": ["Content Lead", "Designer", "Editor", "Dokumentator", "Social Media"],
+        "Technology": ["Tech Lead", "Bot Developer", "Web Tools Support", "Database Admin"],
+        "Finance": ["Bendahara", "Pembukuan", "Donasi", "Anggaran", "Laporan Keuangan"]
+    };
 
     // --- Finance Functions ---
     function loadFinance() {
@@ -174,15 +236,18 @@
                 div.dataset.name = mod.name || "Unknown";
                 div.dataset.departemen = mod.role || "Unknown";
                 div.innerHTML = `
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 rounded-full bg-${statusColor}-100 flex items-center justify-center font-bold text-${statusColor}-600 mr-3">
-                            ${mod.name ? mod.name.substring(0, 1).toUpperCase() : '?'}
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-${statusColor}-100 flex items-center justify-center font-bold text-${statusColor}-600 mr-3">
+                                ${mod.name ? mod.name.substring(0, 1).toUpperCase() : '?'}
+                            </div>
+                            <div>
+                                <strong class="text-gray-800">${mod.name || 'Unknown'}</strong><br>
+                                <small class="text-gray-600">${mod.role || 'Member'} ${mod.subDivision ? ' - ' + mod.subDivision : ''}</small><br>
+                                <span class="text-xs text-${statusColor}-500">${statusText}</span>
+                            </div>
                         </div>
-                        <div>
-                            <strong class="text-gray-800">${mod.name || 'Unknown'}</strong><br>
-                            <small class="text-gray-600">${mod.role || 'Member'} ${mod.subDivision ? ' - ' + mod.subDivision : ''}</small><br>
-                            <span class="text-xs text-${statusColor}-500">${statusText}</span>
-                        </div>
+                        <button onclick="window.openEditModeratorModal('${id}', '${mod.name}', '${mod.role}', '${mod.subDivision}')" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600">Edit</button>
                     </div>
                 `;
                 listContainer.appendChild(div);
@@ -206,6 +271,84 @@
             });
         });
       });
+    }
+
+    // --- Edit Moderator Modal Functions ---
+    window.openEditModeratorModal = function(uid, name, role, subDivision) {
+        document.getElementById('editModeratorModal').classList.add('active');
+        document.getElementById('editModeratorModal').classList.remove('hidden');
+        document.getElementById('editModeratorUid').value = uid;
+        document.getElementById('editModeratorName').value = name;
+        document.getElementById('editModeratorRole').value = role;
+
+        // Populate sub-division dropdown based on selected role
+        window.updateSubDivisions('editModeratorRole', 'editModeratorSubDivision', subDivision);
+    }
+
+    window.closeEditModeratorModal = function() {
+        document.getElementById('editModeratorModal').classList.remove('active');
+        document.getElementById('editModeratorModal').classList.add('hidden');
+    }
+
+    window.saveModeratorChanges = function() {
+        const uid = document.getElementById('editModeratorUid').value;
+        const name = document.getElementById('editModeratorName').value;
+        const role = document.getElementById('editModeratorRole').value;
+        const subDivision = document.getElementById('editModeratorSubDivision').value;
+
+        if (!name || !role) {
+            alert('Nama dan Departemen tidak boleh kosong!');
+            return;
+        }
+
+        const updates = {
+            name: name,
+            role: role,
+            subDivision: subDivision
+        };
+
+        // Update both users and moderators nodes
+        update(ref(db, `users/${uid}`), updates)
+            .then(() => update(ref(db, `moderators/${uid}`), updates))
+            .then(() => {
+                alert('Perubahan moderator berhasil disimpan!');
+                window.closeEditModeratorModal();
+                loadModerators(); // Reload moderator list to reflect changes
+            })
+            .catch(error => {
+                alert('Gagal menyimpan perubahan: ' + error.message);
+            });
+    }
+
+    // Function to update sub-division dropdown based on role selection
+    window.updateSubDivisions = function(roleSelectId, subDivSelectId, initialValue = '') {
+        const role = document.getElementById(roleSelectId).value;
+        const subDiv = document.getElementById(subDivSelectId);
+
+        subDiv.innerHTML = '<option value="">Pilih Sub-Divisi</option>'; // Clear existing options
+
+        if (role === "Founder" || role === "Co-Founder" || role === "") {
+            subDiv.value = "";
+            subDiv.disabled = true;
+            return;
+        }
+
+        const availableSubdivisions = subDivisionOptions[role] || [];
+        availableSubdivisions.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item;
+            option.textContent = item;
+            subDiv.appendChild(option);
+        });
+
+        subDiv.disabled = false;
+
+        // Set initial value if provided
+        if (initialValue) {
+            subDiv.value = initialValue;
+        } else {
+            subDiv.value = ""; // Reset if no matching sub-division
+        }
     }
 
     // --- Event/Task Functions ---
@@ -233,10 +376,10 @@
                 const progressColor = progress == 100 ? 'green' : 'blue';
 
                 if (progress == 100) completedEvents++;
-                else if (progress > 0) inProgressEvents++;
+                else if (progress > 0 && progress < 100) inProgressEvents++;
 
                 html += `
-                    <div class="bg-white p-4 rounded-lg shadow">
+                    <div class="bg-white p-4 rounded-lg shadow cursor-pointer hover:bg-gray-50" onclick="window.openEventDetailsModal('${id}')">
                         <h4 class="font-medium text-gray-900">${event.title}</h4>
                         <p class="text-sm text-gray-500">Date: ${new Date(event.executionDateTime).toLocaleDateString()}</p>
                         <div class="mt-2">
@@ -269,6 +412,113 @@
                 options: { responsive: true }
             });
         });
+    }
+
+    // --- Event Details Modal Functions ---
+    window.openEventDetailsModal = function(eventId) {
+        document.getElementById('eventDetailsModal').classList.add('active');
+        document.getElementById('eventDetailsModal').classList.remove('hidden');
+
+        // Store current eventId to detach listener later
+        document.getElementById('eventDetailsModal').dataset.currentEventId = eventId;
+
+        onValue(ref(db, `events/${eventId}`), (snapshot) => {
+            const event = snapshot.val();
+            if (!event) {
+                alert('Event not found.');
+                window.closeEventDetailsModal();
+                return;
+            }
+
+            document.getElementById('detailEventTitle').textContent = event.title;
+            document.getElementById('detailEventDescription').textContent = event.description;
+            document.getElementById('detailEstimatedBudget').textContent = `Rp ${event.estimatedBudget ? event.estimatedBudget.toLocaleString() : '0'}`;
+            document.getElementById('detailExecutionDateTime').textContent = new Date(event.executionDateTime).toLocaleString();
+
+            const overallProgress = event.progress ? (event.progress * 100).toFixed(0) : 0;
+            document.getElementById('detailEventProgress').textContent = `${overallProgress}%`;
+            document.getElementById('detailEventProgressBar').style.width = `${overallProgress}%`;
+            document.getElementById('detailEventProgressBar').className = `progress-fill bg-${overallProgress == 100 ? 'green' : 'blue'}-500`;
+
+            const departmentsListEl = document.getElementById('eventDetailsDepartmentsList');
+            departmentsListEl.innerHTML = ''; // Clear previous content
+
+            const departments = event.departments || {};
+            for (const deptName of Object.keys(departments)) {
+                const department = departments[deptName];
+                const deptProgress = department.progress ? (department.progress * 100).toFixed(0) : 0;
+                const deptProgressColor = deptProgress == 100 ? 'green' : 'blue';
+
+                let departmentHtml = `
+                    <div class="department-item">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="font-semibold text-lg text-gray-800">${deptName}</h4>
+                            <span class="text-sm font-medium text-${deptProgressColor}-800">${deptProgress}%</span>
+                        </div>
+                        <div class="progress-bar mb-3">
+                            <div class="progress-fill bg-${deptProgressColor}-500" style="width: ${deptProgress}%"></div>
+                        </div>
+                        <div class="nested-progress-container space-y-3" id="subdivisions-list-${deptName}">
+                            <!-- Subdivisions will be loaded here -->
+                        </div>
+                    </div>
+                `;
+                departmentsListEl.innerHTML += departmentHtml;
+
+                const subdivisionsListEl = document.getElementById(`subdivisions-list-${deptName}`);
+                const subdivisions = department.subdivisions || {};
+
+                for (const subDivName of Object.keys(subdivisions)) {
+                    const subdivision = subdivisions[subDivName];
+                    const subDivProgress = subdivision.progress ? (subdivision.progress * 100).toFixed(0) : 0;
+                    const subDivProgressColor = subDivProgress == 100 ? 'green' : 'blue';
+
+                    let subdivisionHtml = `
+                        <div class="subdivision-item">
+                            <div class="flex justify-between items-center mb-2">
+                                <h5 class="font-medium text-md text-gray-700">${subDivName}</h5>
+                                <span class="text-sm font-medium text-${subDivProgressColor}-800">${subDivProgress}%</span>
+                            </div>
+                            <div class="progress-bar mb-3">
+                                <div class="progress-fill bg-${subDivProgressColor}-500" style="width: ${subDivProgress}%"></div>
+                            </div>
+                            <div class="nested-progress-container space-y-2" id="tasks-list-${deptName}-${subDivName}">
+                                <!-- Tasks will be loaded here -->
+                            </div>
+                        </div>
+                    `;
+                    subdivisionsListEl.innerHTML += subdivisionHtml;
+
+                    const tasksListEl = document.getElementById(`tasks-list-${deptName}-${subDivName}`);
+                    const tasks = subdivision.tasks || {};
+
+                    for (const taskId of Object.keys(tasks)) {
+                        const task = tasks[taskId];
+                        const taskStatusColor = task.status === 'complete' ? 'green' : 'orange';
+
+                        tasksListEl.innerHTML += `
+                            <div class="task-item">
+                                <div>
+                                    <p class="font-normal text-gray-800">${task.title}</p>
+                                    <p class="text-xs text-gray-500">PIC: ${task.PICName || 'Unknown'} | Status: <span class="font-medium text-${taskStatusColor}-600">${task.status}</span></p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            }
+        });
+    }
+
+    window.closeEventDetailsModal = function() {
+        document.getElementById('eventDetailsModal').classList.remove('active');
+        document.getElementById('eventDetailsModal').classList.add('hidden');
+        // Detach listener when modal is closed to prevent memory leaks
+        const currentEventId = document.getElementById('eventDetailsModal').dataset.currentEventId;
+        if (currentEventId) {
+            onValue(ref(db, `events/${currentEventId}`), () => {}, { onlyOnce: true }); // Detach listener
+            delete document.getElementById('eventDetailsModal').dataset.currentEventId; // Clear stored ID
+        }
     }
 
 
@@ -317,8 +567,8 @@
               joinedAt: new Date().toISOString(),
               lastSeen: new Date().toISOString()
           };
-          ref(db, `users/${uid}`).set(userData);
-          ref(db, `moderators/${uid}`).set(userData);
+          update(ref(db, `users/${uid}`), userData); // Use update to avoid overwriting if user exists
+          update(ref(db, `moderators/${uid}`), userData); // Use update
 
           status.innerText = `✅ Email "${email}" berhasil ditambahkan! Password default: ${defaultPassword}`;
           document.getElementById("email").disabled = true;
@@ -447,11 +697,11 @@
     <aside id="sidebar" class="w-64 bg-white border-r shadow-md flex flex-col transition-all duration-300">
       <nav class="flex-1 p-6 space-y-2">
         <ul class="space-y-2">
-          <li><button onclick="showSection('dashboard')" class="text-left w-full text-gray-700 hover:text-blue-600">📊 Dashboard</button></li>
-          <li><button onclick="showSection('finance')" class="text-left w-full text-gray-700 hover:text-blue-600">💰 Keuangan</button></li>
-          <li><button onclick="showSection('moderator')" class="text-left w-full text-gray-700 hover:text-blue-600">🧑‍💼 Moderator</button></li>
-          <li><button onclick="showSection('events')" class="text-left w-full text-gray-700 hover:text-blue-600">🗓️ Events</button></li>
-          <li><button onclick="showSection('tambahAkun')" class="text-left w-full text-gray-700 hover:text-blue-600">➕ Tambah Akun</button></li>
+          <li><button onclick="window.showSection('dashboard')" class="text-left w-full text-gray-700 hover:text-blue-600">📊 Dashboard</button></li>
+          <li><button onclick="window.showSection('finance')" class="text-left w-full text-gray-700 hover:text-blue-600">💰 Keuangan</button></li>
+          <li><button onclick="window.showSection('moderator')" class="text-left w-full text-gray-700 hover:text-blue-600">🧑‍💼 Moderator</button></li>
+          <li><button onclick="window.showSection('events')" class="text-left w-full text-gray-700 hover:text-blue-600">🗓️ Events</button></li>
+          <li><button onclick="window.showSection('tambahAkun')" class="text-left w-full text-gray-700 hover:text-blue-600">➕ Tambah Akun</button></li>
         </ul>
       </nav>
     </aside>
@@ -538,13 +788,84 @@
       <div id="tambahAkunSection" class="hidden max-w-md bg-white p-6 rounded-lg shadow space-y-4">
         <h3 class="text-2xl font-semibold text-gray-700">Tambah Akun Baru</h3>
         <input type="email" id="email" placeholder="Email Baru" class="w-full p-3 border rounded-lg" />
-        <button onclick="addAccount()" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg">Tambah Akun</button>
-        <button id="resetBtn" onclick="resetForm()" class="hidden w-full bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-lg">Tambah Akun Lagi</button>
+        <button onclick="window.addAccount()" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg">Tambah Akun</button>
+        <button id="resetBtn" onclick="window.resetForm()" class="hidden w-full bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-lg">Tambah Akun Lagi</button>
         <p id="panelStatus" class="text-center text-sm text-gray-500"></p>
       </div>
 
     </main>
   </div>
+</div>
+
+<!-- Edit Moderator Modal -->
+<div id="editModeratorModal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md max-h-screen overflow-y-auto">
+        <h2 class="text-2xl font-bold text-blue-700 mb-6 text-center">Edit Moderator</h2>
+        <input type="hidden" id="editModeratorUid">
+        <div class="mb-4">
+            <label class="block text-gray-700 mb-2">Nama Lengkap</label>
+            <input class="w-full px-3 py-2 border border-gray-300 rounded-md" id="editModeratorName" type="text"/>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 mb-2">Departemen</label>
+            <select class="w-full px-3 py-2 border border-gray-300 rounded-md" id="editModeratorRole" onchange="window.updateSubDivisions('editModeratorRole', 'editModeratorSubDivision')">
+                <option value="">Pilih Departemen</option>
+                <option value="Founder">Founder</option>
+                <option value="Co-Founder">Co-Founder</option>
+                <option value="Education">Education</option>
+                <option value="Moderation">Moderation</option>
+                <option value="Events">Events</option>
+                <option value="Creative">Creative</option>
+                <option value="Technology">Technology</option>
+                <option value="Finance">Finance</option>
+            </select>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 mb-2">Sub-Divisi</label>
+            <select class="w-full px-3 py-2 border border-gray-300 rounded-md" id="editModeratorSubDivision" disabled>
+                <option value="">Pilih Sub-Divisi</option>
+            </select>
+        </div>
+        <div class="flex justify-end space-x-3 mt-6">
+            <button class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100" onclick="window.closeEditModeratorModal()">Batal</button>
+            <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onclick="window.saveModeratorChanges()">Simpan Perubahan</button>
+        </div>
+    </div>
+</div>
+
+<!-- Event Details Modal -->
+<div id="eventDetailsModal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-3xl max-h-screen overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold text-blue-700" id="detailEventTitle"></h2>
+            <button class="text-gray-500 hover:text-gray-700" onclick="window.closeEventDetailsModal()">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <p class="text-gray-600 mb-4" id="detailEventDescription"></p>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <p class="text-sm font-medium text-gray-700">Budget:</p>
+                <p class="text-gray-900" id="detailEstimatedBudget"></p>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-gray-700">Execution Date:</p>
+                <p class="text-gray-900" id="detailExecutionDateTime"></p>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <h3 class="font-medium text-gray-900 mb-2">Overall Progress: <span id="detailEventProgress">0%</span></h3>
+            <div class="progress-bar">
+                <div class="progress-fill bg-blue-500" id="detailEventProgressBar" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <h3 class="text-xl font-bold text-gray-800 mb-3">Departments Involved</h3>
+        <div id="eventDetailsDepartmentsList" class="space-y-4">
+            <!-- Departments, Subdivisions, and Tasks will be loaded here -->
+        </div>
+    </div>
 </div>
 
 </body>
