@@ -735,6 +735,14 @@
         return;
       }
 
+      // --- START MODIFICATION ---
+      const allowedAdminEmail = "admin@atl.moderator.com";
+      if (email !== allowedAdminEmail) {
+        statusEl.innerText = "Akses ditolak: Hanya admin yang diizinkan untuk login.";
+        return;
+      }
+      // --- END MODIFICATION ---
+
       signInWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
           statusEl.innerText = "Login berhasil!";
