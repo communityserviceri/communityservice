@@ -73,6 +73,7 @@
     const transactionsRef = ref(db, 'transactions');
     const statusRef = ref(db, 'status'); // Untuk status online/offline
     const reportsRef = ref(db, 'reports'); // NEW: For reports monitoring
+    const ticketsRef = ref(db, 'tickets'); // NEW: For ticketing monitoring
 
     // Role and Sub-Division Options (from code (8).html)
     const roleColors = {
@@ -102,6 +103,7 @@
     let roleChartInstance = null;
     let eventsChartInstance = null;
     let reportsChartInstance = null; // NEW: For reports chart
+    let ticketsChartInstance = null; // NEW: For tickets chart
 
     // --- Finance Functions ---
     function loadFinance() {
@@ -753,6 +755,225 @@
         return date.toLocaleDateString('en-US', options); // Example: "Oct 26, 2023, 10:30 AM"
     }
 
+    // --- Ticketing Functions ---
+    function updateTicketsChart(incomeTickets, expenseTickets) {
+        const ticketsCtx = document.getElementById('ticketsChart').getContext('2d');
+        if (ticketsChartInstance) {
+            ticketsChartInstance.destroy();
+        }
+        ticketsChartInstance = new Chart(ticketsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Income Tickets', 'Expense Tickets'],
+                datasets: [{
+                    label: 'Ticket Overview',
+                    data: [incomeTickets, expenseTickets],
+                    backgroundColor: ['#34d399', '#fbbf24'], // green for income, yellow for expense
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    window.loadTickets = function() {
+        const ticketsList = document.getElementById('ticketsList');
+        const totalTicketsCountEl = document.getElementById('totalTicketsCount'); // NEW
+        const totalTicketsCountDashboardEl = document.getElementById('totalTicketsCountDashboard'); // NEW
+        ticketsList.innerHTML = '<div class="flex items-center justify-center py-12"><div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div></div>';
+
+        onValue(ticketsRef, snapshot => {
+            const tickets = snapshot.val();
+            if (!tickets) {
+                ticketsList.innerHTML = '<p class="text-center py-8 text-gray-500">No tickets found</p>';
+                totalTicketsCountEl.textContent = '0';
+                totalTicketsCountDashboardEl.textContent = '0';
+                if (ticketsChartInstance) ticketsChartInstance.destroy();
+                return;
+            }
+
+            let html = '';
+            let totalCount = 0;
+            let incomeTicketsValue = 0;
+            let expenseTicketsValue = 0;
+
+            const ticketArray = Object.entries(tickets);
+            // Sort tickets by purchaseDate (newest first)
+            ticketArray.sort((a, b) => new Date(b[1].purchaseDate) - new Date(a[1].purchaseDate));
+
+            ticketArray.forEach(([id, ticket]) => {
+                totalCount++;
+                const isIncome = ticket.category === 'Income';
+                const amount = parseInt(ticket.price) || 0;
+
+                if (isIncome) incomeTicketsValue += amount;
+                else expenseTicketsValue += amount;
+
+                const categoryColor = isIncome ? 'green' : 'orange';
+
+                html += `
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-medium text-gray-900">Buyer: ${ticket.buyerName || 'Unknown'}</h3>
+                                <div class="flex items-center space-x-2 mt-1">
+                                    <span class="inline-block px-2 py-1 rounded-full text-xs font-medium bg-${categoryColor}-100 text-${categoryColor}-800">
+                                        ${ticket.category} - ${ticket.ticketType}
+                                    </span>
+                                    <span class="text-sm text-gray-500">${ticket.purchaseDate}</span>
+                                </div>
+                            </div>
+                            <div class="text-${isIncome ? 'green' : 'red'}-600 font-bold">
+                                ${isIncome ? '+' : '-'}Rp ${amount.toLocaleString()}
+                            </div>
+                        </div>
+                        <div class="flex space-x-2 mt-3">
+                            <button onclick="window.openTicketModal('${id}')" class="p-1 text-blue-600 hover:text-blue-800">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </button>
+                            <button onclick="window.deleteTicket('${id}')" class="p-1 text-red-600 hover:text-red-800">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            ticketsList.innerHTML = html;
+            totalTicketsCountEl.textContent = totalCount;
+            totalTicketsCountDashboardEl.textContent = totalCount; // Update dashboard stat
+
+            // Update Tickets Chart (Dashboard)
+            updateTicketsChart(incomeTicketsValue, expenseTicketsValue);
+        });
+    }
+
+    window.openTicketModal = function(ticketId = null) {
+        document.getElementById('ticketModal').classList.add('active');
+        document.getElementById('ticketModal').classList.remove('hidden');
+        document.getElementById('ticketId').value = ticketId || '';
+
+        // Reset form fields
+        document.getElementById('ticketBuyerName').value = '';
+        document.getElementById('ticketCategory').value = '';
+        document.getElementById('ticketType').innerHTML = '<option value="">Pilih Tipe Tiket</option>'; // Reset ticket types
+        document.getElementById('ticketType').disabled = true;
+        document.getElementById('ticketPurchaseDate').valueAsDate = new Date(); // Set to today's date
+        document.getElementById('ticketPrice').value = '';
+
+        if (ticketId) {
+            onValue(ref(db, `tickets/${ticketId}`), (snapshot) => {
+                const ticket = snapshot.val();
+                if (ticket) {
+                    document.getElementById('ticketBuyerName').value = ticket.buyerName || '';
+                    document.getElementById('ticketCategory').value = ticket.category || '';
+                    // Manually trigger updateTicketTypes to populate the correct options
+                    window.updateTicketTypes('ticketCategory', 'ticketType', ticket.ticketType);
+                    document.getElementById('ticketPurchaseDate').value = ticket.purchaseDate || '';
+                    document.getElementById('ticketPrice').value = ticket.price || '';
+                }
+            }, { onlyOnce: true });
+        }
+    }
+
+    window.closeTicketModal = function() {
+        document.getElementById('ticketModal').classList.remove('active');
+        document.getElementById('ticketModal').classList.add('hidden');
+    }
+
+    window.saveTicket = function() {
+        const ticketId = document.getElementById('ticketId').value;
+        const buyerName = document.getElementById('ticketBuyerName').value;
+        const category = document.getElementById('ticketCategory').value;
+        const ticketType = document.getElementById('ticketType').value;
+        const purchaseDate = document.getElementById('ticketPurchaseDate').value;
+        const price = document.getElementById('ticketPrice').value;
+
+        if (!buyerName || !category || !ticketType || !purchaseDate || !price) {
+            alert('Harap isi semua kolom yang diperlukan!');
+            return;
+        }
+
+        const ticketData = {
+            buyerName,
+            category,
+            ticketType,
+            purchaseDate,
+            price: parseInt(price),
+            updatedAt: new Date().toISOString()
+        };
+
+        if (ticketId) {
+            update(ref(db, `tickets/${ticketId}`), ticketData)
+                .then(() => {
+                    alert('Tiket berhasil diperbarui!');
+                    window.closeTicketModal();
+                    window.loadTickets();
+                })
+                .catch(error => alert('Gagal memperbarui tiket: ' + error.message));
+        } else {
+            ticketData.createdAt = new Date().toISOString();
+            push(ticketsRef, ticketData)
+                .then(() => {
+                    alert('Tiket berhasil ditambahkan!');
+                    window.closeTicketModal();
+                    window.loadTickets();
+                })
+                .catch(error => alert('Gagal menambahkan tiket: ' + error.message));
+        }
+    }
+
+    window.deleteTicket = function(ticketId) {
+        if (confirm('Apakah Anda yakin ingin menghapus tiket ini? Tindakan ini tidak dapat dibatalkan.')) {
+            remove(ref(db, `tickets/${ticketId}`))
+                .then(() => {
+                    alert('Tiket berhasil dihapus!');
+                    window.loadTickets();
+                })
+                .catch(error => alert('Gagal menghapus tiket: ' + error.message));
+        }
+    }
+
+    // Helper function to update ticket types based on category
+    window.updateTicketTypes = function(categorySelectId, typeSelectId, initialValue = '') {
+        const category = document.getElementById(categorySelectId).value;
+        const ticketTypeSelect = document.getElementById(typeSelectId);
+
+        ticketTypeSelect.innerHTML = '<option value="">Pilih Tipe Tiket</option>'; // Clear existing options
+
+        let types = [];
+        if (category === 'Income') {
+            types = ['Donasi Umum', 'Sponsor Acara', 'Penjualan Merchandise', 'Tiket Event'];
+        } else if (category === 'Expense') {
+            types = ['Operasional', 'Acara', 'Gaji/Honor', 'Pemasaran', 'Lain-lain'];
+        }
+
+        types.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = type;
+            ticketTypeSelect.appendChild(option);
+        });
+
+        ticketTypeSelect.disabled = types.length === 0;
+
+        if (initialValue) {
+            ticketTypeSelect.value = initialValue;
+        } else {
+            ticketTypeSelect.value = "";
+        }
+    }
+
 
     // --- Authentication and UI Control ---
     function adminLogin() {
@@ -826,7 +1047,7 @@
     };
 
     window.showSection = function(section) {
-      const sections = ['dashboardSection', 'financeSection', 'moderatorSection', 'tambahAkunSection', 'eventsSection', 'reportsSection']; // Added reportsSection
+      const sections = ['dashboardSection', 'financeSection', 'moderatorSection', 'tambahAkunSection', 'eventsSection', 'reportsSection', 'ticketingSection']; // Added ticketingSection
       sections.forEach(id => document.getElementById(id).classList.add('hidden'));
       document.getElementById(section + 'Section').classList.remove('hidden');
 
@@ -837,13 +1058,16 @@
           loadModerators();
       } else if (section === 'events') {
           loadEventsSummary();
-      } else if (section === 'reports') { // NEW: Load reports when reports section is active
+      } else if (section === 'reports') {
           window.loadReports();
+      } else if (section === 'ticketing') { // NEW: Load tickets when ticketing section is active
+          window.loadTickets();
       } else if (section === 'dashboard') {
           loadFinance();
           loadModerators();
           loadEventsSummary();
-          loadReports(); // Load reports for dashboard chart
+          loadReports();
+          loadTickets(); // Load tickets for dashboard chart
       }
     };
 
@@ -877,7 +1101,8 @@
         loadFinance();
         loadModerators();
         loadEventsSummary();
-        loadReports(); // NEW: Load reports for dashboard chart
+        loadReports();
+        loadTickets(); // NEW: Load tickets for dashboard chart
         window.showSection('dashboard'); // Default to dashboard
     }
 
@@ -885,7 +1110,8 @@
       const searchInput = document.getElementById("searchModerator");
       const filterSelect = document.getElementById("filterDepartemen");
       const loginBtn = document.querySelector("button.bg-blue-600");
-      const reportFilterSelect = document.getElementById('reportFilter'); // NEW
+      const reportFilterSelect = document.getElementById('reportFilter');
+      const ticketCategorySelect = document.getElementById('ticketCategory'); // NEW
 
       if (searchInput && filterSelect) {
         searchInput.addEventListener("input", filterModerators);
@@ -896,8 +1122,12 @@
         loginBtn.addEventListener("click", adminLogin);
       }
 
-      if (reportFilterSelect) { // NEW: Add event listener for report filter
+      if (reportFilterSelect) {
           reportFilterSelect.addEventListener('change', window.loadReports);
+      }
+
+      if (ticketCategorySelect) { // NEW: Add event listener for ticket category
+          ticketCategorySelect.addEventListener('change', () => window.updateTicketTypes('ticketCategory', 'ticketType'));
       }
 
       // Check auth state on page load
@@ -950,7 +1180,8 @@
           <li><button onclick="window.showSection('finance')" class="text-left w-full text-gray-700 hover:text-blue-600 cursor-pointer">💰 Keuangan</button></li>
           <li><button onclick="window.showSection('moderator')" class="text-left w-full text-gray-700 hover:text-blue-600 cursor-pointer">🧑‍💼 Moderator</button></li>
           <li><button onclick="window.showSection('events')" class="text-left w-full text-gray-700 hover:text-blue-600 cursor-pointer">🗓️ Events</button></li>
-          <li><button onclick="window.showSection('reports')" class="text-left w-full text-gray-700 hover:text-blue-600 cursor-pointer">⚠️ Reports</button></li> <!-- NEW -->
+          <li><button onclick="window.showSection('reports')" class="text-left w-full text-gray-700 hover:text-blue-600 cursor-pointer">⚠️ Reports</button></li>
+          <li><button onclick="window.showSection('ticketing')" class="text-left w-full text-gray-700 hover:text-blue-600 cursor-pointer">🎫 Tiketing</button></li> <!-- NEW -->
           <li><button onclick="window.showSection('tambahAkun')" class="text-left w-full text-gray-700 hover:text-blue-600 cursor-pointer">➕ Tambah Akun</button></li>
         </ul>
       </nav>
@@ -1008,6 +1239,18 @@
                     </svg>
                 </div>
             </div>
+            <!-- NEW: Total Tickets Card -->
+            <div class="bg-white p-5 rounded-lg shadow-md flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">Total Tiket</h3>
+                    <p class="text-2xl font-semibold text-gray-900" id="totalTicketsCountDashboard">0</p>
+                </div>
+                <div class="text-yellow-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M12 5a3 3 0 11-6 0 3 3 0 016 0zm6 0a3 3 0 11-6 0 3 3 0 016 0zM12 12a3 3 0 11-6 0 3 3 0 016 0zm6 0a3 3 0 11-6 0 3 3 0 016 0zM12 19a3 3 0 11-6 0 3 3 0 016 0zm6 0a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </div>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1026,6 +1269,11 @@
           <div class="bg-white p-6 rounded-lg shadow-md">
             <h3 class="font-semibold text-gray-700 mb-4">Status Laporan</h3>
             <canvas id="reportsChart"></canvas>
+          </div>
+          <!-- NEW: Tickets Chart -->
+          <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="font-semibold text-gray-700 mb-4">Overview Tiket</h3>
+            <canvas id="ticketsChart"></canvas>
           </div>
         </div>
       </div>
@@ -1088,7 +1336,7 @@
       </div>
 
       <!-- Reports Section -->
-      <div id="reportsSection" class="hidden"> <!-- NEW -->
+      <div id="reportsSection" class="hidden">
         <h2 class="text-2xl font-bold text-gray-700 mb-4">Monitoring Laporan</h2>
         <div class="flex justify-between items-center mb-4">
             <div class="flex space-x-2">
@@ -1111,6 +1359,28 @@
         </div>
         <div class="space-y-4" id="reportsList">
             <!-- Reports will be loaded here -->
+            <div class="flex items-center justify-center py-12">
+                <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+        </div>
+      </div>
+
+      <!-- NEW: Ticketing Section -->
+      <div id="ticketingSection" class="hidden">
+        <h2 class="text-2xl font-bold text-gray-700 mb-4">Monitoring Tiket</h2>
+        <div class="flex justify-between items-center mb-4">
+            <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center" onclick="window.openTicketModal()">
+                <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                </svg>
+                Tambah Tiket Baru
+            </button>
+            <div class="text-sm text-gray-500">
+                Total Tiket: <span id="totalTicketsCount" class="font-bold text-blue-600">0</span>
+            </div>
+        </div>
+        <div class="space-y-4" id="ticketsList">
+            <!-- Tickets will be loaded here -->
             <div class="flex items-center justify-center py-12">
                 <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
             </div>
@@ -1238,6 +1508,46 @@
         <div class="flex justify-end space-x-3 mt-6">
             <button class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100" onclick="window.closeReportModal()">Batal</button>
             <button class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700" onclick="window.saveReport()">Simpan Laporan</button>
+        </div>
+    </div>
+</div>
+
+<!-- NEW: Add/Edit Ticket Modal -->
+<div id="ticketModal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md max-h-screen overflow-y-auto">
+        <h2 class="text-xl font-bold text-blue-700 mb-4">Tambah / Edit Tiket</h2>
+        <input type="hidden" id="ticketId">
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nama Pembeli</label>
+                <input class="w-full border border-gray-300 rounded-md px-3 py-2" id="ticketBuyerName" type="text" placeholder="Nama Pembeli Tiket"/>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                <select class="w-full border border-gray-300 rounded-md px-3 py-2" id="ticketCategory" onchange="window.updateTicketTypes('ticketCategory', 'ticketType')">
+                    <option value="">Pilih Kategori</option>
+                    <option value="Income">Pemasukan</option>
+                    <option value="Expense">Pengeluaran</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tipe Tiket</label>
+                <select class="w-full border border-gray-300 rounded-md px-3 py-2" id="ticketType" disabled>
+                    <option value="">Pilih Tipe Tiket</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Pembelian</label>
+                <input class="w-full border border-gray-300 rounded-md px-3 py-2" id="ticketPurchaseDate" type="date"/>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Harga (Rp)</label>
+                <input class="w-full border border-gray-300 rounded-md px-3 py-2" id="ticketPrice" type="number" min="0"/>
+            </div>
+        </div>
+        <div class="flex justify-end space-x-3 mt-6">
+            <button class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100" onclick="window.closeTicketModal()">Batal</button>
+            <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onclick="window.saveTicket()">Simpan Tiket</button>
         </div>
     </div>
 </div>
