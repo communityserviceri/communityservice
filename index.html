@@ -34,6 +34,34 @@
         [data-lang]:not([data-lang="en"]) {
             display: none;
         }
+
+        /* Floating Discord Icon */
+        .floating-discord {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #7289DA; /* Discord brand color */
+            color: white;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            z-index: 1000; /* Ensure it's above other content */
+        }
+
+        .floating-discord:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .floating-discord svg {
+            width: 30px;
+            height: 30px;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -343,6 +371,13 @@
             </div>
         </div>
     </footer>
+
+    <!-- Floating Discord Icon -->
+    <a href="https://discord.gg/pVBzxPKJjw" target="_blank" rel="noopener noreferrer" class="floating-discord">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 245 240" fill="currentColor">
+            <path d="M104.4 103.9c-5.7 0-10.2 5-10.2 11.1s4.6 11.1 10.2 11.1c5.7 0 10.2-5 10.2-11.1-.1-6.1-4.5-11.1-10.2-11.1zM140.9 103.9c-5.7 0-10.2 5-10.2 11.1s4.6 11.1 10.2 11.1c5.7 0 10.2-5 10.2-11.1s-4.5-11.1-10.2-11.1z"/><path d="M189.5 20h-134C44.2 20 35 29.2 35 40.6v135.2c0 11.4 9.2 20.6 20.5 20.6h113.4l-5.3 18.5-1.4 4.9s-1.6 3.5-4.7 4.4c-3.2.9-6.9-.8-6.9-.8l-38.3-21.9-1.1-.6-1.1-.6c-1.7-.9-3.4-1.9-4.9-3.1l-1.4-1.1c-3.2-2.5-8.3-4.1-13.7-4.1h-2.7c-10.8 0-18.1-5.8-18.1-5.8s-1.6-1.1-2.6-2.4c-1-.9-2.1-2.1-3.1-3.4l-1.4-1.7c-1.4-1.7-2.8-3.5-4.1-5.4-1.3-1.9-2.5-3.9-3.6-6.1-1.1-2.2-2.1-4.5-2.9-6.9-1.7-5.1-2.6-10.5-2.6-16.1V40.6c0-11.4 9.2-20.6 20.5-20.6h134c11.3 0 20.5 9.2 20.5 20.6v135.2c0 11.4-9.2 20.6-20.5 20.6h-113.4l5.3-18.5 1.4-4.9s1.6-3.5 4.7-4.4c3.2-.9 6.9.8 6.9.8l38.3 21.9 1.1.6 1.1.6c1.7.9 3.4 1.9 4.9 3.1l1.4 1.1c3.2 2.5 8.3 4.1 13.7 4.1h2.7c10.8 0 18.1-5.8 18.1-5.8s1.6-1.1 2.6-2.4c1-.9 2.1-2.1 3.1-3.4l1.4-1.7c1.4-1.7 2.8-3.5 4.1-5.4 1.3-1.9 2.5-3.9 3.6-6.1 1.1-2.2 2.1-4.5 2.9-6.9 1.7-5.1 2.6-10.5 2.6-16.1V40.6c0-11.4-9.2-20.6-20.5-20.6z"/>
+        </svg>
+    </a>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
