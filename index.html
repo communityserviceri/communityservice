@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atlantis Company Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #3B82F6;
+            --secondary: #10B981;
+            --dark: #1F2937;
+            --light: #F3F4F6;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .section-anchor {
+            scroll-margin-top: 100px;
+        }
+        /* Hide content for other languages by default */
+        [data-lang]:not([data-lang="en"]) {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation (Simplified for standalone profile, or integrate with main site nav) -->
+    <nav class="bg-white shadow-sm fixed w-full z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-xl font-bold gradient-text">Atlantis</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-gray-600 hover:text-blue-500 transition-colors duration-200 lang-text" data-key="nav_back_to_guidelines"></a>
+                    <select id="language-selector" class="border border-gray-300 rounded-md px-2 py-1 text-sm">
+                        <option value="en">English</option>
+                        <option value="id">Bahasa Indonesia</option>
+                        <option value="jp">日本語</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="pt-24 pb-16 bg-gradient-to-r from-blue-100 to-blue-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl md:text-6xl font-bold text-gray-900 mb-4">
+                <span data-lang="en">Atlantis <span class="gradient-text">Company Profile</span></span>
+                <span data-lang="id">Atlantis <span class="gradient-text">Profil Perusahaan</span></span>
+                <span data-lang="jp">アトランティス <span class="gradient-text">会社概要</span></span>
+            </h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto lang-text" data-key="profile_hero_tagline"></p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Introduction -->
+        <section id="introduction" class="section-anchor mb-20">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6 pb-2 border-b border-gray-200 lang-text" data-key="intro_title"></h2>
+            <p class="text-gray-600 mb-4 lang-text" data-key="intro_paragraph1"></p>
+            <p class="text-gray-600 lang-text" data-key="intro_paragraph2"></p>
+        </section>
+
+        <!-- Vision & Mission -->
+        <section id="vision-mission" class="section-anchor mb-20">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6 pb-2 border-b border-gray-200 lang-text" data-key="vm_title"></h2>
+            <div class="grid md:grid-cols-2 gap-12">
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4 lang-text" data-key="vm_vision_title"></h3>
+                    <p class="text-gray-600 lang-text" data-key="vm_vision_text"></p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4 lang-text" data-key="vm_mission_title"></h3>
+                    <ul class="space-y-3 text-gray-600 list-disc pl-5">
+                        <li><span class="lang-text" data-key="vm_mission1"></span></li>
+                        <li><span class="lang-text" data-key="vm_mission2"></span></li>
+                        <li><span class="lang-text" data-key="vm_mission3"></span></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Core Values (Re-use from Brand Guidelines for consistency) -->
+        <section id="core-values" class="section-anchor mb-20">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6 pb-2 border-b border-gray-200 lang-text" data-key="values_title"></h2>
+            <ul class="space-y-3 text-gray-600">
+                <li class="flex items-start">
+                    <svg class="h-5 w-5 text-blue-500 mr-2 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="lang-text" data-key="value_innovation"></span>
+                </li>
+                <li class="flex items-start">
+                    <svg class="h-5 w-5 text-blue-500 mr-2 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="lang-text" data-key="value_collaboration"></span>
+                </li>
+                <li class="flex items-start">
+                    <svg class="h-5 w-5 text-blue-500 mr-2 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="lang-text" data-key="value_sustainability"></span>
+                </li>
+            </ul>
+        </section>
+
+        <!-- Brief History -->
+        <section id="history" class="section-anchor mb-20">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6 pb-2 border-b border-gray-200 lang-text" data-key="history_title"></h2>
+            <div class="relative border-l-2 border-blue-200 pl-8">
+                <div class="mb-8">
+                    <div class="absolute w-4 h-4 bg-blue-500 rounded-full -left-2 top-1 border-2 border-white"></div>
+                    <p class="text-sm text-gray-500 lang-text" data-key="history_year1_year"></p>
+                    <h3 class="text-xl font-semibold text-gray-800 lang-text" data-key="history_year1_event"></h3>
+                    <p class="text-gray-600 lang-text" data-key="history_year1_desc"></p>
+                </div>
+                <div class="mb-8">
+                    <div class="absolute w-4 h-4 bg-blue-500 rounded-full -left-2 top-1 border-2 border-white"></div>
+                    <p class="text-sm text-gray-500 lang-text" data-key="history_year2_year"></p>
+                    <h3 class="text-xl font-semibold text-gray-800 lang-text" data-key="history_year2_event"></h3>
+                    <p class="text-gray-600 lang-text" data-key="history_year2_desc"></p>
+                </div>
+                <div class="mb-8">
+                    <div class="absolute w-4 h-4 bg-blue-500 rounded-full -left-2 top-1 border-2 border-white"></div>
+                    <p class="text-sm text-gray-500 lang-text" data-key="history_year3_year"></p>
+                    <h3 class="text-xl font-semibold text-gray-800 lang-text" data-key="history_year3_event"></h3>
+                    <p class="text-gray-600 lang-text" data-key="history_year3_desc"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- What We Do (Updated with new sectors) -->
+        <section id="what-we-do" class="section-anchor mb-20">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6 pb-2 border-b border-gray-200 lang-text" data-key="what_we_do_title"></h2>
+            <p class="text-gray-600 mb-8 lang-text" data-key="what_we_do_intro"></p>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <div class="text-blue-500 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-1.25-3M3 13h18M5 17h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2 lang-text" data-key="sector_aquatech_title"></h3>
+                    <p class="text-gray-600 lang-text" data-key="sector_aquatech_desc"></p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <div class="text-blue-500 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M18 14v4a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h4" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2 lang-text" data-key="sector_aquathreads_title"></h3>
+                    <p class="text-gray-600 lang-text" data-key="sector_aquathreads_desc"></p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <div class="text-blue-500 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14m-5 4v-4a3 3 0 00-3-3H4a3 3 0 00-3 3v4a3 3 0 003 3h3a3 3 0 003-3z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2 lang-text" data-key="sector_aquanova_title"></h3>
+                    <p class="text-gray-600 lang-text" data-key="sector_aquanova_desc"></p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <div class="text-blue-500 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2 lang-text" data-key="sector_aquaacademy_title"></h3>
+                    <p class="text-gray-600 lang-text" data-key="sector_aquaacademy_desc"></p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <div class="text-blue-500 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.324 1.118l1.519 4.674c.3.921-.755 1.688-1.539 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.784.57-1.838-.197-1.539-1.118l1.519-4.674a1 1 0 00-.324-1.118L2.283 10.1c-.783-.57-.381-1.81.588-1.81h4.915a1 1 0 00.95-.69l1.519-4.674z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2 lang-text" data-key="sector_atlantisesport_title"></h3>
+                    <p class="text-gray-600 lang-text" data-key="sector_atlantisesport_desc"></p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <div class="text-blue-500 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 14v6m-3-3h6M6 10h2m-2 4h2m-2 4h2m-2 4h2M12 4h.01M17 4h.01M12 8h.01M17 8h.01M12 12h.01M17 12h.01M12 16h.01M17 16h.01M12 20h.01M17 20h.01M6 4h.01M6 8h.01M6 12h.01M6 16h.01M6 20h.01M12 4a2 2 0 100-4 2 2 0 000 4zM17 4a2 2 0 100-4 2 2 0 000 4zM12 8a2 2 0 100-4 2 2 0 000 4zM17 8a2 2 0 100-4 2 2 0 000 4zM12 12a2 2 0 100-4 2 2 0 000 4zM17 12a2 2 0 100-4 2 2 0 000 4zM12 16a2 2 0 100-4 2 2 0 000 4zM17 16a2 2 0 100-4 2 2 0 000 4zM12 20a2 2 0 100-4 2 2 0 000 4zM17 20a2 2 0 100-4 2 2 0 000 4zM6 4a2 2 0 100-4 2 2 0 000 4zM6 8a2 2 0 100-4 2 2 0 000 4zM6 12a2 2 0 100-4 2 2 0 000 4zM6 16a2 2 0 100-4 2 2 0 000 4zM6 20a2 2 0 100-4 2 2 0 000 4z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2 lang-text" data-key="sector_aquaburners_title"></h3>
+                    <p class="text-gray-600 lang-text" data-key="sector_aquaburners_desc"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Our Strengths -->
+        <section id="strengths" class="section-anchor mb-20">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6 pb-2 border-b border-gray-200 lang-text" data-key="strengths_title"></h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex items-start">
+                    <div class="flex-shrink-0 text-blue-500 mr-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2 lang-text" data-key="strength1_title"></h3>
+                        <p class="text-gray-600 lang-text" data-key="strength1_desc"></p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex items-start">
+                    <div class="flex-shrink-0 text-blue-500 mr-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2 lang-text" data-key="strength2_title"></h3>
+                        <p class="text-gray-600 lang-text" data-key="strength2_desc"></p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex items-start">
+                    <div class="flex-shrink-0 text-blue-500 mr-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H2v-2a3 3 0 015.356-1.857M17 20v-2c0-.653-.146-1.28-.42-1.857M17 20h-2m0 0H2m0 0v-2c0-.653.146-1.28.42-1.857M2 20h5v-2a3 3 0 00-5.356-1.857M12 12a3 3 0 100-6 3 3 0 000 6z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2 lang-text" data-key="strength3_title"></h3>
+                        <p class="text-gray-600 lang-text" data-key="strength3_desc"></p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex items-start">
+                    <div class="flex-shrink-0 text-blue-500 mr-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.007 12.007 0 002 12c0 2.755 1.09 5.284 2.873 7.171M12 21.001V22m0-1.001a18.99 18.99 0 01-7.618-3.04A12.007 12.007 0 012 12c0-2.755 1.09-5.284 2.873-7.171M12 21.001V22m0-1.001a18.99 18.99 0 017.618-3.04A12.007 12.007 0 0022 12c0-2.755-1.09-5.284-2.873-7.171" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2 lang-text" data-key="strength4_title"></h3>
+                        <p class="text-gray-600 lang-text" data-key="strength4_desc"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Our Team (Updated with new staff) -->
+        <section id="team" class="section-anchor mb-20">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6 pb-2 border-b border-gray-200 lang-text" data-key="team_title"></h2>
+            <p class="text-gray-600 mb-8 lang-text" data-key="team_description"></p>
+            <div class="grid md:grid-cols-3 lg:grid-cols-4 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
+                    <img src="https://via.placeholder.com/150" alt="Hiro" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
+                    <h3 class="text-xl font-semibold text-gray-800 lang-text" data-key="team_hiro_name"></h3>
+                    <p class="text-blue-600 lang-text" data-key="team_hiro_role"></p>
+                    <p class="text-gray-600 text-sm mt-2 lang-text" data-key="team_hiro_desc"></p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
+                    <img src="https://via.placeholder.com/150" alt="Rahmat" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
+                    <h3 class="text-xl font-semibold text-gray-800 lang-text" data-key="team_rahmat_name"></h3>
+                    <p class="text-blue-600 lang-text" data-key="team_rahmat_role"></p>
+                    <p class="text-gray-600 text-sm mt-2 lang-text" data-key="team_rahmat_desc"></p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
+                    <img src="https://via.placeholder.com/150" alt="Caelric" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
+                    <h3 class="text-xl font-semibold text-gray-800 lang-text" data-key="team_caelric_name"></h3>
+                    <p class="text-blue-600 lang-text" data-key="team_caelric_role"></p>
+                    <p class="text-gray-600 text-sm mt-2 lang-text" data-key="team_caelric_desc"></p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
+                    <img src="https://via.placeholder.com/150" alt="Kiyo" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
+                    <h3 class="text-xl font-semibold text-gray-800 lang-text" data-key="team_kiyo_name"></h3>
+                    <p class="text-blue-600 lang-text" data-key="team_kiyo_role"></p>
+                    <p class="text-gray-600 text-sm mt-2 lang-text" data-key="team_kiyo_desc"></p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
+                    <img src="https://via.placeholder.com/150" alt="ren" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
+                    <h3 class="text-xl font-semibold text-gray-800 lang-text" data-key="team_ren_name"></h3>
+                    <p class="text-blue-600 lang-text" data-key="team_ren_role"></p>
+                    <p class="text-gray-600 text-sm mt-2 lang-text" data-key="team_ren_desc"></p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
+                    <img src="https://via.placeholder.com/150" alt="Fuikara" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
+                    <h3 class="text-xl font-semibold text-gray-800 lang-text" data-key="team_fuikara_name"></h3>
+                    <p class="text-blue-600 lang-text" data-key="team_fuikara_role"></p>
+                    <p class="text-gray-600 text-sm mt-2 lang-text" data-key="team_fuikara_desc"></p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
+                    <img src="https://via.placeholder.com/150" alt="daffa" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
+                    <h3 class="text-xl font-semibold text-gray-800 lang-text" data-key="team_daffa_name"></h3>
+                    <p class="text-blue-600 lang-text" data-key="team_daffa_role"></p>
+                    <p class="text-gray-600 text-sm mt-2 lang-text" data-key="team_daffa_desc"></p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
+                    <img src="https://via.placeholder.com/150" alt="faisal" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
+                    <h3 class="text-xl font-semibold text-gray-800 lang-text" data-key="team_faisal_name"></h3>
+                    <p class="text-blue-600 lang-text" data-key="team_faisal_role"></p>
+                    <p class="text-gray-600 text-sm mt-2 lang-text" data-key="team_faisal_desc"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Us -->
+        <section id="contact" class="section-anchor mb-20">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6 pb-2 border-b border-gray-200 lang-text" data-key="contact_title"></h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <p class="text-gray-600 mb-4 lang-text" data-key="contact_desc"></p>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            <span>info@atlantis.com</span>
+                        </li>
+                        <li class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.135a11.249 11.249 0 005.422 5.422l1.135-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2H5a2 2 0 01-2-2V5z" />
+                            </svg>
+                            <span>+1 (555) 987-6543</span>
+                        </li>
+                        <li class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.727A8 8 0 016.343 7.273L17.657 16.727zm0 0A8 8 0 0118 12a8 8 0 01-1.343 4.727zM12 21a9 9 0 100-18 9 9 0 000 18z" />
+                            </svg>
+                            <span class="lang-text" data-key="contact_address"></span>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <!-- Map or Contact Form Placeholder -->
+                    <div class="bg-gray-200 h-64 rounded-lg flex items-center justify-center text-gray-500 lang-text" data-key="contact_map_placeholder"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer (Re-use from Brand Guidelines for consistency) -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Atlantis</h3>
+                    <p class="text-gray-400 lang-text" data-key="footer_tagline"></p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 lang-text" data-key="footer_quick_links_title"></h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#introduction" class="hover:text-white lang-text" data-key="nav_intro"></a></li>
+                        <li><a href="#vision-mission" class="hover:text-white lang-text" data-key="nav_vm"></a></li>
+                        <li><a href="#what-we-do" class="hover:text-white lang-text" data-key="nav_what_we_do"></a></li>
+                        <li><a href="#contact" class="hover:text-white lang-text" data-key="nav_contact"></a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 lang-text" data-key="footer_contact_title"></h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li>info@atlantis.com</li>
+                        <li>+1 (555) 987-6543</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-sm text-gray-400 text-center">
+                <p class="lang-text" data-key="footer_copyright"></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Language data for Company Profile
+        const translations = {
+            en: {
+                nav_back_to_guidelines: "← Back to Brand Guidelines",
+                profile_hero_tagline: "Innovating for a better future, together.",
+                intro_title: "Introduction",
+                intro_paragraph1: "Atlantis is a leading technology company dedicated to pioneering innovative solutions that empower businesses and individuals. Founded on the principles of creativity, collaboration, and sustainability, we strive to build a future where technology serves humanity.",
+                intro_paragraph2: "With a strong focus on research and development, we continuously push the boundaries of what's possible, delivering cutting-edge products and services that address real-world challenges.",
+                vm_title: "Vision & Mission",
+                vm_vision_title: "Our Vision",
+                vm_vision_text: "To be the global leader in sustainable technology solutions, creating a connected and secure world through innovation and ethical practices.",
+                vm_mission_title: "Our Mission",
+                vm_mission1: "To develop and deliver high-quality, innovative technology products and services.",
+                vm_mission2: "To foster a culture of collaboration and continuous learning within our team and with our partners.",
+                vm_mission3: "To operate responsibly, ensuring our solutions contribute positively to society and the environment.",
+                values_title: "Core Values",
+                value_innovation: "Innovation: Continuously developing creative solutions and cutting-edge technology",
+                value_collaboration: "Collaboration: Building a mutually supportive ecosystem across sectors",
+                value_sustainability: "Sustainability: Creating responsible solutions for the future",
+                history_title: "Brief History",
+                history_year1_year: "2010",
+                history_year1_event: "Company Founded",
+                history_year1_desc: "Atlantis was established with a small team and a big vision to revolutionize the tech industry.",
+                history_year2_year: "2015",
+                history_year2_event: "Launched Flagship Product",
+                history_year2_desc: "Our first major product, 'AquaFlow', gained significant market traction, establishing our presence.",
+                history_year3_year: "2020",
+                history_year3_event: "Global Expansion",
+                history_year3_desc: "Expanded operations to key international markets, serving clients worldwide.",
+                what_we_do_title: "What We Do",
+                what_we_do_intro: "Atlantis operates across diverse sectors, leveraging technology and creativity to deliver unique value:",
+                sector_aquatech_title: "Aqua Tech",
+                sector_aquatech_desc: "Buying and selling new/used laptops, and IT repair services.",
+                sector_aquathreads_title: "Aqua Threads",
+                sector_aquathreads_desc: "A stylish and cool streetwear fashion store.",
+                sector_aquanova_title: "Aqua Nova",
+                sector_aquanova_desc: "VTuber agency, animation technology, or digital characters.",
+                sector_aquaacademy_title: "Aqua Academy / Atlantis Academy",
+                sector_aquaacademy_desc: "Training, seminar, or learning community.",
+                sector_atlantisesport_title: "Atlantis Esport",
+                sector_atlantisesport_desc: "Professional Esport team.",
+                sector_aquaburners_title: "Aqua Burners",
+                sector_aquaburners_desc: "Motorcycle club.",
+                strengths_title: "Our Strengths",
+                strength1_title: "Cutting-Edge Innovation",
+                strength1_desc: "Pioneering new technologies and methodologies to stay ahead of the curve.",
+                strength2_title: "Expert Team",
+                strength2_desc: "A diverse group of highly skilled professionals passionate about technology and problem-solving.",
+                strength3_title: "Client-Centric Approach",
+                strength3_desc: "Dedicated to understanding and exceeding client expectations through personalized solutions.",
+                strength4_title: "Global Impact",
+                strength4_desc: "Our solutions are designed to create positive change on a global scale.",
+                team_title: "Our Team",
+                team_description: "Our success is driven by a passionate and talented team committed to excellence and innovation.",
+                team_hiro_name: "Hiro",
+                team_hiro_role: "Founder",
+                team_hiro_desc: "Visionary leader guiding Atlantis's strategic direction.",
+                team_rahmat_name: "Rahmat",
+                team_rahmat_role: "Co-Founder",
+                team_rahmat_desc: "Driving key initiatives and fostering partnerships.",
+                team_caelric_name: "Caelric",
+                team_caelric_role: "Co-Founder",
+                team_caelric_desc: "Instrumental in shaping the company's core operations.",
+                team_kiyo_name: "Kiyo",
+                team_kiyo_role: "Education - Mentor",
+                team_kiyo_desc: "Leading educational programs and nurturing talent.",
+                team_ren_name: "ren",
+                team_ren_role: "Moderation - Helper",
+                team_ren_desc: "Ensuring smooth community interactions and support.",
+                team_fuikara_name: "Fuikara",
+                team_fuikara_role: "Moderation - Support Staff",
+                team_fuikara_desc: "Providing essential support and maintaining community standards.",
+                team_daffa_name: "daffa",
+                team_daffa_role: "Creative - Designer",
+                team_daffa_desc: "Crafting compelling visual experiences for all our brands.",
+                team_faisal_name: "faisal",
+                team_faisal_role: "Creative - Social Media",
+                team_faisal_desc: "Managing our online presence and engaging with our audience.",
+                contact_title: "Contact Us",
+                contact_desc: "We'd love to hear from you! Reach out to us for inquiries, partnerships, or career opportunities.",
+                contact_address: "123 Atlantis Blvd, Tech City, AT 98765",
+                contact_map_placeholder: "Map or Contact Form Here",
+                footer_tagline: "Advance with Knowledge and Innovation",
+                footer_quick_links_title: "Quick Links",
+                footer_contact_title: "Contact",
+                footer_copyright: "© 2023 Atlantis. All rights reserved.",
+                nav_intro: "Introduction",
+                nav_vm: "Vision & Mission",
+                nav_what_we_do: "What We Do",
+                nav_contact: "Contact Us"
+            },
+            id: {
+                nav_back_to_guidelines: "← Kembali ke Panduan Merek",
+                profile_hero_tagline: "Berinovasi untuk masa depan yang lebih baik, bersama.",
+                intro_title: "Pendahuluan",
+                intro_paragraph1: "Atlantis adalah perusahaan teknologi terkemuka yang berdedikasi untuk merintis solusi inovatif yang memberdayakan bisnis dan individu. Didirikan di atas prinsip-prinsip kreativitas, kolaborasi, dan keberlanjutan, kami berusaha membangun masa depan di mana teknologi melayani umat manusia.",
+                intro_paragraph2: "Dengan fokus yang kuat pada penelitian dan pengembangan, kami terus mendorong batas-batas kemungkinan, menghadirkan produk dan layanan mutakhir yang mengatasi tantangan dunia nyata.",
+                vm_title: "Visi & Misi",
+                vm_vision_title: "Visi Kami",
+                vm_vision_text: "Menjadi pemimpin global dalam solusi teknologi berkelanjutan, menciptakan dunia yang terhubung dan aman melalui inovasi dan praktik etis.",
+                vm_mission_title: "Misi Kami",
+                vm_mission1: "Mengembangkan dan menghadirkan produk dan layanan teknologi inovatif berkualitas tinggi.",
+                vm_mission2: "Membina budaya kolaborasi dan pembelajaran berkelanjutan di dalam tim kami dan dengan mitra kami.",
+                vm_mission3: "Beroperasi secara bertanggung jawab, memastikan solusi kami berkontribusi positif bagi masyarakat dan lingkungan.",
+                values_title: "Nilai Inti",
+                value_innovation: "Inovasi: Terus mengembangkan solusi kreatif dan teknologi mutakhir",
+                value_collaboration: "Kolaborasi: Membangun ekosistem yang saling mendukung antar sektor",
+                value_sustainability: "Keberlanjutan: Menciptakan solusi yang bertanggung jawab untuk masa depan",
+                history_title: "Sejarah Singkat",
+                history_year1_year: "2010",
+                history_year1_event: "Perusahaan Didirikan",
+                history_year1_desc: "Atlantis didirikan dengan tim kecil dan visi besar untuk merevolusi industri teknologi.",
+                history_year2_year: "2015",
+                history_year2_event: "Meluncurkan Produk Unggulan",
+                history_year2_desc: "Produk utama pertama kami, 'AquaFlow', mendapatkan daya tarik pasar yang signifikan, membangun kehadiran kami.",
+                history_year3_year: "2020",
+                history_year3_event: "Ekspansi Global",
+                history_year3_desc: "Memperluas operasi ke pasar internasional utama, melayani klien di seluruh dunia.",
+                what_we_do_title: "Apa yang Kami Lakukan",
+                what_we_do_intro: "Atlantis beroperasi di berbagai sektor, memanfaatkan teknologi dan kreativitas untuk memberikan nilai unik:",
+                sector_aquatech_title: "Aqua Tech",
+                sector_aquatech_desc: "Jual beli laptop baru/bekas, dan jasa perbaikan (IT Service).",
+                sector_aquathreads_title: "Aqua Threads",
+                sector_aquathreads_desc: "Toko fashion streetwear yang stylish dan keren.",
+                sector_aquanova_title: "Aqua Nova",
+                sector_aquanova_desc: "Agency VTuber, teknologi animasi, atau karakter digital.",
+                sector_aquaacademy_title: "Aqua Academy / Atlantis Academy",
+                sector_aquaacademy_desc: "Komunitas pelatihan, seminar, atau komunitas belajar.",
+                sector_atlantisesport_title: "Atlantis Esport",
+                sector_atlantisesport_desc: "Tim Esport profesional.",
+                sector_aquaburners_title: "Aqua Burners",
+                sector_aquaburners_desc: "Club motor.",
+                strengths_title: "Keunggulan Kami",
+                strength1_title: "Inovasi Mutakhir",
+                strength1_desc: "Merintis teknologi dan metodologi baru untuk tetap terdepan.",
+                strength2_title: "Tim Ahli",
+                strength2_desc: "Kelompok profesional yang sangat terampil dan beragam yang bersemangat tentang teknologi dan pemecahan masalah.",
+                strength3_title: "Pendekatan Berpusat pada Klien",
+                strength3_desc: "Berdedikasi untuk memahami dan melampaui harapan klien melalui solusi yang dipersonalisasi.",
+                strength4_title: "Dampak Global",
+                strength4_desc: "Solusi kami dirancang untuk menciptakan perubahan positif dalam skala global.",
+                team_title: "Tim Kami",
+                team_description: "Keberhasilan kami didorong oleh tim yang bersemangat dan berbakat yang berkomitmen pada keunggulan dan inovasi.",
+                team_hiro_name: "Hiro",
+                team_hiro_role: "Pendiri",
+                team_hiro_desc: "Pemimpin visioner yang memandu arah strategis Atlantis.",
+                team_rahmat_name: "Rahmat",
+                team_rahmat_role: "Co-Founder",
+                team_rahmat_desc: "Mendorong inisiatif utama dan membina kemitraan.",
+                team_caelric_name: "Caelric",
+                team_caelric_role: "Co-Founder",
+                team_caelric_desc: "Berperan penting dalam membentuk operasi inti perusahaan.",
+                team_kiyo_name: "Kiyo",
+                team_kiyo_role: "Edukasi - Mentor",
+                team_kiyo_desc: "Memimpin program pendidikan dan membina bakat.",
+                team_ren_name: "ren",
+                team_ren_role: "Moderasi - Helper",
+                team_ren_desc: "Memastikan interaksi komunitas yang lancar dan dukungan.",
+                team_fuikara_name: "Fuikara",
+                team_fuikara_role: "Moderasi - Staf Pendukung",
+                team_fuikara_desc: "Memberikan dukungan penting dan menjaga standar komunitas.",
+                team_daffa_name: "daffa",
+                team_daffa_role: "Kreatif - Desainer",
+                team_daffa_desc: "Menciptakan pengalaman visual yang menarik untuk semua merek kami.",
+                team_faisal_name: "faisal",
+                team_faisal_role: "Kreatif - Media Sosial",
+                team_faisal_desc: "Mengelola kehadiran online kami dan berinteraksi dengan audiens kami.",
+                contact_title: "Hubungi Kami",
+                contact_desc: "Kami senang mendengar dari Anda! Hubungi kami untuk pertanyaan, kemitraan, atau peluang karir.",
+                contact_address: "123 Atlantis Blvd, Kota Teknologi, AT 98765",
+                contact_map_placeholder: "Peta atau Formulir Kontak Di Sini",
+                footer_tagline: "Maju dengan Ilmu dan Inovasi",
+                footer_quick_links_title: "Tautan Cepat",
+                footer_contact_title: "Kontak",
+                footer_copyright: "© 2023 Atlantis. Semua hak dilindungi."
+            },
+            jp: {
+                nav_back_to_guidelines: "← ブランドガイドラインに戻る",
+                profile_hero_tagline: "より良い未来のために、共に革新する。",
+                intro_title: "はじめに",
+                intro_paragraph1: "アトランティスは、ビジネスと個人に力を与える革新的なソリューションを開拓することに専念する、主要なテクノロジー企業です。創造性、コラボレーション、持続可能性の原則に基づいて設立され、テクノロジーが人類に貢献する未来を築くために努力しています。",
+                intro_paragraph2: "研究開発に重点を置き、私たちは常に可能性の限界を押し広げ、現実世界の課題に対処する最先端の製品とサービスを提供しています。",
+                vm_title: "ビジョンとミッション",
+                vm_vision_title: "私たちのビジョン",
+                vm_vision_text: "革新と倫理的な実践を通じて、接続された安全な世界を創造し、持続可能なテクノロジーソリューションのグローバルリーダーとなること。",
+                vm_mission_title: "私たちのミッション",
+                vm_mission1: "高品質で革新的なテクノロジー製品とサービスを開発し、提供すること。",
+                vm_mission2: "チーム内およびパートナーとの間で、コラボレーションと継続的な学習の文化を育むこと。",
+                vm_mission3: "責任を持って運営し、私たちのソリューションが社会と環境に積極的に貢献することを確実にすること。",
+                values_title: "コアバリュー",
+                value_innovation: "イノベーション：創造的なソリューションと最先端技術を継続的に開発する",
+                value_collaboration: "コラボレーション：セクター間で相互に支え合うエコシステムを構築する",
+                value_sustainability: "持続可能性：未来のために責任あるソリューションを創造する",
+                history_title: "簡単な歴史",
+                history_year1_year: "2010年",
+                history_year1_event: "会社設立",
+                history_year1_desc: "アトランティスは、テクノロジー業界に革命を起こすという大きなビジョンを持つ小さなチームで設立されました。",
+                history_year2_year: "2015年",
+                history_year2_event: "主力製品の発売",
+                history_year2_desc: "最初の主要製品「AquaFlow」は、市場で大きな牽引力を獲得し、当社の存在を確立しました。",
+                history_year3_year: "2020年",
+                history_year3_event: "グローバル展開",
+                history_year3_desc: "主要な国際市場に事業を拡大し、世界中のクライアントにサービスを提供しています。",
+                what_we_do_title: "私たちの事業内容",
+                what_we_do_intro: "アトランティスは、テクノロジーと創造性を活用して独自の価値を提供する、多様な分野で事業を展開しています。",
+                sector_aquatech_title: "アクアテック",
+                sector_aquatech_desc: "新品/中古ノートパソコンの売買、およびIT修理サービス。",
+                sector_aquathreads_title: "アクアスレッズ",
+                sector_aquathreads_desc: "スタイリッシュでクールなストリートウェアファッションストア。",
+                sector_aquanova_title: "アクアノヴァ",
+                sector_aquanova_desc: "VTuberエージェンシー、アニメーション技術、またはデジタルキャラクター。",
+                sector_aquaacademy_title: "アクアカデミー / アトランティスカデミー",
+                sector_aquaacademy_desc: "トレーニング、セミナー、または学習コミュニティ。",
+                sector_atlantisesport_title: "アトランティスeスポーツ",
+                sector_atlantisesport_desc: "プロのeスポーツチーム。",
+                sector_aquaburners_title: "アクアバーナーズ",
+                sector_aquaburners_desc: "モーターサイクルクラブ。",
+                strengths_title: "私たちの強み",
+                strength1_title: "最先端のイノベーション",
+                strength1_desc: "常に時代の先を行くために、新しい技術と方法論を開拓しています。",
+                strength2_title: "専門家チーム",
+                strength2_desc: "テクノロジーと問題解決に情熱を傾ける、高度なスキルを持つ多様な専門家グループ。",
+                strength3_title: "クライアント中心のアプローチ",
+                strength3_desc: "パーソナライズされたソリューションを通じて、クライアントの期待を理解し、それを超えることに専念しています。",
+                strength4_title: "グローバルな影響",
+                strength4_desc: "私たちのソリューションは、グローバル規模でポジティブな変化を生み出すように設計されています。",
+                team_title: "私たちのチーム",
+                team_description: "私たちの成功は、卓越性と革新にコミットする情熱的で才能あるチームによって推進されています。",
+                team_hiro_name: "ヒロ",
+                team_hiro_role: "創設者",
+                team_hiro_desc: "アトランティスの戦略的方向性を導く先見の明のあるリーダー。",
+                team_rahmat_name: "ラフマット",
+                team_rahmat_role: "共同創設者",
+                team_rahmat_desc: "主要なイニシアチブを推進し、パートナーシップを育成。",
+                team_caelric_name: "カエルリック",
+                team_caelric_role: "共同創設者",
+                team_caelric_desc: "会社のコアオペレーションを形成する上で重要な役割を果たす。",
+                team_kiyo_name: "キヨ",
+                team_kiyo_role: "教育 - メンター",
+                team_kiyo_desc: "教育プログラムを主導し、才能を育成。",
+                team_ren_name: "レン",
+                team_ren_role: "モデレーション - ヘルパー",
+                team_ren_desc: "円滑なコミュニティ交流とサポートを確保。",
+                team_fuikara_name: "フイカラ",
+                team_fuikara_role: "モデレーション - サポートスタッフ",
+                team_fuikara_desc: "重要なサポートを提供し、コミュニティ基準を維持。",
+                team_daffa_name: "ダッファ",
+                team_daffa_role: "クリエイティブ - デザイナー",
+                team_daffa_desc: "すべてのブランドで魅力的なビジュアル体験を創造。",
+                team_faisal_name: "ファイサル",
+                team_faisal_role: "クリエイティブ - ソーシャルメディア",
+                team_faisal_desc: "オンラインプレゼンスを管理し、オーディエンスと交流。",
+                contact_title: "お問い合わせ",
+                contact_desc: "お問い合わせ、パートナーシップ、またはキャリアの機会について、お気軽にお問い合わせください。",
+                contact_address: "123 アトランティス大通り、テックシティ、AT 98765",
+                contact_map_placeholder: "地図またはお問い合わせフォームはこちら",
+                footer_tagline: "知識と革新で前進する",
+                footer_quick_links_title: "クイックリンク",
+                footer_contact_title: "お問い合わせ",
+                footer_copyright: "© 2023 アトランティス。すべての権利を保有。",
+                nav_intro: "はじめに",
+                nav_vm: "ビジョンとミッション",
+                nav_what_we_do: "私たちの事業内容",
+                nav_contact: "お問い合わせ"
+            }
+        };
+
+        // Function to update text content based on selected language
+        function updateContent(lang) {
+            document.querySelectorAll('.lang-text').forEach(element => {
+                const key = element.dataset.key;
+                if (translations[lang] && translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+
+            // Update alt attributes for images
+            document.querySelectorAll('.lang-alt').forEach(img => {
+                const key = img.dataset.key;
+                if (translations[lang] && translations[lang][key]) {
+                    img.alt = translations[lang][key];
+                }
+            });
+
+            // Update the lang attribute of the HTML tag
+            document.documentElement.lang = lang;
+        }
+
+        // Language selector logic
+        const langSelector = document.getElementById('language-selector');
+
+        // Set initial language based on selector or browser preference
+        const initialLang = localStorage.getItem('selectedLang') || navigator.language.split('-')[0] || 'en';
+        langSelector.value = initialLang;
+        updateContent(initialLang); // Call updateContent on page load
+
+        // Event listener for language selector change
+        langSelector.addEventListener('change', (event) => {
+            const selectedLang = event.target.value;
+            localStorage.setItem('selectedLang', selectedLang); // Save preference
+            updateContent(selectedLang);
+        });
+    </script>
+</body>
+</html>
