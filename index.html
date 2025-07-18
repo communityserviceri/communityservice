@@ -263,55 +263,8 @@
         <section id="team" class="section-anchor mb-20">
             <h2 class="text-3xl font-bold text-gray-900 mb-6 pb-2 border-b border-gray-200 lang-text" data-key="team_title"></h2>
             <p class="text-gray-600 mb-8 lang-text" data-key="team_description"></p>
-            <div class="grid md:grid-cols-3 lg:grid-cols-4 gap-8">
-                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
-                    <img src="https://via.placeholder.com/150" alt="Hiro" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
-                    <h3 class="text-xl font-semibold text-gray-800 lang-text" data-key="team_hiro_name"></h3>
-                    <p class="text-blue-600 lang-text" data-key="team_hiro_role"></p>
-                    <p class="text-gray-600 text-sm mt-2 lang-text" data-key="team_hiro_desc"></p>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
-                    <img src="https://via.placeholder.com/150" alt="Rahmat" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
-                    <h3 class="text-xl font-semibold text-gray-800 lang-text" data-key="team_rahmat_name"></h3>
-                    <p class="text-blue-600 lang-text" data-key="team_rahmat_role"></p>
-                    <p class="text-gray-600 text-sm mt-2 lang-text" data-key="team_rahmat_desc"></p>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
-                    <img src="https://via.placeholder.com/150" alt="Caelric" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
-                    <h3 class="text-xl font-semibold text-gray-800 lang-text" data-key="team_caelric_name"></h3>
-                    <p class="text-blue-600 lang-text" data-key="team_caelric_role"></p>
-                    <p class="text-gray-600 text-sm mt-2 lang-text" data-key="team_caelric_desc"></p>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
-                    <img src="https://via.placeholder.com/150" alt="Kiyo" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
-                    <h3 class="text-xl font-semibold text-gray-800 lang-text" data-key="team_kiyo_name"></h3>
-                    <p class="text-blue-600 lang-text" data-key="team_kiyo_role"></p>
-                    <p class="text-gray-600 text-sm mt-2 lang-text" data-key="team_kiyo_desc"></p>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
-                    <img src="https://via.placeholder.com/150" alt="ren" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
-                    <h3 class="text-xl font-semibold text-gray-800 lang-text" data-key="team_ren_name"></h3>
-                    <p class="text-blue-600 lang-text" data-key="team_ren_role"></p>
-                    <p class="text-gray-600 text-sm mt-2 lang-text" data-key="team_ren_desc"></p>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
-                    <img src="https://via.placeholder.com/150" alt="Fuikara" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
-                    <h3 class="text-xl font-semibold text-gray-800 lang-text" data-key="team_fuikara_name"></h3>
-                    <p class="text-blue-600 lang-text" data-key="team_fuikara_role"></p>
-                    <p class="text-gray-600 text-sm mt-2 lang-text" data-key="team_fuikara_desc"></p>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
-                    <img src="https://via.placeholder.com/150" alt="daffa" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
-                    <h3 class="text-xl font-semibold text-gray-800 lang-text" data-key="team_daffa_name"></h3>
-                    <p class="text-blue-600 lang-text" data-key="team_daffa_role"></p>
-                    <p class="text-gray-600 text-sm mt-2 lang-text" data-key="team_daffa_desc"></p>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
-                    <img src="https://via.placeholder.com/150" alt="faisal" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
-                    <h3 class="text-xl font-semibold text-gray-800 lang-text" data-key="team_faisal_name"></h3>
-                    <p class="text-blue-600 lang-text" data-key="team_faisal_role"></p>
-                    <p class="text-gray-600 text-sm mt-2 lang-text" data-key="team_faisal_desc"></p>
-                </div>
+            <div class="grid md:grid-cols-3 lg:grid-cols-4 gap-8" id="team-members-container">
+                <!-- Team members will be dynamically loaded here -->
             </div>
         </section>
 
@@ -381,7 +334,24 @@
         </div>
     </footer>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCdl3XJ-eUz8BELLaSOXeZFpg7FLDFk7l4",
+            authDomain: "community-service-f4540.firebaseapp.com",
+            databaseURL: "https://community-service-f4540-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "community-service-f4540",
+            storageBucket: "community-service-f4540.appspot.com",
+            messagingSenderId: "610712310542",
+            appId: "1:610712310542:web:12536a7c23d0b41db03d5f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const moderatorsRef = ref(db, 'moderators');
+
         // Language data for Company Profile
         const translations = {
             en: {
@@ -436,30 +406,6 @@
                 strength4_desc: "Our solutions are designed to create positive change on a global scale.",
                 team_title: "Our Team",
                 team_description: "Our success is driven by a passionate and talented team committed to excellence and innovation.",
-                team_hiro_name: "Hiro",
-                team_hiro_role: "Founder",
-                team_hiro_desc: "Visionary leader guiding Atlantis's strategic direction.",
-                team_rahmat_name: "Rahmat",
-                team_rahmat_role: "Co-Founder",
-                team_rahmat_desc: "Driving key initiatives and fostering partnerships.",
-                team_caelric_name: "Caelric",
-                team_caelric_role: "Co-Founder",
-                team_caelric_desc: "Instrumental in shaping the company's core operations.",
-                team_kiyo_name: "Kiyo",
-                team_kiyo_role: "Education - Mentor",
-                team_kiyo_desc: "Leading educational programs and nurturing talent.",
-                team_ren_name: "ren",
-                team_ren_role: "Moderation - Helper",
-                team_ren_desc: "Ensuring smooth community interactions and support.",
-                team_fuikara_name: "Fuikara",
-                team_fuikara_role: "Moderation - Support Staff",
-                team_fuikara_desc: "Providing essential support and maintaining community standards.",
-                team_daffa_name: "daffa",
-                team_daffa_role: "Creative - Designer",
-                team_daffa_desc: "Crafting compelling visual experiences for all our brands.",
-                team_faisal_name: "faisal",
-                team_faisal_role: "Creative - Social Media",
-                team_faisal_desc: "Managing our online presence and engaging with our audience.",
                 contact_title: "Contact Us",
                 contact_desc: "We'd love to hear from you! Reach out to us for inquiries, partnerships, or career opportunities.",
                 contact_address: "123 Atlantis Blvd, Tech City, AT 98765",
@@ -471,7 +417,17 @@
                 nav_intro: "Introduction",
                 nav_vm: "Vision & Mission",
                 nav_what_we_do: "What We Do",
-                nav_contact: "Contact Us"
+                nav_contact: "Contact Us",
+                // Department descriptions (Simplified)
+                role_Founder_desc: "Leads company vision and strategy.",
+                role_CoFounder_desc: "Supports leadership and drives key initiatives.",
+                role_Education_desc: "Manages educational programs and mentorship.",
+                role_Moderation_desc: "Ensures a safe community environment.",
+                role_Events_desc: "Organizes and executes engaging events.",
+                role_Creative_desc: "Creates visual and textual content.",
+                role_Technology_desc: "Develops and maintains technical infrastructure.",
+                role_Finance_desc: "Manages all financial operations.",
+                role_PublicRelations_desc: "Handles external communications and partnerships."
             },
             id: {
                 nav_back_to_guidelines: "← Kembali ke Panduan Merek",
@@ -525,30 +481,6 @@
                 strength4_desc: "Solusi kami dirancang untuk menciptakan perubahan positif dalam skala global.",
                 team_title: "Tim Kami",
                 team_description: "Keberhasilan kami didorong oleh tim yang bersemangat dan berbakat yang berkomitmen pada keunggulan dan inovasi.",
-                team_hiro_name: "Hiro",
-                team_hiro_role: "Pendiri",
-                team_hiro_desc: "Pemimpin visioner yang memandu arah strategis Atlantis.",
-                team_rahmat_name: "Rahmat",
-                team_rahmat_role: "Co-Founder",
-                team_rahmat_desc: "Mendorong inisiatif utama dan membina kemitraan.",
-                team_caelric_name: "Caelric",
-                team_caelric_role: "Co-Founder",
-                team_caelric_desc: "Berperan penting dalam membentuk operasi inti perusahaan.",
-                team_kiyo_name: "Kiyo",
-                team_kiyo_role: "Edukasi - Mentor",
-                team_kiyo_desc: "Memimpin program pendidikan dan membina bakat.",
-                team_ren_name: "ren",
-                team_ren_role: "Moderasi - Helper",
-                team_ren_desc: "Memastikan interaksi komunitas yang lancar dan dukungan.",
-                team_fuikara_name: "Fuikara",
-                team_fuikara_role: "Moderasi - Staf Pendukung",
-                team_fuikara_desc: "Memberikan dukungan penting dan menjaga standar komunitas.",
-                team_daffa_name: "daffa",
-                team_daffa_role: "Kreatif - Desainer",
-                team_daffa_desc: "Menciptakan pengalaman visual yang menarik untuk semua merek kami.",
-                team_faisal_name: "faisal",
-                team_faisal_role: "Kreatif - Media Sosial",
-                team_faisal_desc: "Mengelola kehadiran online kami dan berinteraksi dengan audiens kami.",
                 contact_title: "Hubungi Kami",
                 contact_desc: "Kami senang mendengar dari Anda! Hubungi kami untuk pertanyaan, kemitraan, atau peluang karir.",
                 contact_address: "123 Atlantis Blvd, Kota Teknologi, AT 98765",
@@ -556,7 +488,21 @@
                 footer_tagline: "Maju dengan Ilmu dan Inovasi",
                 footer_quick_links_title: "Tautan Cepat",
                 footer_contact_title: "Kontak",
-                footer_copyright: "© 2023 Atlantis. Semua hak dilindungi."
+                footer_copyright: "© 2023 Atlantis. Semua hak dilindungi.",
+                nav_intro: "Pendahuluan",
+                nav_vm: "Visi & Misi",
+                nav_what_we_do: "Apa yang Kami Lakukan",
+                nav_contact: "Hubungi Kami",
+                // Department descriptions (Simplified)
+                role_Founder_desc: "Memimpin visi dan strategi perusahaan.",
+                role_CoFounder_desc: "Mendukung kepemimpinan dan mendorong inisiatif utama.",
+                role_Education_desc: "Mengelola program pendidikan dan bimbingan.",
+                role_Moderation_desc: "Memastikan lingkungan komunitas yang aman.",
+                role_Events_desc: "Mengorganisir dan melaksanakan acara menarik.",
+                role_Creative_desc: "Membuat konten visual dan tekstual.",
+                role_Technology_desc: "Mengembangkan dan memelihara infrastruktur teknis.",
+                role_Finance_desc: "Mengelola semua operasi keuangan.",
+                role_PublicRelations_desc: "Menangani komunikasi eksternal dan kemitraan."
             },
             jp: {
                 nav_back_to_guidelines: "← ブランドガイドラインに戻る",
@@ -610,30 +556,6 @@
                 strength4_desc: "私たちのソリューションは、グローバル規模でポジティブな変化を生み出すように設計されています。",
                 team_title: "私たちのチーム",
                 team_description: "私たちの成功は、卓越性と革新にコミットする情熱的で才能あるチームによって推進されています。",
-                team_hiro_name: "ヒロ",
-                team_hiro_role: "創設者",
-                team_hiro_desc: "アトランティスの戦略的方向性を導く先見の明のあるリーダー。",
-                team_rahmat_name: "ラフマット",
-                team_rahmat_role: "共同創設者",
-                team_rahmat_desc: "主要なイニシアチブを推進し、パートナーシップを育成。",
-                team_caelric_name: "カエルリック",
-                team_caelric_role: "共同創設者",
-                team_caelric_desc: "会社のコアオペレーションを形成する上で重要な役割を果たす。",
-                team_kiyo_name: "キヨ",
-                team_kiyo_role: "教育 - メンター",
-                team_kiyo_desc: "教育プログラムを主導し、才能を育成。",
-                team_ren_name: "レン",
-                team_ren_role: "モデレーション - ヘルパー",
-                team_ren_desc: "円滑なコミュニティ交流とサポートを確保。",
-                team_fuikara_name: "フイカラ",
-                team_fuikara_role: "モデレーション - サポートスタッフ",
-                team_fuikara_desc: "重要なサポートを提供し、コミュニティ基準を維持。",
-                team_daffa_name: "ダッファ",
-                team_daffa_role: "クリエイティブ - デザイナー",
-                team_daffa_desc: "すべてのブランドで魅力的なビジュアル体験を創造。",
-                team_faisal_name: "ファイサル",
-                team_faisal_role: "クリエイティブ - ソーシャルメディア",
-                team_faisal_desc: "オンラインプレゼンスを管理し、オーディエンスと交流。",
                 contact_title: "お問い合わせ",
                 contact_desc: "お問い合わせ、パートナーシップ、またはキャリアの機会について、お気軽にお問い合わせください。",
                 contact_address: "123 アトランティス大通り、テックシティ、AT 98765",
@@ -645,7 +567,17 @@
                 nav_intro: "はじめに",
                 nav_vm: "ビジョンとミッション",
                 nav_what_we_do: "私たちの事業内容",
-                nav_contact: "お問い合わせ"
+                nav_contact: "お問い合わせ",
+                // Department descriptions (Simplified)
+                role_Founder_desc: "会社のビジョンと戦略を主導します。",
+                role_CoFounder_desc: "リーダーシップをサポートし、主要なイニシアチブを推進します。",
+                role_Education_desc: "教育プログラムとメンターシップを管理します。",
+                role_Moderation_desc: "安全なコミュニティ環境を確保します。",
+                role_Events_desc: "魅力的なイベントを企画・実行します。",
+                role_Creative_desc: "ビジュアルおよびテキストコンテンツを作成します。",
+                role_Technology_desc: "技術インフラを開発・維持します。",
+                role_Finance_desc: "すべての財務業務を管理します。",
+                role_PublicRelations_desc: "外部とのコミュニケーションとパートナーシップを扱います。"
             }
         };
 
@@ -670,6 +602,49 @@
             document.documentElement.lang = lang;
         }
 
+        // Function to load team members from Firebase
+        function loadTeamMembers() {
+            const teamContainer = document.getElementById('team-members-container');
+            teamContainer.innerHTML = ''; // Clear existing content
+
+            onValue(moderatorsRef, (snapshot) => {
+                const moderators = snapshot.val();
+                if (!moderators) {
+                    teamContainer.innerHTML = '<p class="text-center py-8 text-gray-500 lang-text" data-key="no_team_members"></p>';
+                    updateContent(document.getElementById('language-selector').value); // Update text for "no team members"
+                    return;
+                }
+
+                // Convert object to array and sort by role hierarchy (optional, but good for display)
+                const sortedModerators = Object.values(moderators).sort((a, b) => {
+                    const roleOrder = {
+                        "Founder": 1, "Co-Founder": 2, "Education": 3, "Moderation": 4,
+                        "Events": 5, "Creative": 6, "Technology": 7, "Finance": 8,
+                        "Public Relations": 9, "Member": 10, "Lainnya": 11
+                    };
+                    return (roleOrder[a.role] || 99) - (roleOrder[b.role] || 99);
+                });
+
+                sortedModerators.forEach(mod => {
+                    // Sanitize role name for data-key (remove spaces and special chars)
+                    const sanitizedRole = mod.role ? mod.role.replace(/[^a-zA-Z0-9]/g, '') : 'Member';
+                    const roleKey = `role_${sanitizedRole}_desc`; // e.g., role_PublicRelations_desc
+
+                    const subDivisionText = mod.subDivision ? ` - ${mod.subDivision}` : '';
+                    const memberHtml = `
+                        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
+                            <img src="https://via.placeholder.com/150" alt="${mod.name}" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
+                            <h3 class="text-xl font-semibold text-gray-800">${mod.name || 'Unknown'}</h3>
+                            <p class="text-blue-600">${mod.role || 'Member'}${subDivisionText}</p>
+                            <p class="text-gray-600 text-sm mt-2 lang-text" data-key="${roleKey}">${translations[document.documentElement.lang][roleKey] || 'No description available.'}</p>
+                        </div>
+                    `;
+                    teamContainer.innerHTML += memberHtml;
+                });
+                updateContent(document.getElementById('language-selector').value); // Re-apply translations after loading dynamic content
+            });
+        }
+
         // Language selector logic
         const langSelector = document.getElementById('language-selector');
 
@@ -683,6 +658,12 @@
             const selectedLang = event.target.value;
             localStorage.setItem('selectedLang', selectedLang); // Save preference
             updateContent(selectedLang);
+            loadTeamMembers(); // Reload team members to update descriptions
+        });
+
+        // Load team members on initial page load
+        document.addEventListener("DOMContentLoaded", () => {
+            loadTeamMembers();
         });
     </script>
 </body>
