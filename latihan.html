@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Belajar Coding Interaktif</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f1f5f9;
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        #editor {
+            height: 250px;
+            border: 1px solid #334155;
+            border-radius: 8px;
+        }
+        section {
+            margin-bottom: 50px;
+        }
+        .theme-toggle {
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #1e293b;
+            color: #f1f5f9;
+            transition: background-color 0.3s;
+        }
+        .theme-toggle:hover {
+            background-color: #334155;
+        }
+
+        /* Animasi Fade In Up */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-400 { animation-delay: 0.4s; }
+        .delay-500 { animation-delay: 0.5s; }
+
+        /* Gaya untuk tema terang */
+        body.bg-gray-100 {
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        body.bg-gray-100 .theme-toggle {
+            background-color: #cbd5e1;
+            color: #1e293b;
+        }
+        body.bg-gray-100 .theme-toggle:hover {
+            background-color: #94a3b8;
+        }
+        body.bg-gray-100 .bg-slate-800,
+        body.bg-gray-100 .bg-slate-900,
+        body.bg-gray-100 .bg-slate-700,
+        body.bg-gray-100 .bg-slate-600 {
+            background-color: #e2e8f0;
+            color: #1e293b;
+        }
+        body.bg-gray-100 #editor {
+            border-color: #94a3b8;
+        }
+        body.bg-gray-100 #language,
+        body.bg-gray-100 #task {
+            background-color: #cbd5e1;
+            color: #1e293b;
+        }
+        body.bg-gray-100 .text-gray-300 {
+            color: #475569;
+        }
+        body.bg-gray-100 .text-gray-400 {
+            color: #64748b;
+        }
+        body.bg-gray-100 .text-blue-400 {
+            color: #2563eb;
+        }
+        body.bg-gray-100 .text-green-400 {
+            color: #16a34a;
+        }
+        body.bg-gray-100 .text-yellow-400 {
+            color: #ca8a04;
+        }
+        body.bg-gray-100 .text-purple-400 {
+            color: #7c3aed;
+        }
+        body.bg-gray-100 .text-red-400 {
+            color: #dc2626;
+        }
+        body.bg-gray-100 .nav-btn {
+            color: white; /* Tetap putih untuk kontras */
+        }
+        /* Pola latar belakang opsional untuk hero section */
+        .bg-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0 0v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM12 34v-4H10v4H6v2h4v4h2v-4h4v-2h-4zm0 0v-4H10v4H6v2h4v4h2v-4h4v-2h-4z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body class="p-6">
+
+<!-- ===================== LANDING PAGE - HERO SECTION ===================== -->
+<section class="relative bg-gradient-to-r from-blue-700 to-purple-700 text-white py-20 md:py-32 text-center overflow-hidden">
+    <div class="absolute inset-0 opacity-10 bg-pattern"></div>
+    <div class="container mx-auto px-4 relative z-10">
+        <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-6 animate-fade-in-up">
+            Belajar Coding dari Nol Hingga Mahir 🚀
+        </h1>
+        <p class="text-lg md:text-xl text-blue-100 mb-10 max-w-3xl mx-auto animate-fade-in-up delay-200">
+            Platform interaktif untuk menguasai dasar-dasar HTML, CSS, Java, Python, dan SQL dengan latihan praktis.
+        </p>
+        <button onclick="scrollToSection('editor-section')" class="bg-white text-blue-700 hover:bg-blue-100 px-8 py-4 rounded-full text-lg font-bold shadow-lg transition duration-300 ease-in-out transform hover:scale-105 animate-fade-in-up delay-400">
+            Mulai Belajar Sekarang!
+        </button>
+        <button class="theme-toggle mt-4 md:mt-0 md:ml-4 bg-blue-600 hover:bg-blue-800 text-white px-6 py-3 rounded-full transition duration-300 ease-in-out animate-fade-in-up delay-500" onclick="toggleTheme()">
+            Toggle Tema
+        </button>
+    </div>
+</section>
+
+<!-- ===================== NAVIGASI BAHASA ===================== -->
+<nav class="bg-slate-800 py-4 shadow-md sticky top-0 z-20">
+    <div class="container mx-auto px-4">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 text-center">
+            <button onclick="scrollToSection('html-module')" class="nav-btn bg-blue-600 hover:bg-blue-700 p-3 rounded-lg transition duration-200">HTML</button>
+            <button onclick="scrollToSection('css-module')" class="nav-btn bg-green-600 hover:bg-green-700 p-3 rounded-lg transition duration-200">CSS</button>
+            <button onclick="scrollToSection('java-module')" class="nav-btn bg-yellow-600 hover:bg-yellow-700 p-3 rounded-lg transition duration-200">JAVA</button>
+            <button onclick="scrollToSection('python-module')" class="nav-btn bg-purple-600 hover:bg-purple-700 p-3 rounded-lg transition duration-200">PYTHON</button>
+            <button onclick="scrollToSection('sql-module')" class="nav-btn bg-red-600 hover:bg-red-700 p-3 rounded-lg transition duration-200">SQL</button>
+        </div>
+    </div>
+</nav>
+
+<!-- ===================== MODUL PEMBELAJARAN ===================== -->
+
+<!-- HTML Module -->
+<section id="html-module" class="py-16 bg-slate-900">
+    <div class="container mx-auto px-4">
+        <h2 class="text-4xl font-bold text-blue-400 mb-8 text-center">HTML (HyperText Markup Language)</h2>
+        <p class="text-lg text-gray-300 mb-10 text-center max-w-3xl mx-auto">
+            HTML adalah bahasa standar untuk membuat halaman web. Pelajari cara menyusun konten, menambahkan gambar, tautan, dan banyak lagi.
+        </p>
+
+        <!-- Sub-Bab HTML -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">1. Pengenalan HTML</h3>
+                <p class="text-gray-400 mb-4">Memahami apa itu HTML, sejarahnya, dan bagaimana ia bekerja dengan browser.</p>
+                <div class="bg-slate-700 p-3 rounded mb-3">
+                    <code>&lt;!DOCTYPE html&gt;<br>&lt;html&gt;...&lt;/html&gt;</code>
+                </div>
+                <button onclick="loadTask('html', 0)" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded transition">Latihan: Hello World</button>
+            </div>
+
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">2. Struktur Dasar Dokumen</h3>
+                <p class="text-gray-400 mb-4">Mempelajari tag-tag esensial seperti `head`, `body`, `title`, dan meta tag.</p>
+                <div class="bg-slate-700 p-3 rounded mb-3">
+                    <code>&lt;head&gt;...&lt;/head&gt;<br>&lt;body&gt;...&lt;/body&gt;</code>
+                </div>
+                <button onclick="loadTask('html', 1)" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded transition">Latihan: Paragraf</button>
+            </div>
+
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">3. Tag Teks & Formatting</h3>
+                <p class="text-gray-400 mb-4">Menggunakan heading, paragraf, bold, italic, dan elemen teks lainnya.</p>
+                <div class="bg-slate-700 p-3 rounded mb-3">
+                    <code>&lt;h1&gt;...&lt;/h1&gt;<br>&lt;p&gt;...&lt;/p&gt;</code>
+                </div>
+                <button onclick="loadTask('html', 2)" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded transition">Latihan: Heading & Paragraf</button>
+            </div>
+
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">4. Link dan Gambar</h3>
+                <p class="text-gray-400 mb-4">Cara menyisipkan hyperlink dan gambar ke dalam halaman web Anda.</p>
+                <div class="bg-slate-700 p-3 rounded mb-3">
+                    <code>&lt;a href="..."&gt;...&lt;/a&gt;<br>&lt;img src="..."&gt;</code>
+                </div>
+                <button onclick="loadTask('html', 3)" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded transition">Latihan: Link & Gambar</button>
+            </div>
+
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">5. List (Daftar)</h3>
+                <p class="text-gray-400 mb-4">Membuat daftar berurutan dan tidak berurutan.</p>
+                <div class="bg-slate-700 p-3 rounded mb-3">
+                    <code>&lt;ul&gt;&lt;li&gt;...&lt;/li&gt;&lt;/ul&gt;<br>&lt;ol&gt;&lt;li&gt;...&lt;/li&gt;&lt;/ol&gt;</code>
+                </div>
+                <button onclick="loadTask('html', 4)" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded transition">Latihan: Daftar</button>
+            </div>
+
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">6. Tabel</h3>
+                <p class="text-gray-400 mb-4">Menyusun data dalam format tabel.</p>
+                <div class="bg-slate-700 p-3 rounded mb-3">
+                    <code>&lt;table&gt;&lt;tr&gt;&lt;td&gt;...&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</code>
+                </div>
+                <button onclick="loadTask('html', 5)" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded transition">Latihan: Tabel</button>
+            </div>
+
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">7. Form</h3>
+                <p class="text-gray-400 mb-4">Membuat formulir input pengguna.</p>
+                <div class="bg-slate-700 p-3 rounded mb-3">
+                    <code>&lt;form&gt;&lt;input type="text"&gt;&lt;/form&gt;</code>
+                </div>
+                <button onclick="loadTask('html', 6)" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded transition">Latihan: Form</button>
+            </div>
+
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">8. Semantic HTML</h3>
+                <p class="text-gray-400 mb-4">Menggunakan tag HTML5 yang bermakna seperti `header`, `footer`, `nav`, `article`, `section`.</p>
+                <div class="bg-slate-700 p-3 rounded mb-3">
+                    <code>&lt;header&gt;...&lt;/header&gt;<br>&lt;footer&gt;...&lt;/footer&gt;</code>
+                </div>
+                <button onclick="loadTask('html', 7)" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded transition">Latihan: Semantic</button>
+            </div>
+
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">Proyek Mini HTML</h3>
+                <p class="text-gray-400 mb-4">Buat halaman profil sederhana menggunakan semua yang telah dipelajari.</p>
+                <button onclick="loadTask('html', 8)" class="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded transition">Mulai Proyek</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CSS Module -->
+<section id="css-module" class="py-16 bg-gray-800">
+    <div class="container mx-auto px-4">
+        <h2 class="text-4xl font-bold text-green-400 mb-8 text-center">CSS (Cascading Style Sheets)</h2>
+        <p class="text-lg text-gray-300 mb-10 text-center max-w-3xl mx-auto">
+            CSS digunakan untuk mengatur tampilan dan gaya halaman web. Pelajari cara membuat desain yang menarik dan responsif.
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="bg-slate-700 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">1. Pengenalan CSS</h3>
+                <p class="text-gray-400 mb-4">Apa itu CSS, mengapa penting, dan cara menghubungkannya dengan HTML.</p>
+                <div class="bg-slate-600 p-3 rounded mb-3">
+                    <code>&lt;link rel="stylesheet" href="style.css"&gt;</code>
+                </div>
+                <button onclick="loadTask('css', 0)" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded transition">Latihan: Warna Teks</button>
+            </div>
+            <div class="bg-slate-700 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">2. Selector Dasar</h3>
+                <p class="text-gray-400 mb-4">Memilih elemen HTML menggunakan tag, class, dan ID.</p>
+                <div class="bg-slate-600 p-3 rounded mb-3">
+                    <code>.my-class { ... }<br>#my-id { ... }</code>
+                </div>
+                <button onclick="loadTask('css', 1)" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded transition">Latihan: Selector</button>
+            </div>
+            <div class="bg-slate-700 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">3. Model Box</h3>
+                <p class="text-gray-400 mb-4">Memahami margin, border, padding, dan content.</p>
+                <div class="bg-slate-600 p-3 rounded mb-3">
+                    <code>margin: 10px;<br>padding: 20px;</code>
+                </div>
+                <button onclick="loadTask('css', 2)" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded transition">Latihan: Box Model</button>
+            </div>
+            <div class="bg-slate-700 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">4. Flexbox</h3>
+                <p class="text-gray-400 mb-4">Membuat layout responsif dengan Flexbox.</p>
+                <div class="bg-slate-600 p-3 rounded mb-3">
+                    <code>display: flex;<br>justify-content: center;</code>
+                </div>
+                <button onclick="loadTask('css', 3)" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded transition">Latihan: Flexbox</button>
+            </div>
+            <div class="bg-slate-700 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">5. Grid</h3>
+                <p class="text-gray-400 mb-4">Membuat layout kompleks dengan CSS Grid.</p>
+                <div class="bg-slate-600 p-3 rounded mb-3">
+                    <code>display: grid;<br>grid-template-columns: 1fr 1fr;</code>
+                </div>
+                <button onclick="loadTask('css', 4)" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded transition">Latihan: Grid</button>
+            </div>
+            <div class="bg-slate-700 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">Proyek Mini CSS</h3>
+                <p class="text-gray-400 mb-4">Desain ulang halaman HTML yang sudah dibuat dengan CSS.</p>
+                <button onclick="loadTask('css', 5)" class="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded transition">Mulai Proyek</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Java Module -->
+<section id="java-module" class="py-16 bg-slate-900">
+    <div class="container mx-auto px-4">
+        <h2 class="text-4xl font-bold text-yellow-400 mb-8 text-center">Java</h2>
+        <p class="text-lg text-gray-300 mb-10 text-center max-w-3xl mx-auto">
+            Java adalah bahasa pemrograman berorientasi objek yang kuat, digunakan untuk aplikasi enterprise, mobile, dan web.
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">1. Dasar-dasar Java</h3>
+                <p class="text-gray-400 mb-4">Sintaks dasar, variabel, dan tipe data.</p>
+                <div class="bg-slate-700 p-3 rounded mb-3">
+                    <code>int x = 10;<br>String name = "Java";</code>
+                </div>
+                <button onclick="loadTask('java', 0)" class="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded transition">Latihan: Print Hello</button>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">2. Operator & Kondisi</h3>
+                <p class="text-gray-400 mb-4">Operator aritmatika, perbandingan, dan pernyataan `if-else`.</p>
+                <div class="bg-slate-700 p-3 rounded mb-3">
+                    <code>if (x > 5) { ... }</code>
+                </div>
+                <button onclick="loadTask('java', 1)" class="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded transition">Latihan: Kondisi</button>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">3. Loop</h3>
+                <p class="text-gray-400 mb-4">Perulangan `for`, `while`, dan `do-while`.</p>
+                <div class="bg-slate-700 p-3 rounded mb-3">
+                    <code>for (int i=0; i<5; i++) { ... }</code>
+                </div>
+                <button onclick="loadTask('java', 2)" class="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded transition">Latihan: Loop</button>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">4. Array</h3>
+                <p class="text-gray-400 mb-4">Menggunakan struktur data array.</p>
+                <div class="bg-slate-700 p-3 rounded mb-3">
+                    <code>int[] numbers = {10, 20, 30};</code>
+                </div>
+                <button onclick="loadTask('java', 3)" class="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded transition">Latihan: Array</button>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">5. Fungsi (Methods)</h3>
+                <p class="text-gray-400 mb-4">Membuat dan menggunakan fungsi.</p>
+                <div class="bg-slate-700 p-3 rounded mb-3">
+                    <code>public void greet() { ... }</code>
+                </div>
+                <button onclick="loadTask('java', 4)" class="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded transition">Latihan: Fungsi</button>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">6. OOP Dasar</h3>
+                <p class="text-gray-400 mb-4">Konsep Class, Object, Encapsulation, Inheritance, Polymorphism.</p>
+                <div class="bg-slate-700 p-3 rounded mb-3">
+                    <code>class Car { ... }</code>
+                </div>
+                <button onclick="loadTask('java', 5)" class="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded transition">Latihan: Class & Object</button>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">Proyek Mini Java</h3>
+                <p class="text-gray-400 mb-4">Buat program kalkulator sederhana yang bisa menambah dan mengurangi dua angka.</p>
+                <button onclick="loadTask('java', 6)" class="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded transition">Mulai Proyek</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Python Module -->
+<section id="python-module" class="py-16 bg-gray-800">
+    <div class="container mx-auto px-4">
+        <h2 class="text-4xl font-bold text-purple-400 mb-8 text-center">Python</h2>
+        <p class="text-lg text-gray-300 mb-10 text-center max-w-3xl mx-auto">
+            Python adalah bahasa pemrograman serbaguna yang populer untuk pengembangan web, analisis data, AI, dan otomatisasi.
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="bg-slate-700 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">1. Dasar-dasar Python</h3>
+                <p class="text-gray-400 mb-4">Sintaks dasar, variabel, dan tipe data.</p>
+                <div class="bg-slate-600 p-3 rounded mb-3">
+                    <code>x = 10<br>name = "Python"</code>
+                </div>
+                <button onclick="loadTask('python', 0)" class="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded transition">Latihan: Cetak Hello</button>
+            </div>
+            <div class="bg-slate-700 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">2. Operator & Kondisi</h3>
+                <p class="text-gray-400 mb-4">Operator aritmatika, perbandingan, dan pernyataan `if-elif-else`.</p>
+                <div class="bg-slate-600 p-3 rounded mb-3">
+                    <code>if x > 5:<br>&nbsp;&nbsp;...</code>
+                </div>
+                <button onclick="loadTask('python', 1)" class="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded transition">Latihan: Kondisi</button>
+            </div>
+            <div class="bg-slate-700 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">3. Loop</h3>
+                <p class="text-gray-400 mb-4">Perulangan `for` dan `while`.</p>
+                <div class="bg-slate-600 p-3 rounded mb-3">
+                    <code>for i in range(5):<br>&nbsp;&nbsp;...</code>
+                </div>
+                <button onclick="loadTask('python', 2)" class="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded transition">Latihan: Loop</button>
+            </div>
+            <div class="bg-slate-700 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">4. List & Tuple</h3>
+                <p class="text-gray-400 mb-4">Menggunakan struktur data list dan tuple.</p>
+                <div class="bg-slate-600 p-3 rounded mb-3">
+                    <code>my_list = [1, 2, 3]</code>
+                </div>
+                <button onclick="loadTask('python', 3)" class="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded transition">Latihan: List</button>
+            </div>
+            <div class="bg-slate-700 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">5. Dictionary & Set</h3>
+                <p class="text-gray-400 mb-4">Menggunakan struktur data dictionary dan set.</p>
+                <div class="bg-slate-600 p-3 rounded mb-3">
+                    <code>my_dict = {"key": "value"}</code>
+                </div>
+                <button onclick="loadTask('python', 4)" class="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded transition">Latihan: Dictionary</button>
+            </div>
+            <div class="bg-slate-700 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">6. Fungsi</h3>
+                <p class="text-gray-400 mb-4">Membuat dan menggunakan fungsi.</p>
+                <div class="bg-slate-600 p-3 rounded mb-3">
+                    <code>def salam():<br>&nbsp;&nbsp;...</code>
+                </div>
+                <button onclick="loadTask('python', 5)" class="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded transition">Latihan: Fungsi</button>
+            </div>
+            <div class="bg-slate-700 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">Proyek Mini Python</h3>
+                <p class="text-gray-400 mb-4">Buat program tebak angka sederhana.</p>
+                <button onclick="loadTask('python', 6)" class="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded transition">Mulai Proyek</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SQL Module -->
+<section id="sql-module" class="py-16 bg-slate-900">
+    <div class="container mx-auto px-4">
+        <h2 class="text-4xl font-bold text-red-400 mb-8 text-center">SQL (Structured Query Language)</h2>
+        <p class="text-lg text-gray-300 mb-10 text-center max-w-3xl mx-auto">
+            SQL adalah bahasa standar untuk mengelola dan memanipulasi database relasional.
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">1. Pengenalan SQL</h3>
+                <p class="text-gray-400 mb-4">Apa itu SQL, jenis-jenis perintah SQL (DDL, DML, DCL).</p>
+                <div class="bg-slate-700 p-3 rounded mb-3">
+                    <code>SELECT, INSERT, UPDATE, DELETE</code>
+                </div>
+                <button onclick="loadTask('sql', 0)" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded transition">Latihan: Select Semua Data</button>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">2. Query Dasar (SELECT)</h3>
+                <p class="text-gray-400 mb-4">Mengambil data dari tabel dengan `SELECT` dan `FROM`.</p>
+                <div class="bg-slate-700 p-3 rounded mb-3">
+                    <code>SELECT column_name FROM table_name;</code>
+                </div>
+                <button onclick="loadTask('sql', 1)" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded transition">Latihan: Select Kolom Tertentu</button>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">3. Filtering Data (WHERE)</h3>
+                <p class="text-gray-400 mb-4">Memfilter hasil query menggunakan klausa `WHERE`.</p>
+                <div class="bg-slate-700 p-3 rounded mb-3">
+                    <code>SELECT * FROM users WHERE age > 25;</code>
+                </div>
+                <button onclick="loadTask('sql', 2)" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded transition">Latihan: Filter Data</button>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">4. Sorting Data (ORDER BY)</h3>
+                <p class="text-gray-400 mb-4">Mengurutkan hasil query secara ascending atau descending.</p>
+                <div class="bg-slate-700 p-3 rounded mb-3">
+                    <code>SELECT * FROM products ORDER BY harga DESC;</code>
+                </div>
+                <button onclick="loadTask('sql', 3)" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded transition">Latihan: Urutkan Data</button>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">5. Agregasi (COUNT, SUM, AVG, MIN, MAX)</h3>
+                <p class="text-gray-400 mb-4">Melakukan perhitungan pada data.</p>
+                <div class="bg-slate-700 p-3 rounded mb-3">
+                    <code>SELECT COUNT(*) FROM orders;</code>
+                </div>
+                <button onclick="loadTask('sql', 4)" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded transition">Latihan: Agregasi</button>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">6. JOINs</h3>
+                <p class="text-gray-400 mb-4">Menggabungkan data dari beberapa tabel.</p>
+                <div class="bg-slate-700 p-3 rounded mb-3">
+                    <code>SELECT * FROM orders JOIN customers ON ...;</code>
+                </div>
+                <button onclick="loadTask('sql', 5)" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded transition">Latihan: JOIN</button>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-white mb-3">Proyek Mini SQL</h3>
+                <p class="text-gray-400 mb-4">Buat skema database sederhana dan lakukan query dasar.</p>
+                <button onclick="loadTask('sql', 6)" class="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded transition">Mulai Proyek</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== EDITOR INTERAKTIF ===================== -->
+<section id="editor-section" class="bg-slate-900 p-6 rounded">
+    <h2 class="text-3xl font-bold mb-4">Latihan Coding</h2>
+    <div class="flex flex-col md:flex-row gap-4 mb-4">
+        <select id="language" class="bg-slate-800 p-2 rounded flex-grow">
+            <option value="html">HTML</option>
+            <option value="css">CSS</option>
+            <option value="java">Java</option>
+            <option value="python">Python</option>
+            <option value="sql">SQL</option>
+        </select>
+        <select id="task" class="bg-slate-800 p-2 rounded flex-grow"></select>
+    </div>
+    <p id="task-desc" class="mb-4 text-gray-300"></p>
+    <div id="editor"></div>
+    <div class="flex gap-4 mt-4">
+        <button id="checkBtn" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded transition">Check Answer</button>
+        <button id="runBtn" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded transition">Run (HTML Only)</button>
+    </div>
+    <p id="result" class="mt-4 font-bold"></p>
+    <iframe id="preview" class="w-full h-64 mt-4 bg-white rounded hidden"></iframe>
+</section>
+
+<script>
+    // Scroll ke section
+    function scrollToSection(id) {
+        document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Toggle tema
+    function toggleTheme() {
+        const body = document.body;
+        body.classList.toggle('bg-gray-900'); // Dark theme background
+        body.classList.toggle('text-gray-100'); // Dark theme text
+        body.classList.toggle('bg-gray-100'); // Light theme background
+        body.classList.toggle('text-gray-900'); // Light theme text
+
+        // Update Monaco Editor theme
+        if (body.classList.contains('bg-gray-100')) {
+            editorInstance.updateOptions({ theme: 'vs-light' });
+        } else {
+            editorInstance.updateOptions({ theme: 'vs-dark' });
+        }
+    }
+
+    // Data Task yang Diperbarui
+    const tasks = {
+        html: [
+            { title: "Hello World", desc: "Buat heading <h1> dengan teks 'Hello World'", correct: "<h1>Hello World</h1>" },
+            { title: "Paragraf", desc: "Buat paragraf: 'Belajar HTML itu seru!'", correct: "<p>Belajar HTML itu seru!</p>" },
+            { title: "Heading & Paragraf", desc: "Buat heading <h2> 'Judul Sub-Bab' dan paragraf 'Ini adalah konten sub-bab.'", correct: "<h2>Judul Sub-Bab</h2><p>Ini adalah konten sub-bab.</p>" },
+            { title: "Link & Gambar", desc: "Buat link ke Google dan gambar placeholder (src='https://via.placeholder.com/150')", correct: "<a href=\"https://www.google.com\">Google</a><img src=\"https://via.placeholder.com/150\">" },
+            { title: "Daftar", desc: "Buat daftar tidak berurutan dengan item 'Apel' dan 'Jeruk'", correct: "<ul><li>Apel</li><li>Jeruk</li></ul>" },
+            { title: "Tabel", desc: "Buat tabel sederhana dengan 2 baris dan 2 kolom (isi bebas)", correct: "<table><tr><td>A</td><td>B</td></tr><tr><td>C</td><td>D</td></tr></table>" },
+            { title: "Form", desc: "Buat input teks dengan placeholder 'Nama Anda'", correct: "<input type=\"text\" placeholder=\"Nama Anda\">" },
+            { title: "Semantic", desc: "Gunakan tag <header> dan <footer>", correct: "<header><h1>Header</h1></header><footer><p>Footer</p></footer>" },
+            { title: "Proyek Mini HTML", desc: "Buat halaman profil sederhana dengan heading, paragraf, gambar, dan link.", correct: "<h1>Profil Saya</h1><img src=\"https://via.placeholder.com/100\" alt=\"Foto Profil\"><p>Nama: [Nama Anda]</p><a href=\"#\">Portofolio</a>" }
+        ],
+        css: [
+            { title: "Warna Teks", desc: "Ubah warna teks h1 jadi merah", correct: "h1 { color: red; }" },
+            { title: "Selector", desc: "Buat gaya untuk class 'highlight' dengan background kuning", correct: ".highlight { background-color: yellow; }" },
+            { title: "Box Model", desc: "Berikan padding 20px dan margin 10px pada elemen div", correct: "div { padding: 20px; margin: 10px; }" },
+            { title: "Flexbox", desc: "Gunakan flexbox untuk menata 3 item secara horizontal di tengah", correct: ".container { display: flex; justify-content: center; align-items: center; }" },
+            { title: "Grid", desc: "Buat layout grid 2 kolom dengan lebar yang sama", correct: ".grid-container { display: grid; grid-template-columns: 1fr 1fr; }" },
+            { title: "Proyek Mini CSS", desc: "Desain ulang halaman profil HTML Anda dengan CSS (ubah warna, font, layout).", correct: "body { font-family: sans-serif; background-color: #f0f0f0; } h1 { color: #333; text-align: center; }" }
+        ],
+        java: [
+            { title: "Print Hello", desc: "Cetak 'Hello World' di Java", correct: `public class Main {
+                public static void main(String[] args) {
+                    System.out.println("Hello World");
+                }
+            }` },
+            { title: "Kondisi", desc: "Buat pernyataan if yang mencetak 'Angka positif' jika variabel 'num' lebih dari 0", correct: `public class Main {
+                public static void main(String[] args) {
+                    int num = 5;
+                    if (num > 0) {
+                        System.out.println("Angka positif");
+                    }
+                }
+            }` },
+            { title: "Loop", desc: "Gunakan loop for untuk mencetak angka dari 1 sampai 5", correct: `public class Main {
+                public static void main(String[] args) {
+                    for (int i = 1; i <= 5; i++) {
+                        System.out.println(i);
+                    }
+                }
+            }` },
+            { title: "Array", desc: "Deklarasikan array integer dengan nilai 10, 20, 30", correct: `public class Main {
+                public static void main(String[] args) {
+                    int[] numbers = {10, 20, 30};
+                }
+            }` },
+            { title: "Fungsi", desc: "Buat fungsi 'greet' yang mencetak 'Halo!'", correct: `public class Main {
+                public static void main(String[] args) {
+                    greet();
+                }
+                public static void greet() {
+                    System.out.println("Halo!");
+                }
+            }` },
+            { title: "Class & Object", desc: "Buat class 'Dog' dengan method 'bark'", correct: `public class Dog {
+                public void bark() {
+                    System.out.println("Woof!");
+                }
+                public static void main(String[] args) {
+                    Dog myDog = new Dog();
+                    myDog.bark();
+                }
+            }` },
+            { title: "Proyek Mini Java", desc: "Buat program kalkulator sederhana yang bisa menambah dan mengurangi dua angka.", correct: `public class Calculator {
+                public static int add(int a, int b) {
+                    return a + b;
+                }
+                public static int subtract(int a, int b) {
+                    return a - b;
+                }
+                public static void main(String[] args) {
+                    System.out.println("2 + 3 = " + add(2, 3));
+                    System.out.println("5 - 2 = " + subtract(5, 2));
+                }
+            }` }
+        ],
+        python: [
+            { title: "Cetak Hello", desc: "Cetak 'Hello World' di Python", correct: `print("Hello World")` },
+            { title: "Kondisi", desc: "Buat pernyataan if yang mencetak 'Positif' jika 'num' > 0", correct: `num = 10\nif num > 0:\n    print("Positif")` },
+            { title: "Loop", desc: "Gunakan loop for untuk mencetak angka dari 0 sampai 4", correct: `for i in range(5):\n    print(i)` },
+            { title: "List", desc: "Buat list dengan elemen 'apel', 'pisang', 'ceri'", correct: `fruits = ["apel", "pisang", "ceri"]` },
+            { title: "Dictionary", desc: "Buat dictionary dengan key 'nama' dan 'umur'", correct: `person = {"nama": "Budi", "umur": 30}` },
+            { title: "Fungsi", desc: "Buat fungsi 'salam' yang mencetak 'Halo!'", correct: `def salam():\n    print("Halo!")\nsalam()` },
+            { title: "Proyek Mini Python", desc: "Buat program tebak angka sederhana (angka rahasia 5, user input)", correct: `secret_number = 5\nguess = int(input("Tebak angka (1-10): "))\nif guess == secret_number:\n    print("Benar!")\nelse:\n    print("Salah!")` }
+        ],
+        sql: [
+            { title: "Select Semua Data", desc: "Query untuk menampilkan semua data dari tabel 'users'", correct: "SELECT * FROM users;" },
+            { title: "Select Kolom Tertentu", desc: "Query untuk menampilkan kolom 'nama' dan 'email' dari tabel 'users'", correct: "SELECT nama, email FROM users;" },
+            { title: "Filter Data", desc: "Query untuk menampilkan user yang umurnya lebih dari 25", correct: "SELECT * FROM users WHERE umur > 25;" },
+            { title: "Urutkan Data", desc: "Query untuk menampilkan produk diurutkan berdasarkan harga dari yang termurah", correct: "SELECT * FROM products ORDER BY harga ASC;" },
+            { title: "Agregasi", desc: "Query untuk menghitung jumlah total user", correct: "SELECT COUNT(*) FROM users;" },
+            { title: "JOIN", desc: "Query untuk menggabungkan tabel 'orders' dan 'customers' berdasarkan 'customer_id'", correct: "SELECT * FROM orders JOIN customers ON orders.customer_id = customers.id;" },
+            { title: "Proyek Mini SQL", desc: "Buat tabel 'students' dengan kolom 'id', 'nama', 'nilai' dan masukkan 3 data.", correct: `CREATE TABLE students (id INT, nama VARCHAR(255), nilai INT);\nINSERT INTO students (id, nama, nilai) VALUES (1, 'Andi', 85);\nINSERT INTO students (id, nama, nilai) VALUES (2, 'Budi', 90);\nINSERT INTO students (id, nama, nilai) VALUES (3, 'Citra', 78);` }
+        ]
+    };
+
+    let editorInstance;
+    let currentLang = "html";
+    let currentTaskIndex = 0;
+
+    // Fungsi untuk memuat tugas berdasarkan bahasa dan indeks
+    function loadTask(lang, index) {
+        currentLang = lang;
+        currentTaskIndex = index;
+
+        // Update dropdown bahasa
+        document.getElementById("language").value = lang;
+
+        // Muat ulang tugas untuk bahasa yang dipilih
+        const taskSelect = document.getElementById("task");
+        taskSelect.innerHTML = "";
+        tasks[lang].forEach((t, i) => {
+            const opt = document.createElement("option");
+            opt.value = i;
+            opt.textContent = t.title;
+            taskSelect.appendChild(opt);
+        });
+
+        // Pilih tugas yang sesuai di dropdown
+        taskSelect.value = index;
+
+        // Update deskripsi tugas dan editor
+        updateTaskDesc(lang, index);
+
+        // Set bahasa editor Monaco
+        const langMap = { html: "html", css: "css", java: "java", python: "python", sql: "sql" };
+        monaco.editor.setModelLanguage(editorInstance.getModel(), langMap[currentLang]);
+
+        // Scroll ke bagian editor
+        scrollToSection('editor-section');
+    }
+
+    function loadTasks(lang) {
+        const taskSelect = document.getElementById("task");
+        taskSelect.innerHTML = "";
+        tasks[lang].forEach((t, i) => {
+            const opt = document.createElement("option");
+            opt.value = i;
+            opt.textContent = t.title;
+            taskSelect.appendChild(opt);
+        });
+        updateTaskDesc(lang, 0); // Default ke tugas pertama
+    }
+
+    function updateTaskDesc(lang, index) {
+        document.getElementById("task-desc").textContent = tasks[lang][index].desc;
+        editorInstance.setValue("// Tulis kode di sini...");
+        document.getElementById("result").textContent = ""; // Bersihkan hasil sebelumnya
+        document.getElementById("preview").classList.add("hidden"); // Sembunyikan preview
+    }
+
+    document.getElementById("language").addEventListener("change", e => {
+        currentLang = e.target.value;
+        loadTasks(currentLang);
+        const langMap = { html: "html", css: "css", java: "java", python: "python", sql: "sql" };
+        monaco.editor.setModelLanguage(editorInstance.getModel(), langMap[currentLang]);
+    });
+
+    document.getElementById("task").addEventListener("change", e => {
+        currentTaskIndex = e.target.value; // Perbarui currentTaskIndex
+        updateTaskDesc(currentLang, currentTaskIndex);
+    });
+
+    require.config({ paths: { vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs" }});
+    require(["vs/editor/editor.main"], function () {
+        editorInstance = monaco.editor.create(document.getElementById("editor"), {
+            value: "// Tulis kode di sini...",
+            language: "html",
+            theme: "vs-dark", // Default dark theme
+            fontSize: 14,
+            minimap: { enabled: false } // Opsional: sembunyikan minimap
+        });
+        loadTasks("html"); // Muat tugas HTML saat inisialisasi
+    });
+
+    document.getElementById("checkBtn").onclick = () => {
+        const taskIndex = document.getElementById("task").value;
+        const userCode = editorInstance.getValue().replace(/\s/g, "");
+        const correctCode = tasks[currentLang][taskIndex].correct.replace(/\s/g, "");
+        document.getElementById("result").textContent = (userCode === correctCode)
+            ? "✅ Jawaban Benar! Lanjut ke tugas berikutnya."
+            : "❌ Salah, coba lagi! Periksa kembali sintaks dan strukturnya.";
+        document.getElementById("result").className = (userCode === correctCode) ? "mt-4 font-bold text-green-400" : "mt-4 font-bold text-red-400";
+    };
+
+    document.getElementById("runBtn").onclick = () => {
+        if (currentLang !== "html") {
+            alert("Fitur 'Run' hanya tersedia untuk HTML. Untuk bahasa lain, Anda perlu lingkungan eksekusi yang berbeda.");
+            return;
+        }
+        const iframe = document.getElementById("preview");
+        iframe.classList.remove("hidden");
+        iframe.srcdoc = editorInstance.getValue();
+    };
+</script>
+</body>
+</html>
