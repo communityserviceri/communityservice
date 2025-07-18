@@ -50,7 +50,7 @@
     // Firebase Finance Integration
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getDatabase, ref, onValue, update, push, remove, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getDatabase, ref, onValue, update, push, remove, query, orderByChild, equalTo, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"; // Added 'set'
 
     const firebaseConfig = {
       apiKey: "AIzaSyCdl3XJ-eUz8BELLaSOXeZFpg7FLDFk7l4",
@@ -202,6 +202,26 @@
             }
         });
     }
+
+    // NEW: Function to add a financial transaction
+    function addTransaction(description, amount, type, category) {
+        const newTransactionRef = push(transactionsRef);
+        set(newTransactionRef, {
+            description: description,
+            amount: amount,
+            type: type,
+            category: category,
+            date: new Date().toISOString().split('T')[0] // Format YYYY-MM-DD
+        })
+        .then(() => {
+            console.log("Transaksi keuangan berhasil ditambahkan!");
+            loadFinance(); // Reload finance data to update dashboard
+        })
+        .catch(error => {
+            console.error("Gagal menambahkan transaksi keuangan:", error);
+        });
+    }
+
 
     // --- Moderator Functions ---
     function loadModerators() {
@@ -756,36 +776,36 @@
     }
 
     // --- Ticketing Functions ---
-    function updateTicketsChart(incomeTickets, expenseTickets) {
+    function updateTicketsChart(incomeTickets, expenseTickets, pending, completed, incomplete) { // MODIFIED: Added pending, completed, incomplete
         const ticketsCtx = document.getElementById('ticketsChart').getContext('2d');
         if (ticketsChartInstance) {
             ticketsChartInstance.destroy();
         }
         ticketsChartInstance = new Chart(ticketsCtx, {
-            type: 'bar',
+            type: 'pie', // Changed to pie chart for status distribution
             data: {
-                labels: ['Income Tickets', 'Expense Tickets'],
+                labels: ['Pending', 'Complete', 'Incomplete'], // NEW: Labels for status
                 datasets: [{
-                    label: 'Ticket Overview',
-                    data: [incomeTickets, expenseTickets],
-                    backgroundColor: ['#34d399', '#fbbf24'], // green for income, yellow for expense
+                    label: 'Ticket Status Overview', // NEW: Label
+                    data: [pending, completed, incomplete], // NEW: Data for status
+                    backgroundColor: ['#3b82f6', '#10b981', '#ef4444'], // blue, green, red for status
                 }]
             },
             options: {
                 responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
+                // Removed scales as they are not typically used for pie charts
             }
         });
     }
 
     window.loadTickets = function() {
         const ticketsList = document.getElementById('ticketsList');
-        const totalTicketsCountEl = document.getElementById('totalTicketsCount'); // NEW
-        const totalTicketsCountDashboardEl = document.getElementById('totalTicketsCountDashboard'); // NEW
+        const totalTicketsCountEl = document.getElementById('totalTicketsCount');
+        const totalTicketsCountDashboardEl = document.getElementById('totalTicketsCountDashboard');
+        const pendingTicketsCountEl = document.getElementById('pendingTicketsCount'); // NEW: Element for pending count
+        const completedTicketsCountEl = document.getElementById('completedTicketsCount'); // NEW: Element for completed count
+        const incompleteTicketsCountEl = document.getElementById('incompleteTicketsCount'); // NEW: Element for incomplete count
+
         ticketsList.innerHTML = '<div class="flex items-center justify-center py-12"><div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div></div>';
 
         onValue(ticketsRef, snapshot => {
@@ -794,6 +814,9 @@
                 ticketsList.innerHTML = '<p class="text-center py-8 text-gray-500">No tickets found</p>';
                 totalTicketsCountEl.textContent = '0';
                 totalTicketsCountDashboardEl.textContent = '0';
+                pendingTicketsCountEl.textContent = '0'; // NEW
+                completedTicketsCountEl.textContent = '0'; // NEW
+                incompleteTicketsCountEl.textContent = '0'; // NEW
                 if (ticketsChartInstance) ticketsChartInstance.destroy();
                 return;
             }
@@ -802,6 +825,9 @@
             let totalCount = 0;
             let incomeTicketsValue = 0;
             let expenseTicketsValue = 0;
+            let pendingTicketsCount = 0; // NEW
+            let completedTicketsCount = 0; // NEW
+            let incompleteTicketsCount = 0; // NEW
 
             const ticketArray = Object.entries(tickets);
             // Sort tickets by purchaseDate (newest first)
@@ -815,7 +841,24 @@
                 if (isIncome) incomeTicketsValue += amount;
                 else expenseTicketsValue += amount;
 
+                // NEW: Count based on status
+                if (ticket.status === 'Pending') {
+                    pendingTicketsCount++;
+                } else if (ticket.status === 'Complete') {
+                    completedTicketsCount++;
+                } else if (ticket.status === 'Incomplete') {
+                    incompleteTicketsCount++;
+                }
+
                 const categoryColor = isIncome ? 'green' : 'orange';
+                const statusColor =
+                    ticket.status === 'Pending' ? 'blue' :
+                    ticket.status === 'Complete' ? 'green' :
+                    ticket.status === 'Incomplete' ? 'red' : 'gray'; // NEW: Status color
+
+                // Determine if buttons should be disabled
+                const disableButtons = ticket.status === 'Complete' || ticket.status === 'Incomplete';
+                const buttonClass = disableButtons ? 'opacity-50 cursor-not-allowed' : '';
 
                 html += `
                     <div class="bg-white p-4 rounded-lg shadow">
@@ -826,6 +869,9 @@
                                     <span class="inline-block px-2 py-1 rounded-full text-xs font-medium bg-${categoryColor}-100 text-${categoryColor}-800">
                                         ${ticket.category} - ${ticket.ticketType}
                                     </span>
+                                    <span class="inline-block px-2 py-1 rounded-full text-xs font-medium bg-${statusColor}-100 text-${statusColor}-800">
+                                        ${ticket.status || 'Pending'} <!-- NEW: Display status -->
+                                    </span>
                                     <span class="text-sm text-gray-500">${ticket.purchaseDate}</span>
                                 </div>
                             </div>
@@ -834,15 +880,15 @@
                             </div>
                         </div>
                         <div class="flex space-x-2 mt-3">
-                            <button onclick="window.openTicketModal('${id}')" class="p-1 text-blue-600 hover:text-blue-800">
+                            <button onclick="window.openTicketModal('${id}')" class="p-1 text-blue-600 hover:text-blue-800 ${buttonClass}" ${disableButtons ? 'disabled' : ''}>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
                             </button>
-                            <button onclick="window.deleteTicket('${id}')" class="p-1 text-red-600 hover:text-red-800">
+                            <button onclick="window.deleteTicket('${id}')" class="p-1 text-red-600 hover:text-red-800 ${buttonClass}" ${disableButtons ? 'disabled' : ''}>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
+                                    </svg>
                             </button>
                         </div>
                     </div>
@@ -851,10 +897,13 @@
 
             ticketsList.innerHTML = html;
             totalTicketsCountEl.textContent = totalCount;
-            totalTicketsCountDashboardEl.textContent = totalCount; // Update dashboard stat
+            totalTicketsCountDashboardEl.textContent = totalCount;
+            pendingTicketsCountEl.textContent = pendingTicketsCount; // NEW
+            completedTicketsCountEl.textContent = completedTicketsCount; // NEW
+            incompleteTicketsCountEl.textContent = incompleteTicketsCount; // NEW
 
             // Update Tickets Chart (Dashboard)
-            updateTicketsChart(incomeTicketsValue, expenseTicketsValue);
+            updateTicketsChart(incomeTicketsValue, expenseTicketsValue, pendingTicketsCount, completedTicketsCount, incompleteTicketsCount); // MODIFIED: Pass status counts
         });
     }
 
@@ -870,6 +919,11 @@
         document.getElementById('ticketType').disabled = true;
         document.getElementById('ticketPurchaseDate').valueAsDate = new Date(); // Set to today's date
         document.getElementById('ticketPrice').value = '';
+        document.getElementById('ticketStatus').value = 'Pending'; // NEW: Default status
+        document.getElementById('saveTicketButton').disabled = false; // Enable save button by default
+
+        // Get all input fields in the modal
+        const formInputs = document.querySelectorAll('#ticketModal input, #ticketModal select, #ticketModal textarea, #saveTicketButton');
 
         if (ticketId) {
             onValue(ref(db, `tickets/${ticketId}`), (snapshot) => {
@@ -881,8 +935,25 @@
                     window.updateTicketTypes('ticketCategory', 'ticketType', ticket.ticketType);
                     document.getElementById('ticketPurchaseDate').value = ticket.purchaseDate || '';
                     document.getElementById('ticketPrice').value = ticket.price || '';
+                    document.getElementById('ticketStatus').value = ticket.status || 'Pending'; // NEW: Set status
+
+                    // NEW: Disable inputs if status is Complete or Incomplete
+                    const disableForm = ticket.status === 'Complete' || ticket.status === 'Incomplete';
+                    formInputs.forEach(input => {
+                        if (input.id !== 'ticketId') { // Don't disable the hidden ID field
+                            input.disabled = disableForm;
+                        }
+                    });
+                    document.getElementById('saveTicketButton').disabled = disableForm; // Disable save button
                 }
             }, { onlyOnce: true });
+        } else {
+            // For new tickets, ensure inputs are enabled
+            formInputs.forEach(input => {
+                if (input.id !== 'ticketId') {
+                    input.disabled = false;
+                }
+            });
         }
     }
 
@@ -898,36 +969,86 @@
         const ticketType = document.getElementById('ticketType').value;
         const purchaseDate = document.getElementById('ticketPurchaseDate').value;
         const price = document.getElementById('ticketPrice').value;
+        const status = document.getElementById('ticketStatus').value; // NEW: Get status
 
-        if (!buyerName || !category || !ticketType || !purchaseDate || !price) {
+        if (!buyerName || !category || !ticketType || !purchaseDate || !price || !status) { // NEW: Validate status
             alert('Harap isi semua kolom yang diperlukan!');
             return;
         }
 
+        // NEW: Check current status before saving if it's an existing ticket
+        if (ticketId) {
+            onValue(ref(db, `tickets/${ticketId}`), (snapshot) => {
+                const currentTicket = snapshot.val();
+                if (currentTicket && (currentTicket.status === 'Complete' || currentTicket.status === 'Incomplete')) {
+                    alert('Tiket ini sudah selesai atau tidak lengkap dan tidak dapat diubah lagi.');
+                    window.closeTicketModal();
+                    return;
+                }
+                // If not complete/incomplete, proceed with saving
+                performSaveTicket(ticketId, buyerName, category, ticketType, purchaseDate, price, status);
+            }, { onlyOnce: true });
+        } else {
+            // For new tickets, directly save
+            performSaveTicket(ticketId, buyerName, category, ticketType, purchaseDate, price, status);
+        }
+    }
+
+    function performSaveTicket(ticketId, buyerName, category, ticketType, purchaseDate, price, status) {
         const ticketData = {
             buyerName,
             category,
             ticketType,
             purchaseDate,
             price: parseInt(price),
+            status: status,
             updatedAt: new Date().toISOString()
         };
 
         if (ticketId) {
-            update(ref(db, `tickets/${ticketId}`), ticketData)
-                .then(() => {
-                    alert('Tiket berhasil diperbarui!');
-                    window.closeTicketModal();
-                    window.loadTickets();
-                })
-                .catch(error => alert('Gagal memperbarui tiket: ' + error.message));
+            // Get current ticket data to check status change
+            onValue(ref(db, `tickets/${ticketId}`), (snapshot) => {
+                const oldTicket = snapshot.val();
+                const oldStatus = oldTicket ? oldTicket.status : '';
+
+                update(ref(db, `tickets/${ticketId}`), ticketData)
+                    .then(() => {
+                        alert('Tiket berhasil diperbarui!');
+                        window.closeTicketModal();
+                        window.loadTickets();
+
+                        // NEW: Check if status changed to 'Complete' and it's an Income ticket
+                        if (oldStatus !== 'Complete' && status === 'Complete' && category === 'Income') {
+                            addTransaction(`Pendapatan dari Tiket: ${buyerName} (${ticketType})`, price, 'income', 'Tiket');
+                        }
+                        // START MODIFICATION
+                        // NEW: Check if status changed to 'Complete' and it's an Expense ticket
+                        else if (oldStatus !== 'Complete' && status === 'Complete' && category === 'Expense') {
+                            addTransaction(`Pengeluaran dari Tiket: ${buyerName} (${ticketType})`, price, 'expense', 'Tiket');
+                        }
+                        // END MODIFICATION
+                    })
+                    .catch(error => alert('Gagal memperbarui tiket: ' + error.message));
+            }, { onlyOnce: true }); // Use onlyOnce to avoid re-triggering
         } else {
             ticketData.createdAt = new Date().toISOString();
+            ticketData.status = 'Pending'; // Default status for new tickets
             push(ticketsRef, ticketData)
                 .then(() => {
                     alert('Tiket berhasil ditambahkan!');
                     window.closeTicketModal();
                     window.loadTickets();
+                    // NEW: If a new ticket is immediately set to 'Complete' (though default is Pending)
+                    // This case is less likely with default Pending, but good to have.
+                    if (ticketData.status === 'Complete' && ticketData.category === 'Income') {
+                        addTransaction(`Pendapatan dari Tiket: ${buyerName} (${ticketType})`, price, 'income', 'Tiket');
+                    }
+                    // START MODIFICATION
+                    // NEW: If a new ticket is immediately set to 'Complete' and it's an Expense ticket
+                    else if (ticketData.status === 'Complete' && ticketData.category === 'Expense') {
+                        addTransaction(`Pengeluaran dari Tiket: ${buyerName} (${ticketType})`, price, 'expense', 'Tiket');
+                    }
+                    // END MODIFICATION
                 })
                 .catch(error => alert('Gagal menambahkan tiket: ' + error.message));
         }
@@ -935,12 +1056,21 @@
 
     window.deleteTicket = function(ticketId) {
         if (confirm('Apakah Anda yakin ingin menghapus tiket ini? Tindakan ini tidak dapat dibatalkan.')) {
-            remove(ref(db, `tickets/${ticketId}`))
-                .then(() => {
-                    alert('Tiket berhasil dihapus!');
-                    window.loadTickets();
-                })
-                .catch(error => alert('Gagal menghapus tiket: ' + error.message));
+            // NEW: Check ticket status before allowing deletion
+            onValue(ref(db, `tickets/${ticketId}`), (snapshot) => {
+                const ticket = snapshot.val();
+                if (ticket && (ticket.status === 'Complete' || ticket.status === 'Incomplete')) {
+                    alert('Tiket ini sudah selesai atau tidak lengkap dan tidak dapat dihapus.');
+                    return;
+                }
+
+                remove(ref(db, `tickets/${ticketId}`))
+                    .then(() => {
+                        alert('Tiket berhasil dihapus!');
+                        window.loadTickets();
+                    })
+                    .catch(error => alert('Gagal menghapus tiket: ' + error.message));
+            }, { onlyOnce: true });
         }
     }
 
@@ -1375,8 +1505,11 @@
                 </svg>
                 Tambah Tiket Baru
             </button>
-            <div class="text-sm text-gray-500">
-                Total Tiket: <span id="totalTicketsCount" class="font-bold text-blue-600">0</span>
+            <div class="text-sm text-gray-500 flex space-x-4">
+                <span>Total Tiket: <span id="totalTicketsCount" class="font-bold text-blue-600">0</span></span>
+                <span>Pending: <span id="pendingTicketsCount" class="font-bold text-blue-600">0</span></span>
+                <span>Complete: <span id="completedTicketsCount" class="font-bold text-green-600">0</span></span>
+                <span>Incomplete: <span id="incompleteTicketsCount" class="font-bold text-red-600">0</span></span>
             </div>
         </div>
         <div class="space-y-4" id="ticketsList">
@@ -1544,10 +1677,18 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Harga (Rp)</label>
                 <input class="w-full border border-gray-300 rounded-md px-3 py-2" id="ticketPrice" type="number" min="0"/>
             </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Status Tiket</label>
+                <select class="w-full border border-gray-300 rounded-md px-3 py-2" id="ticketStatus">
+                    <option value="Pending">Pending</option>
+                    <option value="Complete">Complete</option>
+                    <option value="Incomplete">Incomplete</option>
+                </select>
+            </div>
         </div>
         <div class="flex justify-end space-x-3 mt-6">
             <button class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100" onclick="window.closeTicketModal()">Batal</button>
-            <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onclick="window.saveTicket()">Simpan Tiket</button>
+            <button id="saveTicketButton" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onclick="window.saveTicket()">Simpan Tiket</button>
         </div>
     </div>
 </div>
