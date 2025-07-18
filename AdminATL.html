@@ -83,7 +83,8 @@
         "Events": "green",
         "Creative": "purple",
         "Technology": "teal",
-        "Finance": "yellow"
+        "Finance": "yellow",
+        "Public Relations": "pink" // NEW: Added Public Relations
     };
 
     const subDivisionOptions = {
@@ -92,7 +93,8 @@
         "Events": ["Event Coordinator", "MC", "Host", "Giveaway Staff"],
         "Creative": ["Content Lead", "Designer", "Editor", "Dokumentator", "Social Media"],
         "Technology": ["Tech Lead", "Bot Developer", "Web Tools Support", "Database Admin"],
-        "Finance": ["Bendahara", "Pembukuan", "Donasi", "Anggaran", "Laporan Keuangan"]
+        "Finance": ["Bendahara", "Pembukuan", "Donasi", "Anggaran", "Laporan Keuangan"],
+        "Public Relations": ["Partnership Manager", "Community Liaison", "Announcement Staff"] // NEW: Added Public Relations subdivisions
     };
 
     // Chart Instances
@@ -107,6 +109,7 @@
       const totalBalanceEl = document.getElementById('totalBalance');
       const monthlyIncomeEl = document.getElementById('monthlyIncome');
       const monthlyExpensesEl = document.getElementById('monthlyExpenses');
+      const totalBalanceDashboardEl = document.getElementById('totalBalanceDashboard'); // NEW
 
       onValue(transactionsRef, snapshot => {
         const transactions = snapshot.val();
@@ -115,6 +118,7 @@
           totalBalanceEl.textContent = 'Rp 0';
           monthlyIncomeEl.textContent = 'Rp 0';
           monthlyExpensesEl.textContent = 'Rp 0';
+          totalBalanceDashboardEl.textContent = 'Rp 0'; // NEW
           return;
         }
 
@@ -164,6 +168,7 @@
         totalBalanceEl.textContent = `Rp ${balance.toLocaleString()}`;
         monthlyIncomeEl.textContent = `Rp ${income.toLocaleString()}`;
         monthlyExpensesEl.textContent = `Rp ${expenses.toLocaleString()}`;
+        totalBalanceDashboardEl.textContent = `Rp ${balance.toLocaleString()}`; // NEW: Update dashboard stat
 
         // Update Finance Chart (Dashboard)
         updateFinanceChart(income, expenses);
@@ -200,6 +205,7 @@
     function loadModerators() {
       const roles = {};
       const listContainer = document.getElementById("moderatorList");
+      const activeModeratorCountEl = document.getElementById('activeModeratorCount'); // NEW
       listContainer.innerHTML = "";
 
       onValue(moderatorsRef, (snapshot) => {
@@ -207,6 +213,7 @@
         if (!moderators) {
             listContainer.innerHTML = '<p class="text-center py-8 text-gray-500">No moderators found</p>';
             if (roleChartInstance) roleChartInstance.destroy();
+            activeModeratorCountEl.textContent = '0'; // NEW
             return;
         }
 
@@ -214,6 +221,7 @@
         for (const key in roles) { delete roles[key]; }
 
         const moderatorArray = Object.entries(moderators);
+        let onlineModeratorCount = 0; // NEW
 
         // Fetch status for each moderator
         const moderatorCardsPromises = moderatorArray.map(([id, mod]) => {
@@ -221,6 +229,7 @@
                 onValue(ref(db, `status/${id}`), (statusSnap) => {
                     const status = statusSnap.val();
                     const isOnline = status && status.status === 'online';
+                    if (isOnline) onlineModeratorCount++; // NEW
                     resolve({ id, mod, isOnline });
                 }, { onlyOnce: true }); // Use onlyOnce to avoid re-rendering on every status change
             });
@@ -258,6 +267,8 @@
                 listContainer.appendChild(div);
             });
 
+            activeModeratorCountEl.textContent = onlineModeratorCount; // NEW: Update dashboard stat
+
             // Update Role Chart (Dashboard)
             const roleCtx = document.getElementById('roleChart').getContext('2d');
             if (roleChartInstance) {
@@ -269,7 +280,7 @@
                     labels: Object.keys(roles),
                     datasets: [{
                         data: Object.values(roles),
-                        backgroundColor: ['#3b82f6', '#6366f1', '#facc15', '#10b981', '#f472b6', '#8b5cf6', '#06b6d4', '#f97316']
+                        backgroundColor: ['#3b82f6', '#6366f1', '#facc15', '#10b981', '#f472b6', '#8b5cf6', '#06b6d4', '#f97316', '#f472b6'] // NEW: Added color for Public Relations
                     }]
                 },
                 options: { responsive: true }
@@ -359,6 +370,7 @@
     // --- Event/Task Functions ---
     function loadEventsSummary() {
         const eventsSummaryList = document.getElementById('eventsSummaryList');
+        const upcomingEventCountEl = document.getElementById('upcomingEventCount'); // NEW
         eventsSummaryList.innerHTML = '<p class="text-center py-8 text-gray-500">Loading events...</p>';
 
         onValue(eventsRef, (snapshot) => {
@@ -366,6 +378,7 @@
             if (!events) {
                 eventsSummaryList.innerHTML = '<p class="text-center py-8 text-gray-500">No events found</p>';
                 if (eventsChartInstance) eventsChartInstance.destroy();
+                upcomingEventCountEl.textContent = '0'; // NEW
                 return;
             }
 
@@ -373,6 +386,7 @@
             let totalEvents = 0;
             let completedEvents = 0;
             let inProgressEvents = 0;
+            let upcomingEvents = 0; // NEW
 
             Object.entries(events).forEach(([id, event]) => {
                 totalEvents++;
@@ -381,6 +395,7 @@
 
                 if (progress == 100) completedEvents++;
                 else if (progress > 0 && progress < 100) inProgressEvents++;
+                else upcomingEvents++; // NEW: If progress is 0, consider it upcoming/not started
 
                 html += `
                     <div class="bg-white p-4 rounded-lg shadow cursor-pointer hover:bg-gray-50" onclick="window.openEventDetailsModal('${id}')">
@@ -398,6 +413,7 @@
                 `;
             });
             eventsSummaryList.innerHTML = html;
+            upcomingEventCountEl.textContent = upcomingEvents; // NEW: Update dashboard stat
 
             // Update Events Chart (Dashboard)
             const eventsCtx = document.getElementById('eventsChart').getContext('2d');
@@ -419,14 +435,22 @@
     }
 
     // --- Event Details Modal Functions ---
+    let currentEventDetailsListener = null; // To store the listener for detachment
+
     window.openEventDetailsModal = function(eventId) {
         document.getElementById('eventDetailsModal').classList.add('active');
         document.getElementById('eventDetailsModal').classList.remove('hidden');
 
-        // Store current eventId to detach listener later
+        // Detach previous listener if any
+        if (currentEventDetailsListener) {
+            off(ref(db, `events/${document.getElementById('eventDetailsModal').dataset.currentEventId}`), currentEventDetailsListener);
+        }
+
+        // Store current eventId
         document.getElementById('eventDetailsModal').dataset.currentEventId = eventId;
 
-        onValue(ref(db, `events/${eventId}`), (snapshot) => {
+        // Attach new listener
+        currentEventDetailsListener = onValue(ref(db, `events/${eventId}`), (snapshot) => {
             const event = snapshot.val();
             if (!event) {
                 alert('Event not found.');
@@ -519,8 +543,9 @@
         document.getElementById('eventDetailsModal').classList.add('hidden');
         // Detach listener when modal is closed to prevent memory leaks
         const currentEventId = document.getElementById('eventDetailsModal').dataset.currentEventId;
-        if (currentEventId) {
-            onValue(ref(db, `events/${currentEventId}`), () => {}, { onlyOnce: true }); // Detach listener
+        if (currentEventId && currentEventDetailsListener) {
+            off(ref(db, `events/${currentEventId}`), currentEventDetailsListener); // Detach listener
+            currentEventDetailsListener = null; // Clear the stored listener
             delete document.getElementById('eventDetailsModal').dataset.currentEventId; // Clear stored ID
         }
     }
@@ -546,6 +571,8 @@
 
     window.loadReports = function() {
         const reportsList = document.getElementById('reportsList');
+        const pendingReportCountEl = document.getElementById('pendingReportCount');
+        const pendingReportCountDashboardEl = document.getElementById('pendingReportCountDashboard'); // NEW
         reportsList.innerHTML = '<div class="flex items-center justify-center py-12"><div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div></div>';
 
         const filter = document.getElementById('reportFilter').value;
@@ -561,7 +588,8 @@
             const reports = snapshot.val();
             if (!reports) {
                 reportsList.innerHTML = '<p class="text-center py-8 text-gray-500">No reports found</p>';
-                document.getElementById('pendingReportCount').textContent = '0';
+                pendingReportCountEl.textContent = '0';
+                pendingReportCountDashboardEl.textContent = '0'; // NEW
                 if (reportsChartInstance) reportsChartInstance.destroy(); // Destroy chart if no data
                 return;
             }
@@ -625,7 +653,8 @@
             });
 
             reportsList.innerHTML = html;
-            document.getElementById('pendingReportCount').textContent = pendingCount;
+            pendingReportCountEl.textContent = pendingCount;
+            pendingReportCountDashboardEl.textContent = pendingCount; // NEW: Update dashboard stat
 
             // Update Reports Chart (Dashboard)
             updateReportsChart(pendingCount, resolvedCount, ignoredCount); // NEW
@@ -720,7 +749,8 @@
     function formatTime(isoString) {
         if (!isoString) return 'Unknown time';
         const date = new Date(isoString);
-        return date.toLocaleString();
+        const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        return date.toLocaleDateString('en-US', options); // Example: "Oct 26, 2023, 10:30 AM"
     }
 
 
@@ -916,12 +946,12 @@
     <aside id="sidebar" class="w-64 bg-white border-r shadow-md flex flex-col transition-all duration-300">
       <nav class="flex-1 p-6 space-y-2">
         <ul class="space-y-2">
-          <li><button onclick="window.showSection('dashboard')" class="text-left w-full text-gray-700 hover:text-blue-600">📊 Dashboard</button></li>
-          <li><button onclick="window.showSection('finance')" class="text-left w-full text-gray-700 hover:text-blue-600">💰 Keuangan</button></li>
-          <li><button onclick="window.showSection('moderator')" class="text-left w-full text-gray-700 hover:text-blue-600">🧑‍💼 Moderator</button></li>
-          <li><button onclick="window.showSection('events')" class="text-left w-full text-gray-700 hover:text-blue-600">🗓️ Events</button></li>
-          <li><button onclick="window.showSection('reports')" class="text-left w-full text-gray-700 hover:text-blue-600">⚠️ Reports</button></li> <!-- NEW -->
-          <li><button onclick="window.showSection('tambahAkun')" class="text-left w-full text-gray-700 hover:text-blue-600">➕ Tambah Akun</button></li>
+          <li><button onclick="window.showSection('dashboard')" class="text-left w-full text-gray-700 hover:text-blue-600 cursor-pointer">📊 Dashboard</button></li>
+          <li><button onclick="window.showSection('finance')" class="text-left w-full text-gray-700 hover:text-blue-600 cursor-pointer">💰 Keuangan</button></li>
+          <li><button onclick="window.showSection('moderator')" class="text-left w-full text-gray-700 hover:text-blue-600 cursor-pointer">🧑‍💼 Moderator</button></li>
+          <li><button onclick="window.showSection('events')" class="text-left w-full text-gray-700 hover:text-blue-600 cursor-pointer">🗓️ Events</button></li>
+          <li><button onclick="window.showSection('reports')" class="text-left w-full text-gray-700 hover:text-blue-600 cursor-pointer">⚠️ Reports</button></li> <!-- NEW -->
+          <li><button onclick="window.showSection('tambahAkun')" class="text-left w-full text-gray-700 hover:text-blue-600 cursor-pointer">➕ Tambah Akun</button></li>
         </ul>
       </nav>
     </aside>
@@ -931,23 +961,70 @@
 
       <!-- Dashboard Section -->
       <div id="dashboardSection">
-        <h2 class="text-2xl font-bold text-gray-700 mb-4">Ringkasan</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div class="bg-white p-4 rounded-lg shadow">
-            <h3 class="font-semibold text-gray-600 mb-2">Keuangan Bulanan</h3>
+        <h2 class="text-2xl font-bold text-gray-700 mb-6">Ringkasan Dashboard</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Quick Stats Cards -->
+            <div class="bg-white p-5 rounded-lg shadow-md flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">Total Saldo</h3>
+                    <p class="text-2xl font-semibold text-gray-900" id="totalBalanceDashboard">Rp 0</p>
+                </div>
+                <div class="text-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-lg shadow-md flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">Moderator Aktif</h3>
+                    <p class="text-2xl font-semibold text-gray-900" id="activeModeratorCount">0</p>
+                </div>
+                <div class="text-green-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M12 20V10m0 0a4 4 0 01-4-4v-1a2 2 0 012-2h4a2 2 0 012 2v1a4 4 0 01-4 4z" />
+                    </svg>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-lg shadow-md flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">Events Mendatang</h3>
+                    <p class="text-2xl font-semibold text-gray-900" id="upcomingEventCount">0</p>
+                </div>
+                <div class="text-purple-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-lg shadow-md flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">Laporan Pending</h3>
+                    <p class="text-2xl font-semibold text-gray-900" id="pendingReportCountDashboard">0</p>
+                </div>
+                <div class="text-red-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="font-semibold text-gray-700 mb-4">Keuangan Bulanan</h3>
             <canvas id="financeChart"></canvas>
           </div>
-          <div class="bg-white p-4 rounded-lg shadow">
-            <h3 class="font-semibold text-gray-600 mb-2">Distribusi Peran Moderator</h3>
+          <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="font-semibold text-gray-700 mb-4">Distribusi Peran Moderator</h3>
             <canvas id="roleChart"></canvas>
           </div>
-          <div class="bg-white p-4 rounded-lg shadow">
-            <h3 class="font-semibold text-gray-600 mb-2">Status Event</h3>
+          <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="font-semibold text-gray-700 mb-4">Status Event</h3>
             <canvas id="eventsChart"></canvas>
           </div>
-          <!-- NEW: Reports Chart for Dashboard -->
-          <div class="bg-white p-4 rounded-lg shadow">
-            <h3 class="font-semibold text-gray-600 mb-2">Status Laporan</h3>
+          <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="font-semibold text-gray-700 mb-4">Status Laporan</h3>
             <canvas id="reportsChart"></canvas>
           </div>
         </div>
@@ -965,7 +1042,8 @@
                 <h3 class="text-sm font-medium text-gray-500">Pemasukan Bulanan</h3>
                 <p class="text-2xl font-semibold text-green-600" id="monthlyIncome">Rp 0</p>
             </div>
-            <div class="bg-sm font-medium text-gray-500">Pengeluaran Bulanan</h3>
+            <div class="bg-white p-4 shadow rounded-lg"> <!-- Corrected div for monthly expenses -->
+                <h3 class="text-sm font-medium text-gray-500">Pengeluaran Bulanan</h3>
                 <p class="text-2xl font-semibold text-red-600" id="monthlyExpenses">Rp 0</p>
             </div>
         </div>
@@ -992,6 +1070,7 @@
           <option value="Creative">Creative</option>
           <option value="Technology">Technology</option>
           <option value="Finance">Finance</option>
+          <option value="Public Relations">Public Relations</option> <!-- NEW: Added Public Relations -->
           <option value="Lainnya">Lainnya</option>
         </select>
         <div id="moderatorList" class="space-y-2"></div>
@@ -1072,6 +1151,7 @@
                 <option value="Creative">Creative</option>
                 <option value="Technology">Technology</option>
                 <option value="Finance">Finance</option>
+                <option value="Public Relations">Public Relations</option> <!-- NEW: Added Public Relations -->
             </select>
         </div>
         <div class="mb-4">
