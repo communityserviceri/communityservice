@@ -119,6 +119,7 @@
   <option value="Creative">Creative</option>
   <option value="Technology">Technology</option>
   <option value="Finance">Finance</option>
+  <option value="Public Relations">Public Relations</option> <!-- Added PR -->
 </select>
 
 </div>
@@ -157,7 +158,9 @@
 <option value="Donasi" data-role="Finance">Donasi</option>
 <option value="Anggaran" data-role="Finance">Anggaran</option>
 <option value="Laporan Keuangan" data-role="Finance">Laporan Keuangan</option>
-
+<option value="Partnership Manager" data-role="Public Relations">Partnership Manager</option> <!-- Added PR Sub-Divisions -->
+<option value="Community Liaison" data-role="Public Relations">Community Liaison</option>
+<option value="Announcement Staff" data-role="Public Relations">Announcement Staff</option>
 </select>
 
 </div><button class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition" id="saveProfileBtn">
@@ -471,6 +474,7 @@ Discord Server
   <option value="Creative">Creative</option>
   <option value="Technology">Technology</option>
   <option value="Finance">Finance</option>
+  <option value="Public Relations">Public Relations</option> <!-- Added PR -->
 </select>
 
 </div>
@@ -503,7 +507,9 @@ Discord Server
 <option value="Donasi" data-role="Finance">Donasi</option>
 <option value="Anggaran" data-role="Finance">Anggaran</option>
 <option value="Laporan Keuangan" data-role="Finance">Laporan Keuangan</option>
-
+<option value="Partnership Manager" data-role="Public Relations">Partnership Manager</option> <!-- Added PR Sub-Divisions -->
+<option value="Community Liaison" data-role="Public Relations">Community Liaison</option>
+<option value="Announcement Staff" data-role="Public Relations">Announcement Staff</option>
 </select>
 </div></div>
 <div class="mt-3">
@@ -702,7 +708,8 @@ Discord Server
     "Events": "green",
     "Creative": "purple",
     "Technology": "teal",
-    "Finance": "yellow"
+    "Finance": "yellow",
+    "Public Relations": "pink" // Added PR
 };
 
 const subDivisionOptions = {
@@ -711,7 +718,8 @@ const subDivisionOptions = {
     "Events": ["Event Coordinator", "MC", "Host", "Giveaway Staff"],
     "Creative": ["Content Lead", "Designer", "Editor", "Dokumentator", "Social Media"],
     "Technology": ["Tech Lead", "Bot Developer", "Web Tools Support", "Database Admin"],
-    "Finance": ["Bendahara", "Pembukuan", "Donasi", "Anggaran", "Laporan Keuangan"]
+    "Finance": ["Bendahara", "Pembukuan", "Donasi", "Anggaran", "Laporan Keuangan"],
+    "Public Relations": ["Partnership Manager", "Community Liaison", "Announcement Staff"] // Added PR
 };
 
 
@@ -2647,7 +2655,8 @@ function colorMap(color, level) {
         blue:   {100: '#dbeafe', 800: '#1e40af'},
         purple: {100: '#ede9fe', 800: '#5b21b6'},
         indigo: {100: '#e0e7ff', 800: '#3730a3'},
-        gray:   {100: '#f3f4f6', 800: '#374151'}
+        gray:   {100: '#f3f4f6', 800: '#374151'},
+        pink:   {100: '#fce7f3', 800: '#9d174d'} // Contoh warna pink
     };
     return colors[color]?.[level] || '#e5e7eb';
 }
