@@ -1083,9 +1083,27 @@
 
         let types = [];
         if (category === 'Income') {
-            types = ['Donasi Umum', 'Sponsor Acara', 'Penjualan Merchandise', 'Tiket Event'];
+            types = [
+                'Donasi Member',
+                'Sponsorship',
+                'Pendaftaran Lomba / Turnamen',
+                'Membership Premium',
+                'Kelas Online / Workshop Berbayar',
+                'Penjualan Merchandise Digital',
+                'Penjualan Replay Materi',
+                'Affiliate / Referral'
+            ];
         } else if (category === 'Expense') {
-            types = ['Operasional', 'Acara', 'Gaji/Honor', 'Pemasaran', 'Lain-lain'];
+            types = [
+                'Honorarium Narasumber / Guest Speaker',
+                'Hadiah Lomba / Turnamen',
+                'Lisensi Bot Premium / Tools',
+                'Desain & Branding',
+                'Biaya Promosi',
+                'Honorarium Admin / Moderator',
+                'Domain / Hosting',
+                'Platform Premium'
+            ];
         }
 
         types.forEach(type => {
