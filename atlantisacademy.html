@@ -1735,14 +1735,15 @@ auth.onAuthStateChanged(async (user) => {
     if (user) {
         showLoading();
         try {
-            const snapshot = await db.ref('users/' + user.uid).once('value');
+            // MENCARI DATA DI FIELD 'STUDENTS'
+            const snapshot = await db.ref('students/' + user.uid).once('value');
             if (snapshot.exists()) {
                 currentUser = snapshot.val();
                 currentUser.uid = user.uid;
-                // Ensure user is marked as online
-                db.ref('users/' + currentUser.uid + '/status').onDisconnect().set('offline');
-                db.ref('users/' + currentUser.uid + '/status').set('online');
-                db.ref('users/' + currentUser.uid + '/current_duel_room').set(null); // Clear any previous duel state
+                // Ensure user is marked as online di field 'students'
+                db.ref('students/' + currentUser.uid + '/status').onDisconnect().set('offline');
+                db.ref('students/' + currentUser.uid + '/status').set('online');
+                db.ref('students/' + currentUser.uid + '/current_duel_room').set(null); // Clear any previous duel state
 
                 loadProfile();
                 loadLeaderboards();
@@ -1780,7 +1781,8 @@ loginButton.addEventListener('click', async () => {
     showLoading();
     try {
         const userCred = await auth.signInWithEmailAndPassword(email, password);
-        const userSnapshot = await db.ref('users/' + userCred.user.uid).once('value');
+        // MENCARI DATA DI FIELD 'STUDENTS' SAAT LOGIN
+        const userSnapshot = await db.ref('students/' + userCred.user.uid).once('value');
         if (!userSnapshot.exists() || userSnapshot.val().role !== 'student') {
             showToast("Login failed: Only students can log in.", 'error');
             await auth.signOut(); // Force sign out if not a student
@@ -1827,7 +1829,8 @@ registerButton.addEventListener('click', async () => {
     showLoading();
     try {
         const userCred = await auth.createUserWithEmailAndPassword(email, password);
-        await db.ref('users/' + userCred.user.uid).set({
+        // MENGGUNAKAN 'STUDENTS' FIELD UNTUK REGISTRASI
+        await db.ref('students/' + userCred.user.uid).set({
             name: name,
             email: email,
             education_level: educationLevel,
@@ -1858,8 +1861,9 @@ registerButton.addEventListener('click', async () => {
 logoutButton.addEventListener('click', async () => {
     try {
         if (currentUser && currentUser.uid) {
-            await db.ref('users/' + currentUser.uid + '/status').set('offline');
-            await db.ref('users/' + currentUser.uid + '/current_duel_room').set(null);
+            // MEMPERBARUI STATUS DI FIELD 'STUDENTS' SAAT LOGOUT
+            await db.ref('students/' + currentUser.uid + '/status').set('offline');
+            await db.ref('students/' + currentUser.uid + '/current_duel_room').set(null);
         }
         await auth.signOut();
         showToast("You have been logged out.", 'info');
@@ -1917,7 +1921,8 @@ changePasswordButton.addEventListener('click', async () => {
 // Leaderboard Logic
 function loadLeaderboards() {
     allLeaderboardsDiv.innerHTML = '';
-    db.ref('users').once('value').then(snapshot => {
+    // MENGAMBIL DATA DARI FIELD 'STUDENTS' UNTUK LEADERBOARD
+    db.ref('students').once('value').then(snapshot => {
         const data = snapshot.val();
         if (!data) {
             allLeaderboardsDiv.innerHTML = '<p>No leaderboard data available yet.</p>';
@@ -1929,11 +1934,9 @@ function loadLeaderboards() {
             let scores = [];
             for (let uid in data) {
                 const user = data[uid];
-                // Only include students in leaderboards
-                if (user.role === 'student') {
-                    const score = user.points && user.points[sub] ? user.points[sub] : 0;
-                    scores.push({ name: user.name, score });
-                }
+                // Tidak perlu lagi memeriksa user.role === 'student' karena sudah di field 'students'
+                const score = user.points && user.points[sub] ? user.points[sub] : 0;
+                scores.push({ name: user.name, score });
             }
             scores.sort((a, b) => b.score - a.score);
 
@@ -1962,10 +1965,9 @@ function loadLeaderboards() {
         let overall = [];
         for (let uid in data) {
             const user = data[uid];
-            if (user.role === 'student') {
-                const score = user.total_score || 0;
-                overall.push({ name: user.name, score });
-            }
+            // Tidak perlu lagi memeriksa user.role === 'student'
+            const score = user.total_score || 0;
+            overall.push({ name: user.name, score });
         }
         overall.sort((a, b) => b.score - a.score);
 
@@ -2086,12 +2088,14 @@ async function endExercise() {
     if (currentUser && currentUser.uid) {
         showLoading();
         try {
-            await db.ref(`users/${currentUser.uid}/points/${currentSubject}`)
+            // MENYIMPAN SKOR DI FIELD 'STUDENTS'
+            await db.ref(`students/${currentUser.uid}/points/${currentSubject}`)
                 .transaction(val => (val || 0) + userScore);
-            await db.ref(`users/${currentUser.uid}/total_score`)
+            await db.ref(`students/${currentUser.uid}/total_score`)
                 .transaction(val => (val || 0) + userScore);
             showToast("Your score has been saved!", 'success');
-            const snapshot = await db.ref('users/' + currentUser.uid).once('value');
+            // MEMPERBARUI CURRENTUSER DARI FIELD 'STUDENTS'
+            const snapshot = await db.ref('students/' + currentUser.uid).once('value');
             if (snapshot.exists()) {
                 currentUser = snapshot.val();
                 currentUser.uid = auth.currentUser.uid;
@@ -2128,13 +2132,15 @@ async function searchUsers() {
     }
     showLoading();
     try {
-        const usersRef = db.ref('users');
+        // MENCARI PENGGUNA DI FIELD 'STUDENTS'
+        const usersRef = db.ref('students');
         const snapshot = await usersRef.orderByChild('name').once('value'); // Order by name for better search
         const results = [];
         snapshot.forEach(childSnapshot => {
             const user = childSnapshot.val();
-            // Only show other students, not self, and not already friends or pending
-            if (childSnapshot.key !== currentUser.uid && user.role === 'student' &&
+            // Hanya tampilkan siswa lain, bukan diri sendiri, dan tidak sudah berteman atau pending
+            // Tidak perlu lagi memeriksa user.role === 'student' karena sudah di field 'students'
+            if (childSnapshot.key !== currentUser.uid &&
                 !(currentUser.friends && currentUser.friends[childSnapshot.key]) &&
                 !(currentUser.friend_requests && currentUser.friend_requests[childSnapshot.key] && currentUser.friend_requests[childSnapshot.key].status === 'sent') &&
                 !(currentUser.friend_requests && currentUser.friend_requests[childSnapshot.key] && currentUser.friend_requests[childSnapshot.key].status === 'pending') &&
@@ -2165,14 +2171,14 @@ async function sendFriendRequest(targetUid, targetName) {
     }
     showLoading();
     try {
-        // Send request to target user
-        await db.ref(`users/${targetUid}/friend_requests/${currentUser.uid}`).set({
+        // KIRIM PERMINTAAN KE PENGGUNA TARGET DI FIELD 'STUDENTS'
+        await db.ref(`students/${targetUid}/friend_requests/${currentUser.uid}`).set({
             status: 'pending',
             senderName: currentUser.name,
             timestamp: firebase.database.ServerValue.TIMESTAMP
         });
-        // Mark request as sent in current user's record
-        await db.ref(`users/${currentUser.uid}/friend_requests/${targetUid}`).set({
+        // TANDAI PERMINTAAN SEBAGAI TERKIRIM DI CATATAN PENGGUNA SAAT INI DI FIELD 'STUDENTS'
+        await db.ref(`students/${currentUser.uid}/friend_requests/${targetUid}`).set({
             status: 'sent',
             receiverName: targetName,
             timestamp: firebase.database.ServerValue.TIMESTAMP
@@ -2194,13 +2200,13 @@ async function acceptFriendRequest(requesterUid, requesterName) {
     }
     showLoading();
     try {
-        // Add to current user's friend list
-        await db.ref(`users/${currentUser.uid}/friends/${requesterUid}`).set(true);
-        // Add current user to requester's friend list
-        await db.ref(`users/${requesterUid}/friends/${currentUser.uid}`).set(true);
-        // Remove request from both sides
-        await db.ref(`users/${currentUser.uid}/friend_requests/${requesterUid}`).remove();
-        await db.ref(`users/${requesterUid}/friend_requests/${currentUser.uid}`).remove();
+        // TAMBAHKAN KE DAFTAR TEMAN PENGGUNA SAAT INI DI FIELD 'STUDENTS'
+        await db.ref(`students/${currentUser.uid}/friends/${requesterUid}`).set(true);
+        // TAMBAHKAN PENGGUNA SAAT INI KE DAFTAR TEMAN PEMOHON DI FIELD 'STUDENTS'
+        await db.ref(`students/${requesterUid}/friends/${currentUser.uid}`).set(true);
+        // HAPUS PERMINTAAN DARI KEDUA SISI DI FIELD 'STUDENTS'
+        await db.ref(`students/${currentUser.uid}/friend_requests/${requesterUid}`).remove();
+        await db.ref(`students/${requesterUid}/friend_requests/${currentUser.uid}`).remove();
 
         showToast(`You are now friends with ${requesterName}!`, 'success');
         loadFriends(); // Reload friend list and requests
@@ -2219,9 +2225,9 @@ async function declineFriendRequest(requesterUid) {
     }
     showLoading();
     try {
-        // Remove request from both sides
-        await db.ref(`users/${currentUser.uid}/friend_requests/${requesterUid}`).remove();
-        await db.ref(`users/${requesterUid}/friend_requests/${currentUser.uid}`).remove();
+        // HAPUS PERMINTAAN DARI KEDUA SISI DI FIELD 'STUDENTS'
+        await db.ref(`students/${currentUser.uid}/friend_requests/${requesterUid}`).remove();
+        await db.ref(`students/${requesterUid}/friend_requests/${currentUser.uid}`).remove();
         showToast("Friend request declined.", 'info');
         loadFriends(); // Reload friend list and requests
     } catch (error) {
@@ -2235,14 +2241,16 @@ async function declineFriendRequest(requesterUid) {
 function listenForFriendRequests() {
     if (!currentUser || !currentUser.uid) return;
 
-    db.ref(`users/${currentUser.uid}/friend_requests`).on('value', async (snapshot) => {
+    // MENDENGARKAN DARI FIELD 'STUDENTS'
+    db.ref(`students/${currentUser.uid}/friend_requests`).on('value', async (snapshot) => {
         const requests = snapshot.val();
         friendRequestsList.innerHTML = '';
         if (requests) {
             for (const uid in requests) {
                 const request = requests[uid];
                 if (request.status === 'pending') {
-                    const senderName = request.senderName || (await db.ref(`users/${uid}/name`).once('value')).val();
+                    // MENGAMBIL NAMA PENGIRIM DARI FIELD 'STUDENTS'
+                    const senderName = request.senderName || (await db.ref(`students/${uid}/name`).once('value')).val();
                     friendRequestsList.innerHTML += `
                         <li>
                             <span>${senderName} wants to be your friend.</span>
@@ -2264,13 +2272,15 @@ function loadFriends() {
     friendListEl.innerHTML = '';
     if (!currentUser || !currentUser.uid) return;
 
-    db.ref(`users/${currentUser.uid}/friends`).on('value', async (snapshot) => {
+    // MENDENGARKAN DARI FIELD 'STUDENTS'
+    db.ref(`students/${currentUser.uid}/friends`).on('value', async (snapshot) => {
         const friendUids = snapshot.val();
         friendListEl.innerHTML = ''; // Clear previous list
         if (friendUids) {
             const friendPromises = [];
             for (const uid in friendUids) {
-                friendPromises.push(db.ref(`users/${uid}`).once('value'));
+                // MENGAMBIL DATA TEMAN DARI FIELD 'STUDENTS'
+                friendPromises.push(db.ref(`students/${uid}`).once('value'));
             }
             const friendSnapshots = await Promise.all(friendPromises);
 
@@ -2300,11 +2310,13 @@ function loadChatFriends() {
 
     if (!currentUser || !currentUser.uid) return;
 
-    db.ref(`users/${currentUser.uid}/friends`).on('value', async (snapshot) => {
+    // MENDENGARKAN DARI FIELD 'STUDENTS'
+    db.ref(`students/${currentUser.uid}/friends`).on('value', async (snapshot) => {
         const friendUids = snapshot.val();
         if (friendUids) {
             for (const uid in friendUids) {
-                const friendSnapshot = await db.ref(`users/${uid}/name`).once('value');
+                // MENGAMBIL NAMA TEMAN DARI FIELD 'STUDENTS'
+                const friendSnapshot = await db.ref(`students/${uid}/name`).once('value');
                 if (friendSnapshot.exists()) {
                     const friendName = friendSnapshot.val();
                     const option = document.createElement('option');
@@ -2394,12 +2406,13 @@ function loadDuelLobby() {
 
     if (!currentUser || !currentUser.uid) return;
 
-    // Populate online friends for duel
-    db.ref('users').on('value', (snapshot) => {
+    // Populate online friends for duel dari field 'students'
+    db.ref('students').on('value', (snapshot) => {
         onlineUsers = {};
         snapshot.forEach(childSnapshot => {
             const user = childSnapshot.val();
-            if (user.role === 'student' && childSnapshot.key !== currentUser.uid) {
+            // Tidak perlu lagi memeriksa user.role === 'student'
+            if (childSnapshot.key !== currentUser.uid) {
                 onlineUsers[childSnapshot.key] = user;
             }
         });
@@ -2454,7 +2467,8 @@ async function createDuelRoom() {
             challengerId: currentUser.uid,
             challengerName: currentUser.name,
             opponentId: opponentUid,
-            opponentName: onlineUsers[opponentUid].name,
+            // MENGAMBIL NAMA LAWAN DARI FIELD 'STUDENTS'
+            opponentName: (await db.ref(`students/${opponentUid}/name`).once('value')).val(),
             subject: subject,
             status: 'pending', // pending, active, finished
             questions: {
@@ -2469,8 +2483,8 @@ async function createDuelRoom() {
             timestamp: firebase.database.ServerValue.TIMESTAMP
         });
 
-        // Notify opponent
-        await db.ref(`users/${opponentUid}/incoming_duel_requests/${duelId}`).set({
+        // Notify opponent di field 'students'
+        await db.ref(`students/${opponentUid}/incoming_duel_requests/${duelId}`).set({
             challengerId: currentUser.uid,
             challengerName: currentUser.name,
             subject: subject,
@@ -2478,8 +2492,8 @@ async function createDuelRoom() {
         });
 
         showToast(`Duel request sent to ${onlineUsers[opponentUid].name}!`, 'success');
-        // Set current user's duel room status
-        await db.ref(`users/${currentUser.uid}/current_duel_room`).set(duelId);
+        // Set current user's duel room status di field 'students'
+        await db.ref(`students/${currentUser.uid}/current_duel_room`).set(duelId);
         currentDuelRoomId = duelId;
         listenToDuelRoom(duelId); // Start listening to this duel room
     } catch (error) {
@@ -2493,13 +2507,15 @@ async function createDuelRoom() {
 function listenForDuelRequests() {
     if (!currentUser || !currentUser.uid) return;
 
-    db.ref(`users/${currentUser.uid}/incoming_duel_requests`).on('value', async (snapshot) => {
+    // MENDENGARKAN DARI FIELD 'STUDENTS'
+    db.ref(`students/${currentUser.uid}/incoming_duel_requests`).on('value', async (snapshot) => {
         const requests = snapshot.val();
         incomingDuelRequests.innerHTML = '';
         if (requests) {
             for (const duelId in requests) {
                 const request = requests[duelId];
-                const challengerName = request.challengerName || (await db.ref(`users/${request.challengerId}/name`).once('value')).val();
+                // MENGAMBIL NAMA PENANTANG DARI FIELD 'STUDENTS'
+                const challengerName = request.challengerName || (await db.ref(`students/${request.challengerId}/name`).once('value')).val();
                 incomingDuelRequests.innerHTML += `
                     <li>
                         <span>${challengerName} challenged you to a ${request.subject} duel!</span>
@@ -2520,9 +2536,11 @@ async function acceptDuel(duelId, challengerId) {
     showLoading();
     try {
         await db.ref(`duels/${duelId}/status`).set('active');
-        await db.ref(`users/${currentUser.uid}/incoming_duel_requests/${duelId}`).remove();
-        await db.ref(`users/${challengerId}/current_duel_room`).set(duelId); // Set challenger's room too
-        await db.ref(`users/${currentUser.uid}/current_duel_room`).set(duelId); // Set current user's room
+        // MENGHAPUS PERMINTAAN DARI FIELD 'STUDENTS'
+        await db.ref(`students/${currentUser.uid}/incoming_duel_requests/${duelId}`).remove();
+        // MENGATUR CURRENT_DUEL_ROOM DI FIELD 'STUDENTS'
+        await db.ref(`students/${challengerId}/current_duel_room`).set(duelId); // Set challenger's room too
+        await db.ref(`students/${currentUser.uid}/current_duel_room`).set(duelId); // Set current user's room
         currentDuelRoomId = duelId;
         showToast('Duel accepted! Starting quiz...', 'success');
         listenToDuelRoom(duelId);
@@ -2538,8 +2556,10 @@ async function declineDuel(duelId, challengerId) {
     showLoading();
     try {
         await db.ref(`duels/${duelId}`).remove(); // Remove the duel room
-        await db.ref(`users/${currentUser.uid}/incoming_duel_requests/${duelId}`).remove();
-        await db.ref(`users/${challengerId}/current_duel_room`).set(null); // Clear challenger's room status
+        // MENGHAPUS PERMINTAAN DARI FIELD 'STUDENTS'
+        await db.ref(`students/${currentUser.uid}/incoming_duel_requests/${duelId}`).remove();
+        // MENGATUR CURRENT_DUEL_ROOM DI FIELD 'STUDENTS'
+        await db.ref(`students/${challengerId}/current_duel_room`).set(null); // Clear challenger's room status
         showToast('Duel declined.', 'info');
     } catch (error) {
         showToast("Failed to decline duel: " + error.message, 'error');
@@ -2589,9 +2609,11 @@ async function cancelDuel(duelId) {
         const duelSnapshot = await duelRef.once('value');
         if (duelSnapshot.exists()) {
             const duel = duelSnapshot.val();
-            await db.ref(`users/${duel.opponentId}/incoming_duel_requests/${duelId}`).remove();
-            await db.ref(`users/${duel.opponentId}/current_duel_room`).set(null);
-            await db.ref(`users/${currentUser.uid}/current_duel_room`).set(null);
+            // MENGHAPUS PERMINTAAN DARI FIELD 'STUDENTS'
+            await db.ref(`students/${duel.opponentId}/incoming_duel_requests/${duelId}`).remove();
+            // MENGATUR CURRENT_DUEL_ROOM DI FIELD 'STUDENTS'
+            await db.ref(`students/${duel.opponentId}/current_duel_room`).set(null);
+            await db.ref(`students/${currentUser.uid}/current_duel_room`).set(null);
             await duelRef.remove();
             showToast('Duel cancelled.', 'info');
             currentDuelRoomId = null;
@@ -2704,7 +2726,8 @@ async function handleDuelOptionClick(selectedButton, qIndex, duelId) {
     // Or, we can advance for both if both have submitted/timed out.
     // Let's make it simpler: the current user updates their own score, and the duel room's currentQuestionIndex is advanced by the challenger.
     // If not challenger, just update score.
-    if (currentUser.uid === (await db.ref(`duels/${duelId}/challengerId`).once('value')).val()) {
+    // MENGAMBIL DATA DARI FIELD 'STUDENTS'
+    if (currentUser.uid === (await db.ref(`students/${duelId}/challengerId`).once('value')).val()) {
         updates[`duels/${duelId}/currentQuestionIndex`] = qIndex + 1;
     }
 
@@ -2751,8 +2774,9 @@ async function showDuelResults(duelId, duelData) {
         // Give some time for opponent to see results, then remove
         setTimeout(async () => {
             await db.ref(`duels/${duelId}`).remove();
-            await db.ref(`users/${duelData.challengerId}/current_duel_room`).set(null);
-            await db.ref(`users/${duelData.opponentId}/current_duel_room`).set(null);
+            // MENGATUR CURRENT_DUEL_ROOM DI FIELD 'STUDENTS'
+            await db.ref(`students/${duelData.challengerId}/current_duel_room`).set(null);
+            await db.ref(`students/${duelData.opponentId}/current_duel_room`).set(null);
             showToast('Duel room closed.', 'info');
         }, 10000); // Room auto-closes after 10 seconds
     }
