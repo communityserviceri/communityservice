@@ -1,0 +1,2100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Atlantis Academy</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Styles & Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+:root {
+    --primary-color: #004d40; /* Dark Teal */
+    --secondary-color: #00796b; /* Medium Teal */
+    --accent-color: #ffcc80; /* Light Orange/Gold */
+    --text-light: #e0f7fa; /* Light Cyan */
+    --text-dark: #004d40; /* Dark Teal for light mode content */
+    --bg-gradient-start: #003844; /* Darker Blue-Green */
+    --bg-gradient-end: #006064; /* Lighter Blue-Green */
+    --card-bg-light: rgba(255, 255, 255, 0.95);
+    --card-bg-dark: rgba(0, 31, 36, 0.95); /* Darker for dark mode cards */
+    --border-color: #00796b;
+    --error-color: #ff5722;
+    --success-color: #4CAF50;
+    --hover-bg: rgba(255, 204, 128, 0.2);
+    --table-header-bg: #006064;
+    --table-row-odd: #e0f2f1;
+    --table-row-even: #b2dfdb;
+    --dark-mode-bg: #001f24;
+    --dark-mode-text: #e0f7fa;
+    --dark-mode-card-text: #e0f7fa;
+    --dark-mode-table-header-bg: #003844;
+    --dark-mode-table-row-odd: #002a30;
+    --dark-mode-table-row-even: #003f48;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    color: var(--text-light);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    overflow-y: auto;
+    position: relative;
+    background: linear-gradient(135deg, var(--bg-gradient-start) 30%, var(--bg-gradient-end) 100%);
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+.water {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 150, 136, .3);
+    animation: wave 6s infinite linear;
+    z-index: 0;
+}
+
+@keyframes wave {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(10px); }
+    100% { transform: translateY(0); }
+}
+
+header {
+    background: rgba(0, 56, 68, .9);
+    color: var(--accent-color);
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+nav {
+    background: rgba(0, 77, 64, .95);
+    color: var(--text-light);
+    padding: 15px;
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping for smaller screens */
+    justify-content: center; /* Center items */
+    gap: 10px; /* Space between buttons */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, .3);
+    z-index: 1;
+    position: sticky; /* Make nav sticky */
+    top: 0;
+    width: 100%;
+}
+
+nav button {
+    background: transparent;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    font-weight: 500;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background 0.3s ease, transform 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+nav button:hover {
+    background: var(--hover-bg);
+    transform: translateY(-2px);
+}
+
+nav button.active-nav {
+    background: var(--accent-color);
+    color: var(--primary-color);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.container {
+    padding: 30px;
+    flex: 1;
+    display: none;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    background: var(--card-bg-light);
+    color: var(--text-dark);
+    margin: 20px auto; /* Center container */
+    max-width: 900px; /* Max width for better readability */
+    animation: fadeIn 0.6s ease-out;
+    z-index: 1;
+    overflow-y: auto;
+    position: relative; /* For absolute positioning of elements inside */
+}
+
+.container h2, .container h3, .container h4 {
+    color: var(--secondary-color);
+    margin-top: 0;
+    border-bottom: 2px solid var(--secondary-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.active {
+    display: block;
+}
+
+input, select, textarea {
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 1em;
+    background-color: rgba(255, 255, 255, 0.8);
+    color: var(--text-dark);
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: var(--accent-color);
+    outline: none;
+    box-shadow: 0 0 8px rgba(255, 204, 128, 0.5);
+    background-color: #fff;
+}
+
+button {
+    padding: 12px 20px;
+    margin: 15px 0 5px;
+    border-radius: 8px;
+    border: none;
+    background: var(--secondary-color);
+    color: #fff;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: 500;
+    transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    width: 100%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+button:hover {
+    background: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    color: var(--primary-color);
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.link-text {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 0.95em;
+    color: var(--text-dark);
+}
+
+.link-text a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.link-text a:hover {
+    color: var(--accent-color);
+    text-decoration: underline;
+}
+
+.error {
+    color: var(--error-color);
+    margin: 10px 0;
+    font-weight: 500;
+    text-align: center;
+}
+
+.spinner {
+    display: none;
+    margin: 40px auto;
+    text-align: center;
+    font-size: 1.5em;
+    color: var(--accent-color);
+}
+
+.spinner i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Dark Mode Styles */
+body.dark-mode {
+    background: linear-gradient(135deg, var(--dark-mode-bg) 30%, #003844 100%);
+    color: var(--dark-mode-text);
+}
+
+body.dark-mode header {
+    background: rgba(0, 15, 18, 0.9);
+}
+
+body.dark-mode nav {
+    background: rgba(0, 25, 30, 0.95);
+}
+
+body.dark-mode nav button {
+    color: var(--dark-mode-text);
+}
+
+body.dark-mode nav button:hover {
+    background: rgba(255, 204, 128, 0.1);
+}
+
+body.dark-mode nav button.active-nav {
+    background: var(--accent-color);
+    color: var(--dark-mode-bg);
+}
+
+body.dark-mode .container {
+    background: var(--dark-mode-card-text);
+    color: var(--dark-mode-text);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .container h2,
+body.dark-mode .container h3,
+body.dark-mode .container h4 {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--accent-color);
+    color: var(--dark-mode-text);
+}
+
+body.dark-mode input:focus,
+body.dark-mode select:focus,
+body.dark-mode textarea:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 8px rgba(255, 204, 128, 0.5);
+}
+
+body.dark-mode button {
+    background: var(--accent-color);
+    color: var(--primary-color);
+}
+
+body.dark-mode button:hover {
+    background: #ff8f00;
+    color: #fff;
+}
+
+body.dark-mode .link-text {
+    color: var(--dark-mode-text);
+}
+
+body.dark-mode .link-text a {
+    color: var(--accent-color);
+}
+
+body.dark-mode .link-text a:hover {
+    color: #ff8f00;
+}
+
+body.dark-mode footer {
+    background: var(--dark-mode-bg);
+    color: var(--accent-color);
+}
+
+/* ==========================
+    STYLING LEADERBOARD
+========================== */
+#allLeaderboards {
+    max-height: 500px; /* Increased height */
+    overflow-y: auto;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05); /* Slight background for scrollable area */
+    border-radius: 8px;
+}
+
+.leaderboard-subject {
+    margin-bottom: 30px;
+    background: rgba(255, 255, 255, 0.1); /* Card-like background */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.leaderboard-subject:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.leaderboard-subject h4,
+.leaderboard-subject h3 {
+    text-align: center; /* Centered for better look */
+    font-size: 1.4em; /* Larger font */
+    color: var(--secondary-color);
+    font-weight: 700;
+    border-bottom: 3px solid var(--accent-color); /* Thicker, accent border */
+    padding-bottom: 10px;
+    margin: 0 0 20px;
+}
+
+body.dark-mode .leaderboard-subject h4,
+body.dark-mode .leaderboard-subject h3 {
+    color: var(--accent-color);
+    border-bottom-color: var(--secondary-color);
+}
+
+.leaderboard-subject table {
+    width: 100%;
+    border-collapse: separate; /* For rounded corners on cells */
+    border-spacing: 0;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    overflow: hidden; /* Ensures rounded corners apply */
+}
+
+.leaderboard-subject table thead {
+    background-color: var(--table-header-bg);
+    color: var(--accent-color);
+}
+
+body.dark-mode .leaderboard-subject table thead {
+    background-color: var(--dark-mode-table-header-bg);
+    color: var(--accent-color);
+}
+
+.leaderboard-subject table th,
+.leaderboard-subject table td {
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    text-align: left;
+    font-size: 0.95em;
+}
+
+body.dark-mode .leaderboard-subject table th,
+body.dark-mode .leaderboard-subject table td {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.leaderboard-subject table tr:nth-child(odd) {
+    background-color: var(--table-row-odd);
+    color: var(--text-dark);
+}
+
+.leaderboard-subject table tr:nth-child(even) {
+    background-color: var(--table-row-even);
+    color: var(--text-dark);
+}
+
+body.dark-mode .leaderboard-subject table tr:nth-child(odd) {
+    background-color: var(--dark-mode-table-row-odd);
+    color: var(--dark-mode-text);
+}
+
+body.dark-mode .leaderboard-subject table tr:nth-child(even) {
+    background-color: var(--dark-mode-table-row-even);
+    color: var(--dark-mode-text);
+}
+
+/* Specific styles for exercise page */
+#questionDisplay {
+    background: rgba(0, 77, 64, 0.05);
+    padding: 25px;
+    border-radius: 10px;
+    margin-top: 20px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+    color: var(--text-dark);
+}
+
+body.dark-mode #questionDisplay {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--dark-mode-text);
+    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+#questionDisplay p {
+    font-size: 1.2em;
+    font-weight: 500;
+    margin-bottom: 20px;
+    line-height: 1.5;
+    color: var(--secondary-color);
+}
+
+body.dark-mode #questionDisplay p {
+    color: var(--accent-color);
+}
+
+#questionDisplay .optionBtn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: var(--primary-color);
+    color: #fff;
+    border: 1px solid var(--secondary-color);
+    border-radius: 8px;
+    text-align: left;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+#questionDisplay .optionBtn:hover {
+    background: var(--secondary-color);
+    transform: translateX(5px);
+}
+
+#questionDisplay .optionBtn.correct {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+    color: #fff;
+}
+
+#questionDisplay .optionBtn.wrong {
+    background-color: var(--error-color);
+    border-color: var(--error-color);
+    color: #fff;
+}
+
+#exerciseFeedback {
+    margin-top: 15px;
+    font-weight: 500;
+    text-align: center;
+    font-size: 1.1em;
+}
+
+/* Toast Notification */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.toast {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    transform: translateY(20px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    min-width: 250px;
+    text-align: center;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.success {
+    background-color: var(--success-color);
+}
+
+.toast.error {
+    background-color: var(--error-color);
+}
+
+/* Material Page Links */
+#materialsPage ul {
+    list-style: none;
+    padding: 0;
+}
+
+#materialsPage li {
+    background: rgba(0, 77, 64, 0.1);
+    margin-bottom: 10px;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.3s ease;
+}
+
+body.dark-mode #materialsPage li {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+#materialsPage li:hover {
+    background: rgba(0, 77, 64, 0.2);
+}
+
+body.dark-mode #materialsPage li:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+#materialsPage li a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.3s ease;
+}
+
+body.dark-mode #materialsPage li a {
+    color: var(--accent-color);
+}
+
+#materialsPage li a:hover {
+    color: var(--accent-color);
+}
+
+body.dark-mode #materialsPage li a:hover {
+    color: #ff8f00;
+}
+
+footer {
+    text-align: center;
+    padding: 15px;
+    background: var(--primary-color);
+    color: var(--accent-color);
+    position: static;
+    width: 100%;
+    z-index: 1;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+    margin-top: auto; /* Push footer to bottom */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    nav {
+        flex-direction: column;
+        padding: 10px;
+        gap: 5px;
+    }
+    nav button {
+        width: 100%;
+        justify-content: center;
+    }
+    .container {
+        margin: 15px;
+        padding: 20px;
+    }
+    .leaderboard-subject {
+        padding: 15px;
+    }
+    .leaderboard-subject h4,
+    .leaderboard-subject h3 {
+        font-size: 1.2em;
+    }
+    .leaderboard-subject table th,
+    .leaderboard-subject table td {
+        padding: 8px 10px;
+        font-size: 0.85em;
+    }
+}
+
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 1.8em;
+    }
+    .container {
+        margin: 10px;
+        padding: 15px;
+    }
+    input, select, button {
+        font-size: 0.9em;
+        padding: 10px;
+    }
+    .toast {
+        min-width: unset;
+        width: 90%;
+    }
+}
+</style>
+
+<!-- Firebase Scripts -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+</head>
+<body>
+<div class="water"></div>
+<header><h1>Atlantis Academy</h1></header>
+
+<!-- Login Screen -->
+<div id="loginScreen" class="container active">
+    <h2><i class="fas fa-sign-in-alt"></i> Login</h2>
+    <input type="email" id="loginEmail" placeholder="Email (@atlantis.student.com)">
+    <input type="password" id="loginPassword" placeholder="Password">
+    <div id="loginError" class="error"></div>
+    <button id="loginButton"><i class="fas fa-sign-in-alt"></i> Login</button>
+    <div class="link-text">Don't have an account? <a href="#" id="showRegisterLink">Register here</a></div>
+</div>
+
+<!-- Registration Screen -->
+<div id="registerScreen" class="container">
+    <h2><i class="fas fa-user-plus"></i> Register</h2>
+    <input type="text" id="name" placeholder="Name">
+    <input type="email" id="registerEmail" placeholder="Email (@atlantis.student.com)">
+    <select id="educationLevel">
+        <option value="">Select Education Level</option>
+        <option value="SD">SD</option>
+        <option value="SMP">SMP</option>
+        <option value="SMA">SMA</option>
+    </select>
+    <input type="password" id="registerPassword" placeholder="Password">
+    <input type="password" id="confirmPassword" placeholder="Confirm Password">
+    <div id="registerError" class="error"></div>
+    <button id="registerButton"><i class="fas fa-user-plus"></i> Register</button>
+    <div class="link-text">Already have an account? <a href="#" id="showLoginLink">Back to Login</a></div>
+</div>
+
+<!-- Main Dashboard -->
+<div id="dashboard" class="container">
+    <nav>
+        <button data-page="profilePage"><i class="fas fa-user-circle"></i> Profile</button>
+        <button data-page="materialsPage"><i class="fas fa-book"></i> Materials</button>
+        <button data-page="exercisesPage"><i class="fas fa-dumbbell"></i> Exercises</button>
+        <button data-page="leaderboardsPage"><i class="fas fa-trophy"></i> Leaderboards</button>
+        <button data-page="friendsPage"><i class="fas fa-users"></i> Friends</button>
+        <button data-page="chatPage"><i class="fas fa-comments"></i> Chat</button>
+        <button data-page="duelPage"><i class="fas fa-fist-raised"></i> Duel</button>
+        <button data-page="competitionPage"><i class="fas fa-medal"></i> Competition</button>
+        <button id="toggleDarkMode"><i class="fas fa-moon"></i> Dark Mode</button>
+        <button id="logoutButton"><i class="fas fa-sign-out-alt"></i> Quit</button>
+    </nav>
+
+    <!-- Friends System -->
+    <div id="friendsPage" class="container sub-container">
+        <h3><i class="fas fa-users"></i> Friends</h3>
+        <input type="text" id="searchUserInput" placeholder="Search student name...">
+        <button id="searchUsersButton"><i class="fas fa-search"></i> Search</button>
+        <div id="searchResults"></div>
+        <h4>My Friends</h4>
+        <ul id="friendList"></ul>
+    </div>
+
+    <!-- Chat System -->
+    <div id="chatPage" class="container sub-container">
+        <h3><i class="fas fa-comments"></i> Chat</h3>
+        <div id="chatMessages" style="max-height:300px;overflow-y:auto;border:1px solid var(--border-color);padding:10px;border-radius:8px;background:rgba(0,0,0,0.05);"></div>
+        <input type="text" id="chatInput" placeholder="Type your message...">
+        <button id="sendMessageButton"><i class="fas fa-paper-plane"></i> Send</button>
+    </div>
+
+    <!-- Duel/VS System -->
+    <div id="duelPage" class="container sub-container">
+        <h3><i class="fas fa-fist-raised"></i> VS/Duel</h3>
+        <p>Challenge your friend to a quiz match.</p>
+        <select id="duelOpponentSelect">
+            <option value="">Select Opponent</option>
+        </select>
+        <button id="startDuelButton"><i class="fas fa-play"></i> Start Duel</button>
+        <div id="duelStatus"></div>
+    </div>
+
+    <!-- Competition System -->
+    <div id="competitionPage" class="container sub-container">
+        <h3><i class="fas fa-medal"></i> Competition</h3>
+        <p>Join active competitions and view rankings.</p>
+        <div id="activeCompetitions"></div>
+    </div>
+
+    <!-- Konten halaman-halaman di dalam dashboard -->
+    <div id="profilePage" class="container sub-container active">
+        <h3><i class="fas fa-user-circle"></i> Profile</h3>
+        <div id="profileInfo"></div>
+        <button id="changePasswordButton"><i class="fas fa-key"></i> Change Password</button>
+    </div>
+    <div id="materialsPage" class="container sub-container">
+        <h3><i class="fas fa-book"></i> Materials</h3>
+        <ul>
+            <li>Physics: <a href="https://url-to-your-physics.pdf" target="_blank"><i class="fas fa-download"></i> Download</a></li>
+            <li>Chemistry: <a href="https://url-to-your-chemistry.pdf" target="_blank"><i class="fas fa-download"></i> Download</a></li>
+            <li>Biology: <a href="https://url-to-your-biology.pdf" target="_blank"><i class="fas fa-download"></i> Download</a></li>
+            <li>Indonesian: <a href="https://url-to-your-indonesian.pdf" target="_blank"><i class="fas fa-download"></i> Download</a></li>
+            <li>English: <a href="https://url-to-your-english.pdf" target="_blank"><i class="fas fa-download"></i> Download</a></li>
+            <li>Math: <a href="https://url-to-your-math.pdf" target="_blank"><i class="fas fa-download"></i> Download</a></li>
+        </ul>
+    </div>
+    <div id="exercisesPage" class="container sub-container">
+        <h3><i class="fas fa-dumbbell"></i> Exercises</h3>
+        <div id="subjectSelector">
+            <select id="subjectSelect">
+                <option value="">Pilih Mata Pelajaran</option>
+                <option value="physics">Physics</option>
+                <option value="chemistry">Chemistry</option>
+                <option value="biology">Biology</option>
+                <option value="indonesian">Indonesian</option>
+                <option value="english">English</option>
+                <option value="math">Math</option>
+            </select>
+            <button id="startExercise"><i class="fas fa-play-circle"></i> Mulai</button>
+        </div>
+        <div id="questionDisplay"></div>
+        <div id="exerciseFeedback"></div>
+        <button id="nextQuestionButton" style="display:none;"><i class="fas fa-arrow-right"></i> Next Question</button>
+        <button id="finishExerciseButton" style="display:none;"><i class="fas fa-check-circle"></i> Finish Exercise</button>
+    </div>
+    <div id="leaderboardsPage" class="container sub-container">
+        <h3><i class="fas fa-trophy"></i> Leaderboards</h3>
+        <div id="allLeaderboards"></div>
+    </div>
+</div>
+
+<div class="spinner" id="loadingSpinner"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Scripts Logic -->
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCdl3XJ-eUz8BELLaSOXeZFpg7FLDFk7l4",
+  authDomain: "community-service-f4540.firebaseapp.com",
+  databaseURL: "https://community-service-f4540-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "community-service-f4540",
+  storageBucket: "community-service-f4540.firebasestorage.app",
+  messagingSenderId: "610712310542",
+  appId: "1:610712310542:web:12536a7c23d0b41db03d5f",
+  measurementId: "G-61R3Q4ZJNS"
+};
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.database();
+
+// State
+let currentUser = null;
+let currentSubject = '';
+let currentQuestionIndex = 0;
+let userScore = 0;
+let shuffledQuestions = [];
+
+// DOM Elements
+const loginScreen = document.getElementById('loginScreen');
+const registerScreen = document.getElementById('registerScreen');
+const dashboard = document.getElementById('dashboard');
+const loadingSpinner = document.getElementById('loadingSpinner');
+const toastContainer = document.getElementById('toastContainer');
+
+const loginEmail = document.getElementById('loginEmail');
+const loginPassword = document.getElementById('loginPassword');
+const loginError = document.getElementById('loginError');
+const loginButton = document.getElementById('loginButton');
+const showRegisterLink = document.getElementById('showRegisterLink');
+
+const nameInput = document.getElementById('name');
+const registerEmail = document.getElementById('registerEmail');
+const educationLevelSelect = document.getElementById('educationLevel');
+const registerPassword = document.getElementById('registerPassword');
+const confirmPassword = document.getElementById('confirmPassword');
+const registerError = document.getElementById('registerError');
+const registerButton = document.getElementById('registerButton');
+const showLoginLink = document.getElementById('showLoginLink');
+
+const profileInfo = document.getElementById('profileInfo');
+const changePasswordButton = document.getElementById('changePasswordButton');
+const logoutButton = document.getElementById('logoutButton');
+const toggleDarkModeButton = document.getElementById('toggleDarkMode');
+
+const subjectSelectEl = document.getElementById('subjectSelect');
+const startExerciseButton = document.getElementById('startExercise');
+const questionDisplay = document.getElementById('questionDisplay');
+const exerciseFeedback = document.getElementById('exerciseFeedback');
+const nextQuestionButton = document.getElementById('nextQuestionButton');
+const finishExerciseButton = document.getElementById('finishExerciseButton');
+
+const allLeaderboardsDiv = document.getElementById('allLeaderboards');
+
+// Question Data (from your original HTML, kept as is)
+const questions = {
+  SD: {
+    physics: [
+      {q: "Benda yang dapat menghantarkan listrik disebut?", options: ["Isolator", "Konduktor", "Gas", "Cairan"], answer: "Konduktor"},
+      {q: "Gaya gravitasi membuat benda bergerak ke arah?", options: ["Atas", "Bawah", "Kanan", "Kiri"], answer: "Bawah"},
+      {q: "Energi dari matahari disebut energi?", options: ["Kinetik", "Panas", "Bunyi", "Listrik"], answer: "Panas"},
+      {q: "Alat untuk mengukur suhu disebut?", options: ["Penggaris", "Termometer", "Neraca", "Mikroskop"], answer: "Termometer"},
+      {q: "Benda yang dapat berubah bentuk jika ditekan disebut?", options: ["Benda Keras", "Benda Lentur", "Benda Padat", "Benda Cair"], answer: "Benda Lentur"},
+      {q: "Saat bola dilempar ke atas, bola bergerak karena?", options: ["Energi Kinetik", "Energi Panas", "Energi Listrik", "Energi Bunyi"], answer: "Energi Kinetik"},
+      {q: "Benda dapat bergerak karena dikenai?", options: ["Gaya", "Panas", "Bunyi", "Cahaya"], answer: "Gaya"},
+      {q: "Saat lampu menyala, energi listrik berubah menjadi energi?", options: ["Panas dan Cahaya", "Kinetik", "Bunyi", "Kimia"], answer: "Panas dan Cahaya"},
+      {q: "Saat sepeda dikayuh, energi yang digunakan adalah?", options: ["Energi Kimia", "Energi Bunyi", "Energi Kinetik", "Energi Listrik"], answer: "Energi Kinetik"},
+      {q: "Saat benda dijatuhkan dari ketinggian, energi berubah dari?", options: ["Kinetik ke Potensial", "Potensial ke Kinetik", "Listrik ke Panas", "Kimia ke Bunyi"], answer: "Potensial ke Kinetik"},
+      {q: "Benda yang tidak bisa menghantarkan listrik disebut?", options: ["Konduktor", "Isolator", "Logam", "Kabel"], answer: "Isolator"},
+      {q: "Energi yang menyebabkan benda bergerak disebut?", options: ["Energi Kinetik", "Energi Panas", "Energi Bunyi", "Energi Potensial"], answer: "Energi Kinetik"},
+      {q: "Alat untuk melihat benda kecil disebut?", options: ["Teleskop", "Kaca Pembesar", "Mikroskop", "Lup"], answer: "Mikroskop"},
+      {q: "Contoh gaya otot ditunjukkan saat?", options: ["Mengangkat tas", "Menyetrika baju", "Menyanyi", "Menonton TV"], answer: "Mengangkat tas"},
+      {q: "Gaya dapat mengubah?", options: ["Warna benda", "Bentuk dan arah gerak", "Jenis benda", "Ukuran molekul"], answer: "Bentuk dan arah gerak"},
+      {q: "Energi listrik bisa diubah menjadi?", options: ["Energi panas", "Energi gravitasi", "Energi magnet", "Energi massa"], answer: "Energi panas"},
+      {q: "Benda padat memiliki bentuk yang?", options: ["Tetap", "Berubah-ubah", "Mengalir", "Mengembang"], answer: "Tetap"},
+      {q: "Benda cair jika dipindahkan ke wadah lain bentuknya akan?", options: ["Tetap", "Mengalir", "Menyesuaikan wadah", "Mengembang"], answer: "Menyesuaikan wadah"},
+      {q: "Matahari adalah sumber energi?", options: ["Bunyi", "Kimia", "Panas dan cahaya", "Gerak"], answer: "Panas dan cahaya"},
+      {q: "Kipas angin mengubah energi listrik menjadi energi?", options: ["Panas", "Bunyi", "Gerak", "Kimia"], answer: "Gerak"},
+      {q: "Pelangi terjadi karena pembiasan?", options: ["Air", "Cahaya", "Udara", "Listrik"], answer: "Cahaya"},
+      {q: "Cermin datar memantulkan cahaya secara?", options: ["Acak", "Lurus", "Teratur", "Menyebar"], answer: "Teratur"},
+      {q: "Bunyi bisa terdengar jika ada?", options: ["Udara", "Gambar", "Warna", "Cahaya"], answer: "Udara"},
+      {q: "Bunyi tidak bisa merambat melalui?", options: ["Air", "Besi", "Hampa udara", "Udara"], answer: "Hampa udara"},
+      {q: "Benda yang bisa memantulkan bunyi disebut?", options: ["Konduktor", "Reflektor", "Isolator", "Penyerap"], answer: "Reflektor"},
+      {q: "Contoh sumber energi alternatif adalah?", options: ["Matahari", "Minyak bumi", "Batu bara", "Gas alam"], answer: "Matahari"},
+      {q: "Panel surya digunakan untuk mengubah energi matahari menjadi?", options: ["Panas", "Gerak", "Listrik", "Kimia"], answer: "Listrik"},
+      {q: "Bayangan di cermin datar bersifat?", options: ["Tegak dan sama besar", "Tegak dan terbalik", "Tegak dan lebih kecil", "Tegak dan lebih besar"], answer: "Tegak dan sama besar"},
+      {q: "Saat berlari, tubuh menggunakan energi dari?", options: ["Panas", "Makanan", "Cahaya", "Bunyi"], answer: "Makanan"},
+      {q: "Benda yang digunakan untuk menimbang massa adalah?", options: ["Penggaris", "Jam", "Timbangan", "Meteran"], answer: "Timbangan"}
+    ],
+    chemistry: [
+      {q: "Air termasuk contoh zat berwujud?", options: ["Padat", "Cair", "Gas", "Api"], answer: "Cair"},
+      {q: "Contoh perubahan wujud dari cair ke gas disebut?", options: ["Mengembun", "Menguap", "Menyublim", "Meleleh"], answer: "Menguap"},
+      {q: "Bahan yang dapat menghantarkan panas disebut?", options: ["Konduktor", "Isolator", "Plastik", "Karet"], answer: "Konduktor"},
+      {q: "Gas yang digunakan tumbuhan untuk fotosintesis?", options: ["Oksigen", "Hidrogen", "Karbondioksida", "Nitrogen"], answer: "Karbondioksida"},
+      {q: "Contoh zat asam dalam rumah tangga?", options: ["Gula", "Garam", "Cuka", "Sabun"], answer: "Cuka"},
+      {q: "Perubahan wujud dari padat ke cair disebut?", options: ["Membeku", "Menguap", "Meleleh", "Menyublim"], answer: "Meleleh"},
+      {q: "Benda yang tidak dapat kembali ke bentuk asal setelah dibakar disebut?", options: ["Perubahan Fisika", "Perubahan Kimia", "Perubahan Bentuk", "Perubahan Ukuran"], answer: "Perubahan Kimia"},
+      {q: "Air laut rasanya asin karena mengandung?", options: ["Gula", "Garam", "Cuka", "Asam"], answer: "Garam"},
+      {q: "Campuran antara air dan kopi disebut?", options: ["Larutan", "Zat tunggal", "Gas", "Padat"], answer: "Larutan"},
+      {q: "Benda yang mudah terbakar disebut?", options: ["Konduktor", "Inflamabel", "Isolator", "Dingin"], answer: "Inflamabel"},
+      {q: "Benda padat jika dipanaskan bisa?", options: ["Mengalir", "Mengendap", "Meleleh", "Menguap"], answer: "Meleleh"},
+      {q: "Zat yang tidak bisa diuraikan lagi disebut?", options: ["Senya", "Unsur", "Campuran", "Larutan"], answer: "Unsur"},
+      {q: "Contoh zat yang larut dalam air?", options: ["Minyak", "Pasir", "Gula", "Batu"], answer: "Gula"},
+      {q: "Alat untuk memisahkan campuran dengan saringan disebut?", options: ["Corong pisah", "Penyaring", "Mikroskop", "Kompor"], answer: "Penyaring"},
+      {q: "Proses pemisahan garam dari air laut disebut?", options: ["Penyaringan", "Penguapan", "Penyubliman", "Destilasi"], answer: "Penguapan"},
+      {q: "Wujud benda yang bentuk dan volumenya tetap adalah?", options: ["Gas", "Padat", "Cair", "Plasma"], answer: "Padat"},
+      {q: "Sifat dari gas adalah?", options: ["Bentuk tetap", "Volume tetap", "Mengisi ruang", "Mengalir ke bawah"], answer: "Mengisi ruang"},
+      {q: "Contoh perubahan fisika adalah?", options: ["Kertas dibakar", "Air membeku", "Kayu dibakar", "Besi berkarat"], answer: "Air membeku"},
+      {q: "Apa yang terjadi saat air dipanaskan?", options: ["Membeku", "Menguap", "Mengendap", "Mengental"], answer: "Menguap"},
+      {q: "Air, udara, dan garam termasuk?", options: ["Zat tunggal", "Zat majemuk", "Campuran", "Asam"], answer: "Campuran"},
+      {q: "Campuran yang bisa dipisahkan dengan magnet contohnya?", options: ["Pasir dan air", "Besi dan pasir", "Garam dan air", "Gula dan kopi"], answer: "Besi dan pasir"},
+      {q: "Campuran homogen disebut juga?", options: ["Campuran kasar", "Larutan", "Suspensi", "Emulsi"], answer: "Larutan"},
+      {q: "Contoh pelarut yang sering digunakan adalah?", options: ["Minyak", "Air", "Pasir", "Alkohol"], answer: "Air"},
+      {q: "Zat yang tidak larut disebut?", options: ["Larutan", "Zat pelarut", "Endapan", "Campuran"], answer: "Endapan"},
+      {q: "Suhu mempengaruhi cepat tidaknya zat?", options: ["Menguap", "Membeku", "Mencair", "Semua benar"], answer: "Semua benar"},
+      {q: "Kapur tulis terbuat dari bahan kimia apa?", options: ["Kalsium karbonat", "Sodium klorida", "Hidrogen", "Karbondioksida"], answer: "Kalsium karbonat"},
+      {q: "Zat aditif pada makanan fungsinya untuk?", options: ["Membuat rasa pahit", "Membusukkan", "Membuat awet", "Membuat lengket"], answer: "Membuat awet"},
+      {q: "Sabun bersifat?", options: ["Asam", "Netral", "Basa", "Logam"], answer: "Basa"},
+      {q: "Cuka bersifat?", options: ["Asam", "Netral", "Basa", "Padat"], answer: "Asam"},
+      {q: "Garam dapur termasuk jenis senyawa?", options: ["Ionik", "Kovalen", "Organik", "Gas"], answer: "Ionik"}
+    ],
+    biology: [
+      {q: "Bagian tumbuhan yang berfungsi menyerap air dari tanah adalah?", options: ["Akar", "Batang", "Daun", "Bunga"], answer: "Akar"},
+      {q: "Organ pernapasan manusia adalah?", options: ["Jantung", "Hati", "Paru-paru", "Lambung"], answer: "Paru-paru"},
+      {q: "Hewan yang berkembang biak dengan bertelur disebut?", options: ["Vivipar", "Ovipar", "Ovovivipar", "Mamalia"], answer: "Ovipar"},
+      {q: "Tumbuhan hijau dapat membuat makanan sendiri melalui proses?", options: ["Respirasi", "Fotosintesis", "Transpirasi", "Fermentasi"], answer: "Fotosintesis"},
+      {q: "Bagian tubuh manusia yang berfungsi memompa darah adalah?", options: ["Paru-paru", "Lambung", "Jantung", "Ginjal"], answer: "Jantung"},
+      {q: "Bagian tumbuhan yang berfungsi untuk fotosintesis adalah?", options: ["Akar", "Batang", "Daun", "Bunga"], answer: "Daun"},
+      {q: "Makanan yang mengandung protein tinggi adalah?", options: ["Beras", "Tempe", "Gula", "Mentega"], answer: "Tempe"},
+      {q: "Alat pernapasan pada ikan adalah?", options: ["Paru-paru", "Trakea", "Insang", "Kulit"], answer: "Insang"},
+      {q: "Manusia termasuk makhluk hidup yang disebut?", options: ["Herbivora", "Omnivora", "Karnivora", "Produsen"], answer: "Omnivora"},
+      {q: "Makhluk hidup berkembang biak untuk?", options: ["Mencari makanan", "Menjaga suhu", "Memperbanyak keturunan", "Bernapas"], answer: "Memperbanyak keturunan"},
+      {q: "Bagian tumbuhan yang berfungsi membawa air dan zat hara ke daun?", options: ["Akar", "Batang", "Daun", "Bunga"], answer: "Batang"},
+      {q: "Alat gerak utama manusia adalah?", options: ["Tangan", "Kepala", "Kaki", "Kulit"], answer: "Kaki"},
+      {q: "Hewan yang memakan tumbuhan disebut?", options: ["Karnivora", "Omnivora", "Herbivora", "Kanibal"], answer: "Herbivora"},
+      {q: "Organ yang berfungsi menyaring darah adalah?", options: ["Hati", "Jantung", "Paru-paru", "Ginjal"], answer: "Ginjal"},
+      {q: "Masa pertumbuhan manusia dari bayi ke dewasa disebut?", options: ["Perkembangan", "Kematangan", "Penuaan", "Pertidaksamaan"], answer: "Perkembangan"},
+      {q: "Fungsi utama tulang pada manusia adalah?", options: ["Melindungi organ tubuh", "Mengatur suhu", "Menghasilkan makanan", "Menyerap air"], answer: "Melindungi organ tubuh"},
+      {q: "Hewan yang mengalami metamorfosis sempurna adalah?", options: ["Kucing", "Kupu-kupu", "Ayam", "Manusia"], answer: "Kupu-kupu"},
+      {q: "Sumber energi utama bagi manusia adalah?", options: ["Air", "Protein", "Karbohidrat", "Lemak"], answer: "Karbohidrat"},
+      {q: "Daun berwarna hijau karena mengandung?", options: ["Karoten", "Klorofil", "Hemoglobin", "Albumin"], answer: "Klorofil"},
+      {q: "Organ pernapasan pada katak saat dewasa adalah?", options: ["Insang", "Kulit dan paru-paru", "Trakea", "Spirakel"], answer: "Kulit dan paru-paru"},
+      {q: "Hewan yang menyusui anaknya disebut?", options: ["Mamalia", "Reptil", "Amfibi", "Aves"], answer: "Mamalia"},
+      {q: "Tumbuhan menghasilkan oksigen saat?", options: ["Bernapas", "Berkembang biak", "Fotosintesis", "Bertumbuh"], answer: "Fotosintesis"},
+      {q: "Bagian mata yang berfungsi menerima cahaya adalah?", options: ["Iris", "Kornea", "Retina", "Lensa"], answer: "Retina"},
+      {q: "Siklus hidup kupu-kupu dimulai dari?", options: ["Pupa", "Imago", "Telur", "Larva"], answer: "Telur"},
+      {q: "Organ pencernaan tempat pencernaan awal protein?", options: ["Usus", "Lambung", "Mulut", "Hati"], answer: "Lambung"},
+      {q: "Zat makanan yang membantu pertumbuhan tulang?", options: ["Vitamin A", "Zat Besi", "Kalsium", "Protein"], answer: "Kalsium"},
+      {q: "Contoh hewan vivipar adalah?", options: ["Ikan", "Kucing", "Ayam", "Katak"], answer: "Kucing"},
+      {q: "Fungsi hidung dalam sistem pernapasan adalah?", options: ["Menghisap makanan", "Menyaring udara", "Menyerap cahaya", "Mengalirkan darah"], answer: "Menyaring udara"},
+      {q: "Sumber vitamin A yang baik adalah?", options: ["Wortel", "Beras", "Daging", "Garam"], answer: "Wortel"},
+      {q: "Makhluk hidup yang tidak dapat bergerak adalah?", options: ["Tumbuhan", "Hewan", "Manusia", "Ikan"], answer: "Tumbuhan"}
+    ],
+    indonesian: [
+      {q: "Apa sinonim dari kata 'indah'?", options: ["Cantik", "Buruk", "Kotor", "Ribut"], answer: "Cantik"},
+      {q: "Antonim dari 'besar' adalah?", options: ["Kecil", "Panjang", "Lebar", "Tinggi"], answer: "Kecil"},
+      {q: "Kalimat tanya biasanya diakhiri dengan tanda?", options: ["Seru", "Titik", "Koma", "Tanya"], answer: "Tanya"},
+      {q: "Kata 'berlari' termasuk jenis kata?", options: ["Benda", "Kerja", "Sifat", "Keterangan"], answer: "Kerja"},
+      {q: "Kata 'merah' termasuk jenis kata?", options: ["Kerja", "Benda", "Sifat", "Bilangan"], answer: "Sifat"},
+      {q: "Kata 'sepatu' termasuk jenis kata?", options: ["Kerja", "Benda", "Sifat", "Keterangan"], answer: "Benda"},
+      {q: "Kalimat ajakan biasanya diawali dengan kata?", options: ["Jangan", "Mari", "Bukan", "Sudah"], answer: "Mari"},
+      {q: "Kalimat 'Sinta membaca buku.' termasuk jenis kalimat?", options: ["Perintah", "Tanya", "Berita", "Ajakan"], answer: "Berita"},
+      {q: "Tanda baca untuk mengakhiri kalimat perintah adalah?", options: ["Tanda Seru", "Tanda Titik", "Tanda Koma", "Tanda Tanya"], answer: "Tanda Seru"},
+      {q: "Puisi terdiri atas baris dan?", options: ["Halaman", "Bab", "Paragraf", "Bait"], answer: "Bait"},
+      {q: "Cerita yang berisi dongeng disebut?", options: ["Legenda", "Fabel", "Cerpen", "Novel"], answer: "Fabel"},
+      {q: "Kalimat 'Ibu memasak di dapur.' memiliki predikat apa?", options: ["Ibu", "Memasak", "Di", "Dapur"], answer: "Memasak"},
+      {q: "Kata depan 'ke' digunakan untuk menyatakan?", options: ["Tujuan", "Waktu", "Jumlah", "Sifat"], answer: "Tujuan"},
+      {q: "Kata baku dari 'aktifitas' adalah?", options: ["Aktifitas", "Aktif", "Aktivitas", "Aktivas"], answer: "Aktivitas"},
+      {q: "Kalimat 'Jangan membuang sampah sembarangan!' adalah kalimat?", options: ["Ajakan", "Larangan", "Berita", "Perintah"], answer: "Larangan"},
+      {q: "Kata yang menunjukkan jumlah disebut?", options: ["Kata Kerja", "Kata Benda", "Kata Sifat", "Kata Bilangan"], answer: "Kata Bilangan"},
+      {q: "Cerita yang mengandung unsur khayalan disebut?", options: ["Fabel", "Cerpen", "Dongeng", "Pantun"], answer: "Dongeng"},
+      {q: "Kata 'pagi' termasuk jenis kata?", options: ["Keterangan Waktu", "Benda", "Sifat", "Kerja"], answer: "Keterangan Waktu"},
+      {q: "Kata 'bermain' termasuk kata?", options: ["Sifat", "Kerja", "Benda", "Bilangan"], answer: "Kerja"},
+      {q: "Sinonim dari kata 'pandai' adalah?", options: ["Bodoh", "Rajin", "Pintar", "Malas"], answer: "Pintar"},
+      {q: "Kata 'dan', 'atau', 'tetapi' disebut kata?", options: ["Sambung", "Seru", "Tanya", "Perintah"], answer: "Sambung"},
+      {q: "Kalimat sapaan yang benar adalah?", options: ["Hai teman.", "hai Teman", "Hai Teman", "Hai, teman."], answer: "Hai, teman."},
+      {q: "Cerpen adalah singkatan dari?", options: ["Cerita Pendek", "Cerita Panjang", "Cerita Pengetahuan", "Cerita Penuh"], answer: "Cerita Pendek"},
+      {q: "Kata 'menari' adalah kata kerja yang berarti?", options: ["Berjalan", "Bernyanyi", "Bergerak dengan irama", "Berlari"], answer: "Bergerak dengan irama"},
+      {q: "Kalimat yang mengandung perintah disebut?", options: ["Kalimat Tanya", "Kalimat Berita", "Kalimat Seru", "Kalimat Perintah"], answer: "Kalimat Perintah"},
+      {q: "Teks yang menjelaskan suatu hal disebut?", options: ["Teks Eksposisi", "Teks Puisi", "Teks Narasi", "Teks Fabel"], answer: "Teks Eksposisi"},
+      {q: "Kata 'keindahan' berasal dari kata dasar?", options: ["Indah", "Kehidupan", "Bagus", "Senang"], answer: "Indah"},
+      {q: "Cerita yang bersifat nyata disebut?", options: ["Mitos", "Fiksi", "Nonfiksi", "Fabel"], answer: "Nonfiksi"},
+      {q: "Tanda baca setelah sapaan dalam surat adalah?", options: ["Titik", "Koma", "Tanda Tanya", "Tanda Seru"], answer: "Koma"},
+      {q: "Pantun memiliki rima?", options: ["a-b-a-b", "a-a-a-a", "a-b-c-d", "a-b-b-a"], answer: "a-b-a-b"}
+    ],
+    english: [
+      {q: "What is the English word for 'kucing'?", options: ["Dog", "Cat", "Mouse", "Fish"], answer: "Cat"},
+      {q: "Which one is a fruit?", options: ["Carrot", "Potato", "Apple", "Onion"], answer: "Apple"},
+      {q: "What is the opposite of 'big'?", options: ["Small", "Tall", "Long", "Short"], answer: "Small"},
+      {q: "What color is the sky on a clear day?", options: ["Red", "Blue", "Green", "Yellow"], answer: "Blue"},
+      {q: "How do you say 'selamat pagi' in English?", options: ["Good night", "Goodbye", "Good morning", "Good afternoon"], answer: "Good morning"},
+      {q: "What number comes after ten?", options: ["Nine", "Eleven", "Eight", "Twelve"], answer: "Eleven"},
+      {q: "Which one is used to write?", options: ["Pen", "Book", "Eraser", "Bag"], answer: "Pen"},
+      {q: "What is the English word for 'air'?", options: ["Water", "Milk", "Juice", "Tea"], answer: "Water"},
+      {q: "What do we use to eat soup?", options: ["Fork", "Knife", "Spoon", "Stick"], answer: "Spoon"},
+      {q: "Which day comes after Monday?", options: ["Sunday", "Tuesday", "Wednesday", "Friday"], answer: "Tuesday"},
+      {q: "Which animal says 'woof'?", options: ["Cat", "Dog", "Cow", "Bird"], answer: "Dog"},
+      {q: "What is the English for 'merah'?", options: ["Green", "Red", "Yellow", "Blue"], answer: "Red"},
+      {q: "Which one is a part of the body?", options: ["Chair", "Table", "Hand", "Phone"], answer: "Hand"},
+      {q: "What do we wear on our feet?", options: ["Hat", "Shirt", "Shoes", "Scarf"], answer: "Shoes"},
+      {q: "What is the opposite of 'happy'?", options: ["Sad", "Glad", "Excited", "Funny"], answer: "Sad"},
+      {q: "Which one is a vehicle?", options: ["Car", "Pen", "Book", "Chair"], answer: "Car"},
+      {q: "How many legs does a spider have?", options: ["Four", "Six", "Eight", "Ten"], answer: "Eight"},
+      {q: "What is the English word for 'sekolah'?", options: ["Hospital", "Library", "School", "Market"], answer: "School"},
+      {q: "What color is a banana?", options: ["Green", "Red", "Yellow", "Purple"], answer: "Yellow"},
+      {q: "What do we use to see?", options: ["Ears", "Eyes", "Hands", "Mouth"], answer: "Eyes"},
+      {q: "Which month comes after August?", options: ["July", "October", "September", "November"], answer: "September"},
+      {q: "What do we drink when we are thirsty?", options: ["Water", "Rice", "Bread", "Soup"], answer: "Water"},
+      {q: "Which animal has a long neck?", options: ["Elephant", "Tiger", "Giraffe", "Lion"], answer: "Giraffe"},
+      {q: "Which one is not a color?", options: ["Pink", "Circle", "Blue", "Black"], answer: "Circle"},
+      {q: "How do you say 'terima kasih' in English?", options: ["Please", "Sorry", "Hello", "Thank you"], answer: "Thank you"},
+      {q: "What is the English word for 'tangan'?", options: ["Hand", "Head", "Leg", "Foot"], answer: "Hand"},
+      {q: "What time do you usually sleep?", options: ["Morning", "Afternoon", "Night", "Lunch"], answer: "Night"},
+      {q: "What is the opposite of 'hot'?", options: ["Cold", "Warm", "Spicy", "Boiling"], answer: "Cold"},
+      {q: "What do you say when you meet someone?", options: ["Goodbye", "Excuse me", "Hello", "Thank you"], answer: "Hello"},
+      {q: "Which one is a family member?", options: ["Teacher", "Mother", "Driver", "Friend"], answer: "Mother"}
+    ],
+    math: [
+      {q: "Hasil dari 7 + 5 adalah?", options: ["10", "11", "12", "13"], answer: "12"},
+      {q: "Berapakah hasil dari 9 x 3?", options: ["27", "18", "21", "24"], answer: "27"},
+      {q: "Angka genap di bawah 10 adalah?", options: ["1", "3", "6", "9"], answer: "6"},
+      {q: "Nilai dari 15 - 7 adalah?", options: ["7", "8", "9", "6"], answer: "8"},
+      {q: "Jika Ani memiliki 4 apel dan membeli 3 lagi, berapa totalnya?", options: ["6", "7", "8", "9"], answer: "7"},
+      {q: "Luas persegi dengan sisi 5 cm adalah?", options: ["20", "25", "30", "15"], answer: "25"},
+      {q: "Bilangan kelipatan 5 berikutnya setelah 20 adalah?", options: ["22", "25", "30", "35"], answer: "25"},
+      {q: "Setengah dari 20 adalah?", options: ["5", "8", "10", "12"], answer: "10"},
+      {q: "Hasil dari 6 x 4 adalah?", options: ["20", "22", "24", "26"], answer: "24"},
+      {q: "Berapakah hasil dari 100 ÷ 10?", options: ["5", "10", "15", "20"], answer: "10"},
+      {q: "Bentuk jam 3 sore adalah?", options: ["03.00", "15.00", "13.00", "12.00"], answer: "15.00"},
+      {q: "Sebuah segitiga memiliki berapa sisi?", options: ["2", "3", "4", "5"], answer: "3"},
+      {q: "Urutan bilangan dari kecil ke besar: 7, 2, 9, 4?", options: ["7, 2, 4, 9", "2, 4, 7, 9", "4, 2, 7, 9", "9, 7, 4, 2"], answer: "2, 4, 7, 9"},
+      {q: "Hasil dari 50 - 25 adalah?", options: ["20", "25", "30", "35"], answer: "25"},
+      {q: "Jika 1 lusin telur = 12 butir, maka 2 lusin berapa?", options: ["20", "22", "24", "26"], answer: "24"},
+      {q: "Berapakah hasil dari 8 + 7 - 5?", options: ["10", "9", "8", "11"], answer: "10"},
+      {q: "Angka romawi dari 10 adalah?", options: ["X", "V", "L", "C"], answer: "X"},
+      {q: "Hasil dari 6 ÷ 2 adalah?", options: ["2", "3", "4", "5"], answer: "3"},
+      {q: "Berapakah seperempat dari 20?", options: ["4", "5", "6", "8"], answer: "5"},
+      {q: "Jika kamu punya Rp1000 dan membeli permen Rp250, sisa uangmu adalah?", options: ["Rp500", "Rp600", "Rp700", "Rp750"], answer: "Rp750"},
+      {q: "Berapa menit dalam satu jam?", options: ["30", "45", "60", "90"], answer: "60"},
+      {q: "Satu kilogram sama dengan?", options: ["100 gram", "500 gram", "1000 gram", "1500 gram"], answer: "1000 gram"},
+      {q: "Bangun datar yang memiliki 4 sisi sama panjang adalah?", options: ["Segitiga", "Trapesium", "Persegi", "Persegi Panjang"], answer: "Persegi"},
+      {q: "Jika 5 kelereng dibagi ke 5 anak, masing-masing dapat?", options: ["0", "1", "2", "5"], answer: "1"},
+      {q: "Hasil dari 9 x 9 adalah?", options: ["81", "72", "90", "99"], answer: "81"},
+      {q: "Urutan bilangan ganjil: 1, 3, ..., 7, 9?", options: ["2", "4", "5", "6"], answer: "5"},
+      {q: "Berapakah hasil dari 100 - 75?", options: ["20", "25", "30", "35"], answer: "25"},
+      {q: "Setengah kilogram adalah?", options: ["100 gram", "250 gram", "500 gram", "750 gram"], answer: "500 gram"},
+      {q: "Berapakah hasil dari 3 x 7?", options: ["21", "24", "27", "30"], answer: "21"},
+      {q: "Berapakah hasil dari 10 + 20 + 30?", options: ["50", "60", "70", "80"], answer: "60"}
+    ]
+  },
+  SMP: {
+    physics: [
+      {q: "Benda yang dapat menghantarkan listrik disebut?", options: ["Isolator", "Konduktor", "Gas", "Cairan"], answer: "Konduktor"},
+      {q: "Gaya gravitasi membuat benda bergerak ke arah?", options: ["Atas", "Bawah", "Kanan", "Kiri"], answer: "Bawah"},
+      {q: "Energi dari matahari disebut energi?", options: ["Kinetik", "Panas", "Bunyi", "Listrik"], answer: "Panas"},
+      {q: "Alat untuk mengukur suhu disebut?", options: ["Penggaris", "Termometer", "Neraca", "Mikroskop"], answer: "Termometer"},
+      {q: "Benda yang dapat berubah bentuk jika ditekan disebut?", options: ["Benda Keras", "Benda Lentur", "Benda Padat", "Benda Cair"], answer: "Benda Lentur"},
+      {q: "Besaran yang dapat diukur disebut?", options: ["Besaran Pokok", "Besaran Turunan", "Besaran Vektor", "Besaran Skalar"], answer: "Besaran Pokok"},
+      {q: "Contoh besaran pokok adalah?", options: ["Massa", "Volume", "Kecepatan", "Gaya"], answer: "Massa"},
+      {q: "Besaran turunan terdiri dari?", options: ["Panjang", "Suhu", "Kecepatan", "Massa"], answer: "Kecepatan"},
+      {q: "Satuan SI untuk panjang adalah?", options: ["Gram", "Meter", "Detik", "Kelvin"], answer: "Meter"},
+      {q: "Besaran yang memiliki nilai dan arah disebut?", options: ["Besaran Skalar", "Besaran Vektor", "Besaran Pokok", "Besaran Ukuran"], answer: "Besaran Vektor"},
+      {q: "Benda yang dapat menghantarkan listrik disebut?", options: ["Isolator", "Konduktor", "Gas", "Cairan"], answer: "Konduktor"},
+      {q: "Gaya gravitasi menyebabkan benda bergerak ke arah?", options: ["Atas", "Bawah", "Samping", "Diam"], answer: "Bawah"},
+      {q: "Energi yang dimiliki benda karena geraknya disebut?", options: ["Panas", "Kimia", "Kinetik", "Potensial"], answer: "Kinetik"},
+      {q: "Satuan SI untuk suhu adalah?", options: ["Celcius", "Fahrenheit", "Reamur", "Kelvin"], answer: "Kelvin"},
+      {q: "Alat untuk mengukur kuat arus listrik adalah?", options: ["Voltmeter", "Amperemeter", "Ohmmeter", "Termometer"], answer: "Amperemeter"},
+      {q: "Besaran yang memiliki arah disebut?", options: ["Skalar", "Vektor", "Pokok", "Turunan"], answer: "Vektor"},
+      {q: "Satuan gaya dalam SI adalah?", options: ["Newton", "Joule", "Watt", "Pascal"], answer: "Newton"},
+      {q: "Alat untuk mengukur tekanan udara adalah?", options: ["Termometer", "Barometer", "Higrometer", "Altimeter"], answer: "Barometer"},
+      {q: "Panjang merupakan besaran?", options: ["Skalar", "Turunan", "Pokok", "Vektor"], answer: "Pokok"},
+      {q: "Contoh besaran turunan adalah?", options: ["Massa", "Waktu", "Gaya", "Suhu"], answer: "Gaya"},
+      {q: "Energi potensial dimiliki oleh benda karena?", options: ["Geraknya", "Ketinggiannya", "Panasnya", "Massanya"], answer: "Ketinggiannya"},
+      {q: "Perpindahan panas secara langsung melalui zat padat disebut?", options: ["Konveksi", "Radiasi", "Konduksi", "Evaporasi"], answer: "Konduksi"},
+      {q: "Satuan energi dalam SI adalah?", options: ["Joule", "Watt", "Newton", "Volt"], answer: "Joule"},
+      {q: "Hukum I Newton menjelaskan tentang?", options: ["Gaya gravitasi", "Inersia", "Aksi-Reaksi", "Gaya gesek"], answer: "Inersia"},
+      {q: "Hukum II Newton menyatakan bahwa gaya sama dengan?", options: ["M x V", "M x A", "F x D", "A x T"], answer: "M x A"},
+      {q: "Hukum III Newton berbunyi?", options: ["Aksi = Reaksi", "F = m x a", "Setiap benda diam", "Energi kekal"], answer: "Aksi = Reaksi"},
+      {q: "Gaya gesek terjadi karena adanya kontak antara?", options: ["Benda dan cahaya", "Benda dan udara", "Dua permukaan benda", "Gravitasi dan tekanan"], answer: "Dua permukaan benda"},
+      {q: "Benda dikatakan bergerak jika?", options: ["Bergetar", "Berpindah posisi", "Menyala", "Berubah warna"], answer: "Berpindah posisi"},
+      {q: "Alat optik yang digunakan untuk melihat benda sangat kecil?", options: ["Teleskop", "Lup", "Kaca mata", "Mikroskop"], answer: "Mikroskop"},
+      {q: "Bayangan yang dibentuk oleh cermin cembung bersifat?", options: ["Nyata dan terbalik", "Maya dan diperkecil", "Nyata dan tegak", "Maya dan diperbesar"], answer: "Maya dan diperkecil"},
+      {q: "Tekanan dipengaruhi oleh gaya dan?", options: ["Waktu", "Luas permukaan", "Kecepatan", "Suhu"], answer: "Luas permukaan"},
+      {q: "Benda mengapung jika massa jenis benda?", options: ["Lebih besar dari zat cair", "Lebih kecil dari zat cair", "Sama dengan zat cair", "Tidak mempengaruhi"], answer: "Lebih kecil dari zat cair"},
+      {q: "Bunyi tidak dapat merambat melalui?", options: ["Air", "Udara", "Logam", "Ruang hampa"], answer: "Ruang hampa"},
+      {q: "Benda hitam menyerap panas lebih cepat karena?", options: ["Memantulkan cahaya", "Menyerap semua cahaya", "Mendingin", "Memantulkan panas"], answer: "Menyerap semua cahaya"},
+      {q: "Perpindahan panas tanpa zat perantara disebut?", options: ["Konduksi", "Konveksi", "Radiasi", "Kondensasi"], answer: "Radiasi"},
+      {q: "Usaha didefinisikan sebagai?", options: ["Gaya x waktu", "Massa x percepatan", "Gaya x perpindahan", "Energi x suhu"], answer: "Gaya x perpindahan"},
+      {q: "Sumber energi utama di Bumi adalah?", options: ["Angin", "Air", "Batu bara", "Matahari"], answer: "Matahari"},
+      {q: "Panel surya mengubah energi matahari menjadi?", options: ["Panas", "Gerak", "Listrik", "Kimia"], answer: "Listrik"},
+      {q: "Sifat cermin datar adalah menghasilkan bayangan?", options: ["Nyata", "Tegak dan sama besar", "Terbalik", "Diperkecil"], answer: "Tegak dan sama besar"},
+      {q: "Pusat massa suatu benda adalah?", options: ["Tempat paling berat", "Titik keseimbangan", "Bagian paling keras", "Bagian yang hangat"], answer: "Titik keseimbangan"},
+      {q: "Satuan daya listrik adalah?", options: ["Joule", "Newton", "Watt", "Volt"], answer: "Watt"},
+      {q: "Hambatan listrik dinyatakan dalam satuan?", options: ["Ohm", "Watt", "Volt", "Ampere"], answer: "Ohm"},
+      {q: "Benda diam bisa bergerak jika diberikan?", options: ["Suhu", "Gaya", "Tekanan udara", "Cahaya"], answer: "Gaya"},
+      {q: "Apa yang terjadi jika gaya total nol?", options: ["Benda pasti diam", "Benda pasti bergerak", "Benda dalam keadaan seimbang", "Benda mempercepat"], answer: "Benda dalam keadaan seimbang"},
+      {q: "Gelombang bunyi adalah gelombang?", options: ["Transversal", "Longitudinal", "Cahaya", "Listrik"], answer: "Longitudinal"},
+      {q: "Listrik statis disebabkan oleh?", options: ["Arus listrik", "Gerak konstan", "Gesekan", "Gravitasi"], answer: "Gesekan"},
+      {q: "Volume benda padat dapat diukur dengan alat?", options: ["Amperemeter", "Mistar", "Termometer", "Stopwatch"], answer: "Mistar"},
+      {q: "Kecepatan dapat dihitung dari?", options: ["Jarak ÷ waktu", "Massa x percepatan", "Gaya ÷ waktu", "Waktu ÷ gaya"], answer: "Jarak ÷ waktu"},
+      {q: "Gaya yang menyebabkan benda jatuh ke tanah disebut?", options: ["Gesek", "Gravitasi", "Listrik", "Magnet"], answer: "Gravitasi"},
+      {q: "Arus listrik mengalir dari?", options: ["Positif ke negatif", "Negatif ke positif", "Netral ke negatif", "Netral ke positif"], answer: "Positif ke negatif"}
+    ],
+    chemistry: [
+      {q: "Atom merupakan?", options: ["Bagian terkecil dari unsur", "Campuran zat", "Zat hasil reaksi", "Zat murni"], answer: "Bagian terkecil dari unsur"},
+      {q: "Unsur adalah zat yang?", options: ["Tidak bisa diuraikan", "Bisa dicampur", "Bisa diuapkan", "Selalu berwujud cair"], answer: "Tidak bisa diuraikan"},
+      {q: "Air adalah contoh dari?", options: ["Unsur", "Senayawa", "Campuran", "Ion"], answer: "Senayawa"},
+      {q: "Perubahan fisika ditandai dengan?", options: ["Tidak menghasilkan zat baru", "Muncul gas", "Perubahan warna", "Pembentukan endapan"], answer: "Tidak menghasilkan zat baru"},
+      {q: "Contoh perubahan kimia adalah?", options: ["Es mencair", "Air menguap", "Kertas dibakar", "Es membeku"], answer: "Kertas dibakar"},
+      {q: "Rumus kimia air adalah?", options: ["H2O", "CO2", "NaCl", "O2"], answer: "H2O"},
+      {q: "NaCl merupakan rumus kimia dari?", options: ["Cuka", "Garam dapur", "Air", "Gula pasir"], answer: "Garam dapur"},
+      {q: "Zat yang dapat menghantarkan listrik disebut?", options: ["Isolator", "Konduktor", "Plastik", "Karet"], answer: "Konduktor"},
+      {q: "Logam merupakan konduktor yang?", options: ["Buruk", "Baik", "Lambat", "Netral"], answer: "Baik"},
+      {q: "Senyawa terbentuk dari?", options: ["Gabungan unsur", "Gabungan larutan", "Campuran zat", "Penguapan"], answer: "Gabungan unsur"},
+      {q: "Hidrogen termasuk dalam golongan?", options: ["Logam", "Nonlogam", "Metaloid", "Alkali"], answer: "Nonlogam"},
+      {q: "Zat murni terdiri dari?", options: ["Unsur dan senyawa", "Campuran", "Larutan", "Ion"], answer: "Unsur dan senyawa"},
+      {q: "Zat yang tidak bisa larut dalam air disebut?", options: ["Larutan", "Zat pelarut", "Endapan", "Koloid"], answer: "Endapan"},
+      {q: "Bahan yang digunakan untuk menyerap air adalah?", options: ["Pasir", "Garam", "Kain", "Minyak"], answer: "Kain"},
+      {q: "Asam memiliki rasa?", options: ["Asin", "Pahit", "Asam", "Manis"], answer: "Asam"},
+      {q: "Basa bersifat?", options: ["Asam", "Netral", "Licin", "Asin"], answer: "Licin"},
+      {q: "Indikator digunakan untuk?", options: ["Mengukur suhu", "Mengetahui pH", "Menimbang massa", "Menguapkan zat"], answer: "Mengetahui pH"},
+      {q: "pH di bawah 7 menunjukkan sifat?", options: ["Asam", "Basa", "Netral", "Garam"], answer: "Asam"},
+      {q: "Larutan garam bersifat?", options: ["Asam", "Basa", "Netral", "Toksik"], answer: "Netral"},
+      {q: "Contoh bahan kimia berbahaya adalah?", options: ["Air", "Sabun", "Cuka", "Sianida"], answer: "Sianida"},
+      {q: "Zat aditif ditambahkan untuk?", options: ["Menambah berat", "Mempercepat reaksi", "Memberi rasa atau warna", "Membekukan zat"], answer: "Memberi rasa atau warna"},
+      {q: "Contoh zat aditif alami adalah?", options: ["MSG", "Pewarna sintetis", "Kunyit", "Formalin"], answer: "Kunyit"},
+      {q: "Alkohol digunakan sebagai?", options: ["Bahan bakar", "Pelarut", "Pengawet", "Pemutih"], answer: "Pelarut"},
+      {q: "Pemanis buatan yang paling dikenal adalah?", options: ["Garam", "Sakarin", "Gula merah", "Fruktosa"], answer: "Sakarin"},
+      {q: "Gas yang menyebabkan efek rumah kaca adalah?", options: ["Nitrogen", "Oksigen", "Karbondioksida", "Hidrogen"], answer: "Karbondioksida"},
+      {q: "Larutan garam dalam air disebut?", options: ["Suspensi", "Emulsi", "Larutan", "Koloid"], answer: "Larutan"},
+      {q: "Contoh campuran homogen adalah?", options: ["Air dan minyak", "Air dan garam", "Pasir dan air", "Batu dan tanah"], answer: "Air dan garam"},
+      {q: "Air hujan bersifat?", options: ["Asam", "Basa", "Netral", "Logam"], answer: "Asam"},
+      {q: "Pemisahan zat berdasarkan titik didih disebut?", options: ["Filtrasi", "Distilasi", "Sublimasi", "Kristalisasi"], answer: "Distilasi"},
+      {q: "Alat untuk menyaring campuran padat-cair adalah?", options: ["Corong pisah", "Penyaring", "Tabung reaksi", "Erlenmeyer"], answer: "Penyaring"},
+      {q: "Bahan kimia yang menyebabkan ketergantungan disebut?", options: ["Vitamin", "Antibiotik", "Narkotika", "Mineral"], answer: "Narkotika"},
+      {q: "Kimia mempelajari tentang?", options: ["Gaya", "Zat dan perubahannya", "Gerak", "Listrik"], answer: "Zat dan perubahannya"},
+      {q: "Asam kuat contohnya adalah?", options: ["Asam asetat", "Asam sulfat", "Asam karbonat", "Asam benzoat"], answer: "Asam sulfat"},
+      {q: "Zat yang dapat berubah warna indikator disebut?", options: ["Asam dan basa", "Gas mulia", "Logam", "Zat netral"], answer: "Asam dan basa"},
+      {q: "Minuman bersoda mengandung?", options: ["Oksigen", "Nitrogen", "Karbondioksida", "Helium"], answer: "Karbondioksida"},
+      {q: "Campuran dua logam atau lebih disebut?", options: ["Senyawa", "Alloy", "Larutan", "Suspensi"], answer: "Alloy"},
+      {q: "Contoh alloy adalah?", options: ["Perak", "Kuningan", "Tembaga", "Emas"], answer: "Kuningan"},
+      {q: "Zat pengawet yang tidak aman adalah?", options: ["Cuka", "Asam benzoat", "Formalin", "Garam"], answer: "Formalin"},
+      {q: "Pupuk urea mengandung unsur?", options: ["Kalium", "Natrium", "Nitrogen", "Kalsium"], answer: "Nitrogen"},
+      {q: "Hidrolisis adalah reaksi dengan menggunakan?", options: ["Asam", "Basa", "Air", "Garam"], answer: "Air"}
+    ],
+    biology: [
+      {q: "Organisme yang mampu membuat makanannya sendiri disebut?", options: ["Heterotrof", "Autotrof", "Parasit", "Saprofit"], answer: "Autotrof"},
+      {q: "Fotosintesis terjadi pada bagian tumbuhan yang mengandung?", options: ["Akar", "Batang", "Klorofil", "Xilem"], answer: "Klorofil"},
+      {q: "Fungsi utama sistem pernapasan adalah?", options: ["Mencerna makanan", "Mengangkut oksigen", "Membuang urine", "Menghasilkan hormon"], answer: "Mengangkut oksigen"},
+      {q: "Hewan yang mengalami metamorfosis sempurna contohnya?", options: ["Kucing", "Kupu-kupu", "Ayam", "Katak"], answer: "Kupu-kupu"},
+      {q: "Urutan sistem organisasi kehidupan dari kecil ke besar adalah?", options: ["Organ-sel-jaringan", "Sel-jaringan-organ", "Jaringan-sel-organ", "Sel-organisme-jaringan"], answer: "Sel-jaringan-organ"},
+      {q: "Fungsi stomata pada daun adalah untuk?", options: ["Mengangkut air", "Fotosintesis", "Pertukaran gas", "Menopang daun"], answer: "Pertukaran gas"},
+      {q: "Organ tempat pencernaan makanan secara kimiawi pertama kali terjadi?", options: ["Mulut", "Lambung", "Usus halus", "Usus besar"], answer: "Mulut"},
+      {q: "Alat ekskresi utama pada manusia adalah?", options: ["Paru-paru", "Lambung", "Ginjal", "Usus"], answer: "Ginjal"},
+      {q: "Kelenjar yang menghasilkan insulin adalah?", options: ["Tiroid", "Pankreas", "Hipofisis", "Adrenal"], answer: "Pankreas"},
+      {q: "Sel darah merah berfungsi untuk?", options: ["Melawan penyakit", "Membekukan darah", "Mengangkut oksigen", "Menghasilkan energi"], answer: "Mengangkut oksigen"},
+      {q: "Sumber energi utama dalam rantai makanan adalah?", options: ["Hewan", "Tumbuhan", "Matahari", "Tanah"], answer: "Matahari"},
+      {q: "Organ gerak pasif pada manusia adalah?", options: ["Otot", "Tulang", "Kulit", "Jantung"], answer: "Tulang"},
+      {q: "Hewan ovovivipar berkembang biak dengan cara?", options: ["Bertelur", "Melahirkan", "Bertelur dan menetas dalam tubuh", "Membelah diri"], answer: "Bertelur dan menetas dalam tubuh"},
+      {q: "Fungsi selaput lendir pada hidung adalah?", options: ["Menangkap cahaya", "Membunuh kuman", "Mengatur suhu", "Menyaring udara"], answer: "Menyaring udara"},
+      {q: "Zat makanan yang diperlukan untuk pertumbuhan sel adalah?", options: ["Vitamin", "Protein", "Lemak", "Air"], answer: "Protein"},
+      {q: "Jaringan pada tumbuhan yang berfungsi mengangkut air dan mineral adalah?", options: ["Floem", "Xilem", "Parenkim", "Epidermis"], answer: "Xilem"},
+      {q: "Organisme yang menguraikan sisa makhluk hidup disebut?", options: ["Produsen", "Konsumen", "Pengurai", "Parasit"], answer: "Pengurai"},
+      {q: "Organ dalam tubuh yang menyaring darah dan menghasilkan urine adalah?", options: ["Paru-paru", "Lambung", "Ginjal", "Usus"], answer: "Ginjal"},
+      {q: "Zat hijau daun disebut juga?", options: ["Melanin", "Klorofil", "Hemoglobin", "Selulosa"], answer: "Klorofil"},
+      {q: "Alat pernapasan serangga adalah?", options: ["Insang", "Paru-paru", "Trakea", "Kulit"], answer: "Trakea"},
+      {q: "Hormon yang mengatur kadar gula darah adalah?", options: ["Adrenalin", "Testosteron", "Estrogen", "Insulin"], answer: "Insulin"},
+      {q: "Perubahan dari larva menjadi pupa terjadi pada proses?", options: ["Metamorfosis", "Fotosintesis", "Respirasi", "Difusi"], answer: "Metamorfosis"},
+      {q: "Bagian otak yang mengatur keseimbangan adalah?", options: ["Cerebrum", "Cerebellum", "Medulla", "Hipotalamus"], answer: "Cerebellum"},
+      {q: "Proses pernapasan menghasilkan zat sisa berupa?", options: ["Oksigen", "Uap air", "Karbondioksida", "Glukosa"], answer: "Karbondioksida"},
+      {q: "Tulang pengumpil berada di bagian tubuh?", options: ["Kaki", "Punggung", "Lengan", "Kepala"], answer: "Lengan"},
+      {q: "Bagian sistem pencernaan tempat penyerapan makanan?", options: ["Mulut", "Lambung", "Usus halus", "Usus besar"], answer: "Usus halus"},
+      {q: "Sel tumbuhan memiliki organel unik bernama?", options: ["Mitokondria", "Lisosom", "Kloroplas", "Nukleus"], answer: "Kloroplas"},
+      {q: "Bagian darah yang berfungsi membekukan luka adalah?", options: ["Plasma", "Leukosit", "Trombosit", "Eritrosit"], answer: "Trombosit"},
+      {q: "Jenis otot yang bekerja di luar kesadaran disebut?", options: ["Otot polos", "Otot rangka", "Otot lurik", "Otot sadar"], answer: "Otot polos"},
+      {q: "Proses pembentukan sperma terjadi di organ?", options: ["Testis", "Prostat", "Ovarium", "Vas deferens"], answer: "Testis"},
+      {q: "Vaksin berfungsi untuk?", options: ["Mengobati penyakit", "Membunuh bakteri", "Mencegah infeksi", "Menurunkan demam"], answer: "Mencegah infeksi"},
+      {q: "Zat makanan penghasil energi utama adalah?", options: ["Vitamin", "Lemak", "Karbohidrat", "Protein"], answer: "Karbohidrat"},
+      {q: "Hewan yang hidup di dua alam disebut?", options: ["Mamalia", "Amfibi", "Reptil", "Aves"], answer: "Amfibi"},
+      {q: "Fotosintesis menghasilkan oksigen dan?", options: ["Karbohidrat", "Nitrogen", "Lemak", "Protein"], answer: "Karbohidrat"},
+      {q: "Organ penglihatan manusia adalah?", options: ["Hidung", "Telinga", "Mata", "Lidah"], answer: "Mata"},
+      {q: "Fungsi utama sel darah putih adalah?", options: ["Mengangkut oksigen", "Membekukan darah", "Melawan kuman", "Membawa nutrisi"], answer: "Melawan kuman"},
+      {q: "Sel telur manusia dihasilkan oleh organ?", options: ["Uterus", "Ovarium", "Vagina", "Tuba fallopi"], answer: "Ovarium"},
+      {q: "Kelainan tulang belakang melengkung ke samping disebut?", options: ["Lordosis", "Skoliosis", "Kifosis", "Osteoporosis"], answer: "Skoliosis"},
+      {q: "Sistem saraf pusat terdiri dari?", options: ["Otak dan sumsum tulang belakang", "Otak dan jantung", "Mata dan telinga", "Kulit dan otot"], answer: "Otak dan sumsum tulang belakang"}
+    ],
+    indonesian: [
+      { q: "Apa sinonim dari kata 'cerdas'?", options: ["Bodoh", "Pintar", "Malas", "Lambat"], answer: "Pintar" },
+      { q: "Antonim dari kata 'tinggi' adalah?", options: ["Pendek", "Panjang", "Kurus", "Lebar"], answer: "Pendek" },
+      { q: "Kalimat langsung ditandai dengan penggunaan?", options: ["Tanda titik", "Tanda seru", "Tanda petik", "Tanda koma"], answer: "Tanda petik" },
+      { q: "Teks yang berisi kisah nyata disebut?", options: ["Fiksi", "Narasi", "Nonfiksi", "Legenda"], answer: "Nonfiksi" },
+      { q: "Kata baku dari 'aktip' adalah?", options: ["Aktip", "Aktif", "Aktiv", "Aktef"], answer: "Aktif" },
+      { q: "Kalimat yang menyatakan larangan biasanya diawali dengan kata?", options: ["Silakan", "Ayo", "Jangan", "Harap"], answer: "Jangan" },
+      { q: "Ciri utama teks eksplanasi adalah?", options: ["Menghibur", "Menceritakan khayalan", "Menjelaskan proses", "Menampilkan tokoh"], answer: "Menjelaskan proses" },
+      { q: "Sinonim dari 'indah' adalah?", options: ["Cantik", "Kotor", "Buruk", "Jelek"], answer: "Cantik" },
+      { q: "Kalimat 'Ibu sedang memasak di dapur' termasuk jenis kalimat?", options: ["Berita", "Tanya", "Perintah", "Larangan"], answer: "Berita" },
+      { q: "Teks prosedur berfungsi untuk?", options: ["Menghibur", "Mengkritik", "Mengarahkan", "Menceritakan"], answer: "Mengarahkan" },
+      { q: "Peribahasa 'bagai pinang dibelah dua' artinya?", options: ["Berbeda", "Mirip sekali", "Berjauhan", "Bertengkar"], answer: "Mirip sekali" },
+      { q: "Kata 'melihat' termasuk jenis kata?", options: ["Kata kerja", "Kata benda", "Kata sifat", "Kata bilangan"], answer: "Kata kerja" },
+      { q: "Paragraf yang memiliki kalimat utama di awal disebut paragraf?", options: ["Induktif", "Deduktif", "Campuran", "Kronologis"], answer: "Deduktif" },
+      { q: "Kata 'rasa' termasuk jenis kata?", options: ["Benda", "Sifat", "Kerja", "Indra"], answer: "Sifat" },
+      { q: "Cerita rekaan yang panjang disebut?", options: ["Cerpen", "Novel", "Puisi", "Pantun"], answer: "Novel" },
+      { q: "Kalimat efektif memiliki ciri?", options: ["Bertele-tele", "Padat dan jelas", "Panjang", "Banyak kata asing"], answer: "Padat dan jelas" },
+      { q: "Antonim dari 'keras' adalah?", options: ["Lembut", "Kuat", "Tegas", "Cepat"], answer: "Lembut" },
+      { q: "Teks yang berisi langkah-langkah disebut?", options: ["Narasi", "Eksposisi", "Prosedur", "Eksplanasi"], answer: "Prosedur" },
+      { q: "Kalimat yang berisi pertanyaan disebut?", options: ["Berita", "Perintah", "Ajakan", "Tanya"], answer: "Tanya" },
+      { q: "Makna kata 'kritis' dalam 'anak itu sangat kritis' adalah?", options: ["Sakit", "Suka bertanya", "Pandai menilai", "Berbahaya"], answer: "Pandai menilai" },
+      { q: "Kalimat 'Sebaiknya kamu belajar lebih giat' termasuk?", options: ["Ajakan", "Saran", "Perintah", "Berita"], answer: "Saran" },
+      { q: "Ciri teks deskripsi adalah?", options: ["Langkah-langkah", "Penilaian", "Penjelasan rinci", "Dialog"], answer: "Penjelasan rinci" },
+      { q: "Kata kerja imperatif digunakan untuk?", options: ["Bercerita", "Memberi perintah", "Menjelaskan", "Menggambarkan"], answer: "Memberi perintah" },
+      { q: "Kata 'di sekolah' menunjukkan keterangan?", options: ["Waktu", "Sebab", "Tempat", "Cara"], answer: "Tempat" },
+      { q: "Kata 'karena' digunakan untuk menyatakan hubungan?", options: ["Waktu", "Sebab-akibat", "Perbandingan", "Tujuan"], answer: "Sebab-akibat" },
+      { q: "Majas yang membandingkan dua hal secara langsung disebut?", options: ["Personifikasi", "Metafora", "Hiperbola", "Simile"], answer: "Metafora" },
+      { q: "Sinonim dari 'riang' adalah?", options: ["Sedih", "Gembira", "Bingung", "Takut"], answer: "Gembira" },
+      { q: "Pantun terdiri atas berapa baris?", options: ["2", "3", "4", "5"], answer: "4" },
+      { q: "Teks laporan hasil observasi berisi?", options: ["Pendapat", "Fakta", "Khasiat", "Mitos"], answer: "Fakta" },
+      { q: "Kata 'mereka' termasuk jenis kata?", options: ["Benda", "Ganti orang", "Keterangan", "Kerja"], answer: "Ganti orang" },
+      { q: "Kalimat 'Dia membaca buku di taman.' memiliki keterangan?", options: ["Orang", "Tempat", "Benda", "Waktu"], answer: "Tempat" },
+      { q: "Kata 'mampu' termasuk dalam jenis kata?", options: ["Sifat", "Benda", "Kerja", "Bilangan"], answer: "Sifat" },
+      { q: "Cerita yang tidak benar atau rekaan disebut?", options: ["Fiksi", "Nonfiksi", "Realita", "Opini"], answer: "Fiksi" },
+      { q: "Struktur teks eksplanasi terdiri dari?", options: ["Orientasi, komplikasi, resolusi", "Pernyataan umum, deretan penjelas, penutup", "Pembuka, isi, penutup", "Judul, isi, simpulan"], answer: "Pernyataan umum, deretan penjelas, penutup" },
+      { q: "Kata yang menunjukkan jumlah disebut?", options: ["Kata kerja", "Kata benda", "Kata bilangan", "Kata sifat"], answer: "Kata bilangan" },
+      { q: "Kalimat 'Ali adalah siswa yang rajin.' termasuk kalimat?", options: ["Langsung", "Tidak langsung", "Majemuk", "Tunggal"], answer: "Tunggal" },
+      { q: "Puisi lama yang terdiri dari empat baris dan berima a-b-a-b adalah?", options: ["Syair", "Gurindam", "Pantun", "Puisi bebas"], answer: "Pantun" },
+      { q: "Teks persuasi bertujuan untuk?", options: ["Menghibur", "Mengajak", "Menginformasikan", "Menceritakan"], answer: "Mengajak" },
+      { q: "Kalimat 'Ayah pergi ke pasar tadi pagi.' memiliki keterangan waktu?", options: ["Ke pasar", "Tadi pagi", "Ayah", "Pergi"], answer: "Tadi pagi" },
+      { q: "Kata 'menyapu' termasuk jenis kata?", options: ["Kerja", "Benda", "Sifat", "Bilangan"], answer: "Kerja" }
+    ],
+    english: [
+      { q: "What is the synonym of 'happy'?", options: ["Sad", "Joyful", "Angry", "Tired"], answer: "Joyful" },
+      { q: "Which word is the opposite of 'easy'?", options: ["Hard", "Soft", "Big", "Fast"], answer: "Hard" },
+      { q: "She _____ to school every day.", options: ["go", "goes", "going", "gone"], answer: "goes" },
+      { q: "I _____ a new book yesterday.", options: ["buy", "bought", "buys", "buying"], answer: "bought" },
+      { q: "My father is _____ engineer.", options: ["an", "a", "the", "some"], answer: "an" },
+      { q: "We _____ watching TV now.", options: ["was", "are", "is", "be"], answer: "are" },
+      { q: "She can _____ the piano very well.", options: ["playing", "plays", "play", "played"], answer: "play" },
+      { q: "Where _____ you live?", options: ["does", "is", "are", "do"], answer: "do" },
+      { q: "The capital city of Indonesia is _____", options: ["Bandung", "Jakarta", "Surabaya", "Bali"], answer: "Jakarta" },
+      { q: "I usually _____ breakfast at 7 a.m.", options: ["have", "has", "having", "had"], answer: "have" },
+      { q: "How _____ apples do you want?", options: ["much", "many", "some", "any"], answer: "many" },
+      { q: "My mother is cooking in the _____", options: ["bedroom", "garage", "kitchen", "bathroom"], answer: "kitchen" },
+      { q: "They _____ football every weekend.", options: ["playing", "plays", "play", "played"], answer: "play" },
+      { q: "I _____ to the market tomorrow.", options: ["go", "will go", "gone", "going"], answer: "will go" },
+      { q: "He is _____ than his brother.", options: ["taller", "tallest", "tall", "more tall"], answer: "taller" },
+      { q: "The opposite of 'clean' is _____", options: ["neat", "dirty", "tidy", "beautiful"], answer: "dirty" },
+      { q: "Which word is a noun?", options: ["quickly", "run", "beautiful", "school"], answer: "school" },
+      { q: "I _____ English every day.", options: ["study", "studies", "studying", "studied"], answer: "study" },
+      { q: "She _____ a doctor.", options: ["am", "are", "is", "be"], answer: "is" },
+      { q: "_____ name is Dinda.", options: ["I", "Me", "My", "Mine"], answer: "My" },
+      { q: "He _____ TV when I called him.", options: ["watched", "watches", "is watching", "was watching"], answer: "was watching" },
+      { q: "Which one is a color?", options: ["Run", "Chair", "Red", "Hot"], answer: "Red" },
+      { q: "The sun _____ in the east.", options: ["rise", "rises", "rising", "rose"], answer: "rises" },
+      { q: "I have two _____", options: ["foot", "foots", "feet", "feets"], answer: "feet" },
+      { q: "The plural of 'child' is _____", options: ["childs", "childes", "children", "childrens"], answer: "children" },
+      { q: "A: 'How are you?' B: '_____'", options: ["Good morning", "I’m fine, thanks", "See you", "Yes, I am"], answer: "I’m fine, thanks" },
+      { q: "Do you _____ coffee?", options: ["like", "likes", "liked", "liking"], answer: "like" },
+      { q: "Which word is an adjective?", options: ["slow", "slowness", "slowly", "slowed"], answer: "slow" },
+      { q: "There _____ a cat under the table.", options: ["are", "is", "be", "am"], answer: "is" },
+      { q: "What time is it when the clock shows 08:00?", options: ["Eight o'clock", "Half past eight", "Quarter to eight", "Ten o'clock"], answer: "Eight o'clock" },
+      { q: "The cat is _____ the box.", options: ["in", "on", "under", "behind"], answer: "in" },
+      { q: "They _____ late yesterday.", options: ["is", "was", "are", "were"], answer: "were" },
+      { q: "I _____ my homework now.", options: ["am do", "do", "am doing", "doing"], answer: "am doing" },
+      { q: "We _____ to school by bike.", options: ["go", "goes", "gone", "going"], answer: "go" },
+      { q: "My sister _____ reading a novel.", options: ["is", "are", "am", "was"], answer: "is" },
+      { q: "Where _____ she from?", options: ["does", "is", "are", "do"], answer: "is" },
+      { q: "I _____ a great time at the party last night.", options: ["has", "have", "had", "having"], answer: "had" },
+      { q: "He _____ lunch when I arrived.", options: ["was eating", "is eating", "ate", "eats"], answer: "was eating" },
+      { q: "_____ you like to come with us?", options: ["Shall", "Should", "Would", "Might"], answer: "Would" },
+      { q: "It’s _____ today than yesterday.", options: ["colder", "cold", "coldest", "more cold"], answer: "colder" }
+    ],
+    math: [
+      { q: "Berapakah hasil dari 12 × 8?", options: ["96", "84", "108", "112"], answer: "96" },
+      { q: "Berapakah nilai dari 5²?", options: ["10", "15", "25", "30"], answer: "25" },
+      { q: "Hasil dari 72 ÷ 9 adalah?", options: ["7", "8", "9", "6"], answer: "8" },
+      { q: "Manakah bilangan prima berikut ini?", options: ["4", "9", "11", "15"], answer: "11" },
+      { q: "Keliling persegi dengan panjang sisi 6 cm adalah?", options: ["12 cm", "24 cm", "36 cm", "18 cm"], answer: "24 cm" },
+      { q: "Luas persegi panjang dengan panjang 8 cm dan lebar 3 cm adalah?", options: ["24 cm²", "22 cm²", "20 cm²", "26 cm²"], answer: "24 cm²" },
+      { q: "Angka berikutnya dalam urutan 2, 4, 8, 16, ... adalah?", options: ["18", "24", "32", "30"], answer: "32" },
+      { q: "Sederhanakan: 3 + 6 × 2", options: ["18", "15", "12", "20"], answer: "15" },
+      { q: "Sudut manakah yang termasuk sudut lancip?", options: ["45°", "90°", "120°", "180°"], answer: "45°" },
+      { q: "Nilai x dari persamaan x + 7 = 15 adalah?", options: ["6", "7", "8", "9"], answer: "8" },
+      { q: "Bentuk pecahan dari 0,75 adalah?", options: ["3/4", "1/2", "1/4", "2/3"], answer: "3/4" },
+      { q: "Banyak sisi pada segi enam adalah?", options: ["5", "6", "7", "8"], answer: "6" },
+      { q: "Manakah dari berikut ini yang terbesar?", options: ["0,5", "1/3", "0,75", "2/5"], answer: "0,75" },
+      { q: "Rata-rata dari 4, 8, 6, 2 adalah?", options: ["5", "4", "6", "7"], answer: "5" },
+      { q: "Akar kuadrat dari 64 adalah?", options: ["6", "8", "10", "7"], answer: "8" },
+      { q: "Jika jari-jari lingkaran 7 cm, maka diameternya adalah?", options: ["14 cm", "21 cm", "28 cm", "7 cm"], answer: "14 cm" },
+      { q: "Sudut lurus memiliki besar berapa derajat?", options: ["90°", "180°", "270°", "360°"], answer: "180°" },
+      { q: "Hasil dari 10 - (2 + 3) adalah?", options: ["5", "7", "8", "6"], answer: "5" },
+      { q: "Bilangan manakah yang habis dibagi 3?", options: ["14", "21", "25", "28"], answer: "21" },
+      { q: "15% dari 200 adalah?", options: ["25", "30", "35", "40"], answer: "30" },
+      { q: "Volume kubus dengan panjang sisi 4 cm adalah?", options: ["64 cm³", "16 cm³", "48 cm³", "32 cm³"], answer: "64 cm³" },
+      { q: "Manakah yang merupakan bilangan genap?", options: ["7", "11", "14", "9"], answer: "14" },
+      { q: "Luas lingkaran dengan jari-jari 7 cm (π = 22/7) adalah?", options: ["144 cm²", "154 cm²", "100 cm²", "132 cm²"], answer: "154 cm²" },
+      { q: "Berapa banyak detik dalam 5 menit?", options: ["150", "200", "300", "360"], answer: "300" },
+      { q: "Panjang sisi miring segitiga siku-siku dengan kaki 3 cm dan 4 cm adalah?", options: ["5 cm", "6 cm", "7 cm", "8 cm"], answer: "5 cm" },
+      { q: "Berapakah hasil dari -4 + 9?", options: ["-13", "5", "-5", "13"], answer: "5" },
+      { q: "Berapakah hasil dari 10% × 150?", options: ["10", "15", "20", "30"], answer: "15" },
+      { q: "Rumus luas segitiga adalah?", options: ["alas × tinggi", "sisi × sisi", "½ × alas × tinggi", "π × r²"], answer: "½ × alas × tinggi" },
+      { q: "Berapakah keliling lingkaran dengan diameter 14 cm (π = 22/7)?", options: ["22 cm", "28 cm", "44 cm", "66 cm"], answer: "44 cm" },
+      { q: "Urutkan bilangan berikut dari terkecil ke terbesar: 1/2, 0.3, 0.75", options: ["0.75, 1/2, 0.3", "0.3, 1/2, 0.75", "1/2, 0.75, 0.3", "0.3, 0.75, 1/2"], answer: "0.3, 1/2, 0.75" },
+      { q: "Berapakah hasil dari 3² + 4²?", options: ["9", "16", "25", "12"], answer: "25" },
+      { q: "Manakah bilangan berikut yang merupakan kelipatan 6?", options: ["8", "9", "12", "15"], answer: "12" },
+      { q: "Jika suhu meningkat dari 20°C ke 27°C, maka perubahan suhu adalah?", options: ["5°C", "6°C", "7°C", "8°C"], answer: "7°C" },
+      { q: "Hasil dari ⅔ + ⅓ adalah?", options: ["1", "⅔", "⅗", "¾"], answer: "1" },
+      { q: "Rumus keliling persegi panjang adalah?", options: ["p × l", "2(p + l)", "p + l", "p × p"], answer: "2(p + l)" },
+      { q: "Jika 3x = 15, maka nilai x adalah?", options: ["3", "4", "5", "6"], answer: "5" },
+      { q: "Nilai dari 100 - (4 × 5) adalah?", options: ["60", "70", "80", "90"], answer: "80" },
+      { q: "Jam 13.45 dalam format 12 jam adalah?", options: ["1.45 AM", "1.45 PM", "12.45 PM", "2.45 AM"], answer: "1.45 PM" },
+      { q: "Berapa jumlah sudut pada segitiga?", options: ["90°", "180°", "270°", "360°"], answer: "180°" },
+      { q: "Manakah yang merupakan faktor dari 24?", options: ["5", "6", "7", "10"], answer: "6" },
+      { q: "Jika x = 4, maka nilai dari 2x + 3 adalah?", options: ["10", "11", "12", "13"], answer: "11" },
+      { q: "Rumus volume balok adalah?", options: ["p × l × t", "2(p + l)", "p + l + t", "p × l"], answer: "p × l × t" },
+      { q: "Dalam pecahan ¾, angka 4 disebut sebagai?", options: ["pembilang", "penyebut", "hasil", "kuadrat"], answer: "penyebut" },
+      { q: "Berapakah 0,4 × 100?", options: ["0,4", "4", "40", "400"], answer: "40" },
+      { q: "Apa hasil dari 6³?", options: ["18", "36", "216", "96"], answer: "216" },
+      { q: "Nilai mutlak dari -9 adalah?", options: ["-9", "0", "9", "1"], answer: "9" },
+      { q: "Jika keliling persegi adalah 20 cm, maka panjang satu sisinya adalah?", options: ["4 cm", "5 cm", "6 cm", "7 cm"], answer: "5 cm" },
+      { q: "Manakah berikut ini bentuk aljabar?", options: ["3 + x", "3 × 3", "7 - 2", "8 ÷ 4"], answer: "3 + x" },
+      { q: "Berapakah ⅖ dari 100?", options: ["20", "30", "40", "50"], answer: "40" }
+    ]
+  },
+  SMA: {
+    physics: [
+      { q: "Berapakah percepatan benda bermassa 2 kg yang mendapatkan gaya sebesar 10 N?", options: ["2 m/s²", "5 m/s²", "10 m/s²", "20 m/s²"], answer: "5 m/s²" },
+      { q: "Satuan dari usaha dalam Sistem Internasional (SI) adalah?", options: ["Watt", "Newton", "Joule", "Pascal"], answer: "Joule" },
+      { q: "Gaya gravitasi dipengaruhi oleh _____", options: ["massa dan jarak", "volume dan massa", "kecepatan dan waktu", "massa dan luas"], answer: "massa dan jarak" },
+      { q: "Sebuah benda diam kemudian bergerak dengan percepatan tetap. Gerak ini disebut?", options: ["GLBB", "GLB", "GMB", "Gaya Sentral"], answer: "GLBB" },
+      { q: "Jika sebuah bola dilempar vertikal ke atas, kecepatan di titik tertinggi adalah?", options: ["maksimum", "nol", "tak hingga", "sama seperti awal"], answer: "nol" },
+      { q: "Energi kinetik sebuah benda dapat dihitung dengan rumus?", options: ["½mv²", "mgh", "mv", "F × s"], answer: "½mv²" },
+      { q: "Berapakah usaha yang dilakukan jika gaya 10 N memindahkan benda sejauh 5 m?", options: ["15 J", "50 J", "20 J", "5 J"], answer: "50 J" },
+      { q: "Tekanan adalah?", options: ["gaya per satuan luas", "massa per volume", "usaha per waktu", "energi per gaya"], answer: "gaya per satuan luas" },
+      { q: "Alat untuk mengukur tekanan udara adalah?", options: ["higrometer", "barometer", "termometer", "anemometer"], answer: "barometer" },
+      { q: "Bunyi dapat merambat melalui?", options: ["vakum", "ruang hampa", "zat padat, cair, dan gas", "hanya air"], answer: "zat padat, cair, dan gas" },
+      { q: "Hukum Newton ke-1 disebut juga hukum _____", options: ["Kelembaman", "Aksi-Reaksi", "Gravitasi", "Usaha"], answer: "Kelembaman" },
+      { q: "Satuan daya dalam SI adalah?", options: ["Joule", "Watt", "Newton", "Volt"], answer: "Watt" },
+      { q: "Apa yang terjadi jika hambatan meningkat dalam rangkaian tertutup?", options: ["Arus meningkat", "Arus tetap", "Arus menurun", "Tegangan turun"], answer: "Arus menurun" },
+      { q: "Sebuah benda memiliki massa 4 kg dan percepatan 3 m/s². Berapa resultan gayanya?", options: ["12 N", "7 N", "1.33 N", "24 N"], answer: "12 N" },
+      { q: "Benda yang dilempar ke atas akan mengalami percepatan sebesar?", options: ["9.8 m/s² ke bawah", "0 m/s²", "9.8 m/s² ke atas", "tergantung massa"], answer: "9.8 m/s² ke bawah" },
+      { q: "Gelombang transversal memiliki arah getaran yang _____ terhadap arah rambat.", options: ["sejajar", "tegak lurus", "melingkar", "terbalik"], answer: "teguk lurus" },
+      { q: "Contoh gelombang mekanik adalah?", options: ["gelombang cahaya", "gelombang radio", "gelombang air", "gelombang elektromagnetik"], answer: "gelombang air" },
+      { q: "Rumus massa jenis (ρ) adalah?", options: ["massa × volume", "massa / volume", "volume / massa", "gaya / luas"], answer: "massa / volume" },
+      { q: "Kecepatan cahaya di ruang hampa adalah?", options: ["3 × 10⁸ m/s", "3 × 10⁶ m/s", "1 × 10⁸ m/s", "1.5 × 10⁸ m/s"], answer: "3 × 10⁸ m/s" },
+      { q: "Cermin cembung menghasilkan bayangan yang?", options: ["nyata dan terbalik", "maya dan tegak", "nyata dan tegak", "maya dan terbalik"], answer: "maya dan tegak" },
+      { q: "Lensa cekung digunakan untuk mengoreksi mata _____", options: ["rabun jauh", "rabun dekat", "astigmatisme", "buta warna"], answer: "rabun jauh" },
+      { q: "Rumus hukum Ohm adalah?", options: ["V = I/R", "I = V/R", "R = V × I", "I = R/V"], answer: "I = V/R" },
+      { q: "Alat yang digunakan untuk mengukur kuat arus listrik adalah?", options: ["Voltmeter", "Amperemeter", "Ohmmeter", "Multimeter"], answer: "Amperemeter" },
+      { q: "Muatan elektron bernilai?", options: ["positif", "negatif", "nol", "relatif"], answer: "negatif" },
+      { q: "Satuan hambatan listrik adalah?", options: ["Ampere", "Volt", "Ohm", "Joule"], answer: "Ohm" },
+      { q: "Kuat arus 2 A mengalir selama 10 detik. Muatan listrik yang berpindah adalah?", options: ["5 C", "10 C", "15 C", "20 C"], answer: "20 C" },
+      { q: "Rumus energi listrik adalah?", options: ["VIt", "VI", "IR", "P/t"], answer: "VIt" },
+      { q: "Sifat dari muatan sejenis adalah?", options: ["menarik", "menolak", "diam", "menghilang"], answer: "menolak" },
+      { q: "Pemuaian zat padat terjadi karena?", options: ["berubahnya massa", "bertambahnya energi panas", "berkurangnya volume", "gaya luar"], answer: "bertambahnya energi panas" },
+      { q: "Konduktor adalah bahan yang?", options: ["menghambat panas", "menghantarkan panas", "menyerap air", "mendinginkan"], answer: "menghantarkan panas" },
+      { q: "Contoh konduktor panas adalah?", options: ["kayu", "besi", "plastik", "karet"], answer: "besi" },
+      { q: "Termometer digunakan untuk mengukur?", options: ["massa", "panjang", "suhu", "waktu"], answer: "suhu" },
+      { q: "Satuan suhu dalam SI adalah?", options: ["Celcius", "Reamur", "Fahrenheit", "Kelvin"], answer: "Kelvin" },
+      { q: "Panas dapat berpindah melalui konveksi pada?", options: ["logam", "udara", "kayu", "kaca"], answer: "udara" },
+      { q: "Apa rumus tekanan hidrostatis?", options: ["ρgh", "mg", "F/A", "P×V"], answer: "ρgh" },
+      { q: "Tekanan di dalam zat cair tergantung pada?", options: ["suhu", "kedalaman", "warna", "massa jenis gas"], answer: "kedalaman" },
+      { q: "Arus listrik mengalir dari potensial _____ ke _____", options: ["rendah ke tinggi", "tinggi ke rendah", "positif ke negatif", "negatif ke positif"], answer: "tinggi ke rendah" },
+      { q: "Gaya Lorentz timbul pada?", options: ["kawat bermuatan", "kawat berarus dalam medan magnet", "medan gravitasi", "medan listrik"], answer: "kawat berarus dalam medan magnet" },
+      { q: "Daya listrik adalah energi per _____", options: ["waktu", "massa", "volume", "arus"], answer: "waktu" },
+      { q: "Apa fungsi trafo dalam alat elektronik?", options: ["memperbesar arus", "mengubah tegangan", "menghitung daya", "menyimpan energi"], answer: "mengubah tegangan" },
+      { q: "Sumber energi terbesar di tata surya adalah?", options: ["bulan", "matahari", "bintang", "bumi"], answer: "matahari" },
+      { q: "Energi yang dimiliki benda karena posisinya disebut?", options: ["kinetik", "mekanik", "potensial", "bunyi"], answer: "potensial" },
+      { q: "Satuan frekuensi adalah?", options: ["Joule", "Hertz", "Newton", "Watt"], answer: "Hertz" },
+      { q: "Gelombang bunyi termasuk jenis gelombang?", options: ["elektromagnetik", "transversal", "mekanik longitudinal", "radioaktif"], answer: "mekanik longitudinal" },
+      { q: "Resonansi terjadi saat?", options: ["frekuensi sebanding", "getaran berhenti", "suhu naik", "massa nol"], answer: "frekuensi sebanding" },
+      { q: "Kaca pembesar menggunakan lensa?", options: ["cekung", "cembung", "datar", "ganda"], answer: "cembung" },
+      { q: "Benda yang dapat memantulkan seluruh cahaya disebut?", options: ["transparan", "translusen", "opaq", "cermin datar"], answer: "cermin datar" },
+      { q: "Satuan tekanan udara dalam SI adalah?", options: ["Pascal", "Bar", "atm", "Newton"], answer: "Pascal" },
+      { q: "Bayangan nyata terbentuk oleh lensa _____", options: ["cekung", "cembung", "datar", "ganda"], answer: "cembung" }
+    ], 
+    chemistry: [
+      { q: "Apa lambang unsur kimia dari emas?", options: ["Ag", "Au", "Fe", "Cu"], answer: "Au" },
+      { q: "Jumlah proton dalam atom Oksigen adalah?", options: ["6", "7", "8", "9"], answer: "8" },
+      { q: "H2O adalah rumus kimia untuk?", options: ["Hidrogen peroksida", "Asam sulfat", "Air", "Gas hidrogen"], answer: "Air" },
+      { q: "NaCl adalah nama senyawa untuk?", options: ["Gula", "Cuka", "Garam dapur", "Air"], answer: "Garam dapur" },
+      { q: "Unsur yang termasuk logam alkali adalah?", options: ["Kalsium", "Sodium", "Klorin", "Besi"], answer: "Sodium" },
+      { q: "pH larutan asam kuat biasanya bernilai?", options: ["0-3", "4-6", "7", "8-14"], answer: "0-3" },
+      { q: "Zat yang dapat mempercepat reaksi tanpa ikut bereaksi disebut?", options: ["Katalis", "Produk", "Reaktan", "Inhibitor"], answer: "Katalis" },
+      { q: "Atom bermuatan disebut?", options: ["Isotop", "Ion", "Molekul", "Atom netral"], answer: "Ion" },
+      { q: "Contoh senyawa ionik adalah?", options: ["H2O", "CO2", "NaCl", "C2H5OH"], answer: "NaCl" },
+      { q: "Tabel periodik unsur disusun berdasarkan?", options: ["massa atom", "nomor atom", "jumlah neutron", "massa jenis"], answer: "nomor atom" },
+      { q: "Unsur yang termasuk gas mulia adalah?", options: ["Helium", "Hidrogen", "Nitrogen", "Oksigen"], answer: "Helium" },
+      { q: "Reaksi pembakaran disebut juga reaksi?", options: ["Reduksi", "Netralisasi", "Oksidasi", "Presipitasi"], answer: "Oksidasi" },
+      { q: "Zat yang tidak bisa diuraikan menjadi zat yang lebih sederhana disebut?", options: ["Senyawa", "Unsur", "Larutan", "Campuran"], answer: "Unsur" },
+      { q: "Manakah contoh dari campuran homogen?", options: ["Minyak dan air", "Pasir dan garam", "Larutan gula", "Air dan batu"], answer: "Larutan gula" },
+      { q: "Apa lambang unsur dari besi?", options: ["Fe", "B", "Be", "Bi"], answer: "Fe" },
+      { q: "Bilangan oksidasi unsur dalam unsur bebas adalah?", options: ["0", "+1", "-1", "+2"], answer: "0" },
+      { q: "Unsur dengan konfigurasi elektron 2.8.1 adalah?", options: ["Magnesium", "Sodium", "Kalium", "Litium"], answer: "Sodium" },
+      { q: "HCl termasuk jenis asam?", options: ["Asam lemah", "Asam basa", "Asam kuat", "Asam organik"], answer: "Asam kuat" },
+      { q: "Reaksi antara asam dan basa disebut reaksi?", options: ["Netralisasi", "Reduksi", "Substitusi", "Polimerisasi"], answer: "Netralisasi" },
+      { q: "Jumlah kulit maksimum pada atom dalam golongan utama adalah?", options: ["4", "6", "7", "8"], answer: "7" },
+      { q: "Jenis ikatan yang terjadi pada molekul H2O adalah?", options: ["Ionik", "Logam", "Kovalen", "Hidrogen"], answer: "Kovalen" },
+      { q: "CH4 adalah rumus kimia dari?", options: ["Metana", "Etana", "Propan", "Butana"], answer: "Metana" },
+      { q: "Berapakah jumlah neutron dalam atom karbon-12?", options: ["4", "6", "12", "18"], answer: "6" },
+      { q: "Isotop adalah atom yang memiliki jumlah _____ berbeda.", options: ["proton", "neutron", "elektron", "inti"], answer: "neutron" },
+      { q: "Satuan konsentrasi larutan molaritas adalah?", options: ["mol/L", "g/L", "mg/mL", "mol/mg"], answer: "mol/L" },
+      { q: "Kelarutan NaCl dalam air menunjukkan sifat?", options: ["fisika", "kimia", "mekanik", "elektromagnetik"], answer: "fisika" },
+      { q: "Manakah yang termasuk bahan kimia rumah tangga?", options: ["Aseton", "Asam sulfat", "Natrium klorida", "Karbon monoksida"], answer: "Natrium klorida" },
+      { q: "Pengaruh suhu terhadap laju reaksi adalah?", options: ["Menurunkan reaksi", "Mempercepat reaksi", "Menghambat reaksi", "Tidak mempengaruhi"], answer: "Mempercepat reaksi" },
+      { q: "Proses perubahan padat menjadi gas disebut?", options: ["Sublimasi", "Kondensasi", "Menguap", "Meleleh"], answer: "Sublimasi" },
+      { q: "Asam yang terdapat dalam lambung adalah?", options: ["HCl", "H2SO4", "CH3COOH", "HNO3"], answer: "HCl" },
+      { q: "Zat berikut merupakan contoh basa?", options: ["NaOH", "H2SO4", "HCl", "CO2"], answer: "NaOH" },
+      { q: "Laju reaksi dapat dipengaruhi oleh semua kecuali?", options: ["Katalis", "Tekanan", "Suhu", "Warna zat"], answer: "Warna zat" },
+      { q: "CO2 adalah hasil dari reaksi pembakaran bahan?", options: ["organik", "anorganik", "garam", "logam"], answer: "organik" },
+      { q: "Contoh polimer alami adalah?", options: ["Nilon", "Plastik", "Protein", "Polistirena"], answer: "Protein" },
+      { q: "Air kapur akan menjadi keruh bila bereaksi dengan?", options: ["CO2", "O2", "H2", "N2"], answer: "CO2" },
+      { q: "Manakah yang termasuk bahan elektrolit kuat?", options: ["Air", "Cuka", "HCl", "Alkohol"], answer: "HCl" },
+      { q: "Larutan penyangga (buffer) digunakan untuk?", options: ["Mengatur pH", "Menjernihkan air", "Meningkatkan suhu", "Mempercepat reaksi"], answer: "Mengatur pH" },
+      { q: "Reaksi endoterm adalah reaksi yang _____", options: ["melepaskan panas", "menyerap panas", "menghasilkan cahaya", "menghasilkan gas"], answer: "menyerap panas" },
+      { q: "Indikator alami untuk mengukur pH adalah?", options: ["Lakmus", "Metil merah", "Kunyit", "Fenolftalein"], answer: "Kunyit" },
+      { q: "Atom karbon memiliki berapa elektron valensi?", options: ["2", "4", "6", "8"], answer: "4" },
+      { q: "Reaksi pengendapan disebut juga reaksi?", options: ["Presipitasi", "Netralisasi", "Redoks", "Eksoterm"], answer: "Presipitasi" },
+      { q: "Campuran antara dua logam disebut?", options: ["Senyawa", "Larutan", "Alogam", "Paduan"], answer: "Paduan" },
+      { q: "Manakah yang termasuk bahan kimia organik?", options: ["NaCl", "CO2", "CH4", "Fe2O3"], answer: "CH4" },
+      { q: "Larutan garam dapur dapat menghantarkan listrik karena?", options: ["Mengandung ion", "Mengandung molekul", "Mengandung basa", "Mengandung gas"], answer: "Mengandung ion" },
+      { q: "Manakah yang termasuk dalam senyawa asam organik?", options: ["CH3COOH", "HCl", "H2SO4", "NaOH"], answer: "CH3COOH" },
+      { q: "Benda yang dapat mengalami korosi adalah?", options: ["Plastik", "Besi", "Kayu", "Kaca"], answer: "Besi" },
+      { q: "Reaksi redoks terjadi karena adanya?", options: ["Pertukaran ion", "Pertukaran massa", "Pertukaran elektron", "Pertukaran neutron"], answer: "Pertukaran elektron" },
+      { q: "NaOH + HCl → NaCl + H2O adalah contoh reaksi?", options: ["Netralisasi", "Endoterm", "Eksoterm", "Redoks"], answer: "Netralisasi" },
+      { q: "Unsur yang paling reaktif dalam golongan alkali adalah?", options: ["Sodium", "Kalium", "Litium", "Rubidium"], answer: "Rubidium" },
+      { q: "Perubahan warna dalam reaksi kimia merupakan indikator adanya?", options: ["Reaksi kimia", "Perubahan fisika", "Perubahan tekanan", "Suhu tetap"], answer: "Reaksi kimia" }
+    ],
+    biology: [
+      { q: "Organisme yang hanya memiliki satu sel disebut?", options: ["Multiseluler", "Uniseluler", "Prokariotik", "Eukariotik"], answer: "Uniseluler" },
+      { q: "Organel sel yang bertanggung jawab menghasilkan energi adalah?", options: ["Nukleus", "Ribosom", "Mitokondria", "Lisosom"], answer: "Mitokondria" },
+      { q: "DNA tersimpan di dalam bagian sel yang disebut?", options: ["Sitoplasma", "Membran sel", "Nukleus", "Ribosom"], answer: "Nukleus" },
+      { q: "Fotosintesis terjadi di bagian sel tumbuhan yang disebut?", options: ["Mitokondria", "Kloroplas", "Vakuola", "Nukleus"], answer: "Kloroplas" },
+      { q: "Proses mengubah glukosa menjadi energi disebut?", options: ["Fotosintesis", "Respirasi sel", "Transpirasi", "Osmosis"], answer: "Respirasi sel" },
+      { q: "Zat hijau daun yang menangkap energi cahaya disebut?", options: ["Karoten", "Klorofil", "Lignin", "Selulosa"], answer: "Klorofil" },
+      { q: "Tahapan pertama dalam daur hidup serangga adalah?", options: ["Pupa", "Imago", "Telur", "Larva"], answer: "Telur" },
+      { q: "Manusia bernapas dengan organ utama bernama?", options: ["Paru-paru", "Jantung", "Liver", "Trakea"], answer: "Paru-paru" },
+      { q: "Sel darah merah berfungsi untuk mengangkut?", options: ["Nutrisi", "Oksigen", "Hormon", "Enzim"], answer: "Oksigen" },
+      { q: "Organ ekskresi utama pada manusia adalah?", options: ["Hati", "Usus", "Ginjal", "Lambung"], answer: "Ginjal" },
+      { q: "Pencernaan makanan dimulai dari organ?", options: ["Lambung", "Usus halus", "Mulut", "Kerongkongan"], answer: "Mulut" },
+      { q: "Vitamin yang larut dalam air antara lain?", options: ["A dan D", "C dan B", "E dan K", "D dan K"], answer: "C dan B" },
+      { q: "Sel saraf disebut juga dengan?", options: ["Neuron", "Axon", "Dendrit", "Soma"], answer: "Neuron" },
+      { q: "Hormon insulin diproduksi oleh organ?", options: ["Ginjal", "Hati", "Pankreas", "Paru-paru"], answer: "Pankreas" },
+      { q: "Hewan herbivora adalah hewan pemakan?", options: ["Daging", "Tumbuhan", "Segala", "Serangga"], answer: "Tumbuhan" },
+      { q: "Ciri utama makhluk hidup adalah?", options: ["Bisa bergerak", "Memiliki warna", "Tidak bisa mati", "Bisa membuat makanan"], answer: "Bisa bergerak" },
+      { q: "Urutan takson dari yang tertinggi adalah?", options: ["Ordo-Famili-Genus-Spesies", "Kingdom-Filum-Kelas-Ordo", "Spesies-Genus-Famili-Ordo", "Kelas-Kingdom-Filum-Ordo"], answer: "Kingdom-Filum-Kelas-Ordo" },
+      { q: "Kucing dan harimau termasuk famili yang sama, yaitu?", options: ["Felidae", "Canidae", "Ursidae", "Hominidae"], answer: "Felidae" },
+      { q: "Manusia memiliki jumlah kromosom sebanyak?", options: ["23", "46", "22", "44"], answer: "46" },
+      { q: "Tempat berlangsungnya fertilisasi pada manusia adalah?", options: ["Vagina", "Ovarium", "Tuba fallopi", "Rahim"], answer: "Tuba fallopi" },
+      { q: "Zat yang dibutuhkan tumbuhan untuk fotosintesis antara lain?", options: ["Oksigen dan air", "Air dan karbon dioksida", "Nitrogen dan karbon", "Oksigen dan cahaya"], answer: "Air dan karbon dioksida" },
+      { q: "Proses pengeluaran zat sisa disebut?", options: ["Ekskresi", "Transportasi", "Respirasi", "Absorpsi"], answer: "Ekskresi" },
+      { q: "Darah manusia berwarna merah karena mengandung?", options: ["Leukosit", "Plasma", "Hemoglobin", "Oksigen"], answer: "Hemoglobin" },
+      { q: "Organ pencernaan tempat penyerapan zat makanan adalah?", options: ["Lambung", "Usus halus", "Kerongkongan", "Mulut"], answer: "Usus halus" },
+      { q: "Tanaman yang hanya berbunga satu kali selama hidupnya disebut?", options: ["Monokarpik", "Polikarpik", "Monokotil", "Dikotil"], answer: "Monokarpik" },
+      { q: "Organisme yang dapat membuat makanan sendiri disebut?", options: ["Autotrof", "Heterotrof", "Saprofit", "Parasit"], answer: "Autotrof" },
+      { q: "Jaringan pengangkut pada tumbuhan terdiri atas?", options: ["Xilem dan floem", "Epidermis dan parenkim", "Kambium dan korteks", "Floem dan kutikula"], answer: "Xilem dan floem" },
+      { q: "Kloroplas hanya dimiliki oleh?", options: ["Hewan", "Fungi", "Virus", "Tumbuhan"], answer: "Tumbuhan" },
+      { q: "Dinding sel hanya terdapat pada?", options: ["Sel hewan", "Sel tumbuhan", "Sel darah", "Sel otot"], answer: "Sel tumbuhan" },
+      { q: "Organisme prokariotik tidak memiliki?", options: ["DNA", "Membran plasma", "Inti sel sejati", "Ribosom"], answer: "Inti sel sejati" },
+      { q: "Contoh simbiosis mutualisme adalah?", options: ["Nyamuk dan manusia", "Jamur dan alga", "Cacing pita dan manusia", "Macan dan rusa"], answer: "Jamur dan alga" },
+      { q: "Pengelompokan makhluk hidup berdasarkan persamaan ciri disebut?", options: ["Klasifikasi", "Taksonomi", "Identifikasi", "Karantina"], answer: "Klasifikasi" },
+      { q: "Hewan berdarah dingin disebut juga?", options: ["Endoterm", "Ektoterm", "Homeoterm", "Isoterm"], answer: "Ektoterm" },
+      { q: "Fungsi utama enzim amilase adalah?", options: ["Mencerna protein", "Mencerna lemak", "Mencerna karbohidrat", "Mengangkut oksigen"], answer: "Mencerna karbohidrat" },
+      { q: "Zat antibodi diproduksi oleh sel?", options: ["Eritrosit", "Leukosit", "Trombosit", "Neuron"], answer: "Leukosit" },
+      { q: "Rangkaian saraf pusat terdiri dari?", options: ["Otak dan jantung", "Otak dan sumsum tulang belakang", "Saraf tepi dan otak", "Mata dan sumsum"], answer: "Otak dan sumsum tulang belakang" },
+      { q: "Organ gerak aktif dalam tubuh manusia adalah?", options: ["Tulang", "Sendi", "Otot", "Ligamen"], answer: "Otot" },
+      { q: "Hormon estrogen diproduksi oleh organ?", options: ["Testis", "Ovarium", "Hati", "Hipofisis"], answer: "Ovarium" },
+      { q: "Contoh hewan yang berkembang biak secara ovovivipar adalah?", options: ["Ikan lele", "Ular", "Ayam", "Katak"], answer: "Ular" },
+      { q: "Sumber energi utama bagi sel adalah?", options: ["Protein", "Lemak", "ATP", "Oksigen"], answer: "ATP" },
+      { q: "Contoh tumbuhan dikotil adalah?", options: ["Padi", "Jagung", "Kacang tanah", "Kelapa"], answer: "Kacang tanah" },
+      { q: "Hasil akhir dari respirasi seluler aerobik adalah?", options: ["Alkohol", "Asam laktat", "CO2 dan H2O", "Glukosa"], answer: "CO2 dan H2O" },
+      { q: "Mutasi gen adalah perubahan yang terjadi pada?", options: ["Sel telur", "Sel tubuh", "Urutan DNA", "Kromosom lengkap"], answer: "Urutan DNA" },
+      { q: "Sel tubuh manusia bersifat diploid dengan kromosom berjumlah?", options: ["22", "23", "44", "46"], answer: "46" },
+      { q: "Hewan invertebrata adalah hewan yang tidak memiliki?", options: ["Tulang belakang", "Jantung", "Kaki", "Sistem saraf"], answer: "Tulang belakang" },
+      { q: "Virus berkembang biak dengan cara?", options: ["Mitosis", "Meiosis", "Membelah diri", "Replikasi dalam sel hidup"], answer: "Replikasi dalam sel hidup" },
+      { q: "Manakah yang merupakan contoh ekosistem buatan?", options: ["Danau", "Hutan hujan", "Sawah", "Padang rumput"], answer: "Sawah" },
+      { q: "Jaringan pada tumbuhan yang bersifat meristematik adalah?", options: ["Parenkim", "Epidermis", "Meristem", "Xilem"], answer: "Meristem" }
+    ],
+    indonesian: [
+      { q: "Sinonim dari kata 'cermat' adalah?", options: ["Asal-asalan", "Teliti", "Cepat", "Lambat"], answer: "Teliti" },
+      { q: "Antonim dari kata 'rapi' adalah?", options: ["Bersih", "Kotor", "Acak-acakan", "Indah"], answer: "Acak-acakan" },
+      { q: "Kalimat efektif harus memiliki unsur?", options: ["Subjek dan objek", "Subjek dan predikat", "Kata kerja", "Kata benda"], answer: "Subjek dan predikat" },
+      { q: "Kata baku dari 'analisa' adalah?", options: ["Analisis", "Analis", "Analistik", "Analit"], answer: "Analisis" },
+      { q: "Kalimat 'Dia membeli buku di toko itu' adalah jenis kalimat?", options: ["Pasif", "Langsung", "Aktif", "Tak langsung"], answer: "Aktif" },
+      { q: "Kata tidak baku dari 'kualitas' adalah?", options: ["Kwalitas", "Kualitas", "Mutu", "Kualiti"], answer: "Kwalitas" },
+      { q: "Kalimat langsung ditandai oleh penggunaan?", options: ["Tanda titik dua", "Tanda petik", "Tanda seru", "Tanda titik koma"], answer: "Tanda petik" },
+      { q: "Tujuan dari teks eksposisi adalah untuk?", options: ["Menghibur", "Membujuk", "Menjelaskan", "Menceritakan"], answer: "Menjelaskan" },
+      { q: "Ciri khas teks prosedur adalah menggunakan kalimat?", options: ["Naratif", "Imperatif", "Deskriptif", "Ekspresif"], answer: "Imperatif" },
+      { q: "Contoh kata penghubung sebab-akibat adalah?", options: ["Namun", "Karena", "Dan", "Atau"], answer: "Karena" },
+      { q: "Tokoh utama dalam cerita disebut juga?", options: ["Figuran", "Antagonis", "Protagonis", "Pendukung"], answer: "Protagonis" },
+      { q: "Kata yang memiliki makna lebih dari satu disebut?", options: ["Sinonim", "Antonim", "Homonim", "Hiponim"], answer: "Homonim" },
+      { q: "Kalimat 'Ia pergi ke pasar.' termasuk jenis kalimat?", options: ["Tanya", "Berita", "Perintah", "Seru"], answer: "Berita" },
+      { q: "Jenis paragraf yang kalimat utamanya berada di awal paragraf disebut?", options: ["Deduktif", "Induktif", "Campuran", "Deskriptif"], answer: "Deduktif" },
+      { q: "Kalimat 'Jangan buang sampah sembarangan!' termasuk kalimat?", options: ["Berita", "Tanya", "Perintah", "Pasif"], answer: "Perintah" },
+      { q: "Makna kata 'konotatif' adalah?", options: ["Makna sebenarnya", "Makna kiasan", "Makna teknis", "Makna leksikal"], answer: "Makna kiasan" },
+      { q: "Judul yang tepat untuk teks laporan hasil observasi tentang tumbuhan adalah?", options: ["Manfaat Kesehatan", "Kehidupan Alam", "Struktur dan Fungsi Daun", "Cerita Tumbuhan"], answer: "Struktur dan Fungsi Daun" },
+      { q: "Fungsi kata penghubung 'tetapi' adalah untuk menyatakan?", options: ["Penegasan", "Pertentangan", "Penambahan", "Sebab-akibat"], answer: "Pertentangan" },
+      { q: "Teks yang berisi langkah-langkah membuat sesuatu disebut teks?", options: ["Prosedur", "Eksplanasi", "Eksposisi", "Deskripsi"], answer: "Prosedur" },
+      { q: "Kata 'cantik' termasuk kelas kata?", options: ["Kata kerja", "Kata sifat", "Kata benda", "Kata keterangan"], answer: "Kata sifat" },
+      { q: "Kutipan dialog yang menggunakan tanda petik disebut kalimat?", options: ["Langsung", "Tak langsung", "Pasif", "Berita"], answer: "Langsung" },
+      { q: "Kata 'berlari' termasuk jenis kata kerja?", options: ["Transitf", "Tak transitif", "Aktif", "Pasif"], answer: "Tak transitif" },
+      { q: "Kata 'memakan' adalah contoh kata kerja _____", options: ["Aktif", "Pasif", "Refleksif", "Resiprokal"], answer: "Aktif" },
+      { q: "Contoh kata ganti orang ketiga tunggal adalah?", options: ["Saya", "Kami", "Dia", "Kita"], answer: "Dia" },
+      { q: "Kata 'sekretaris' yang benar dalam ejaan lama ditulis sebagai?", options: ["Sekretaris", "Sekeretaris", "Sekretaris", "Seketaris"], answer: "Seketaris" },
+      { q: "Majas 'bagai air di daun talas' bermakna?", options: ["Rajin belajar", "Tidak tetap pendirian", "Pemarah", "Lembut hati"], answer: "Tidak tetap pendirian" },
+      { q: "Struktur teks cerita fabel terdiri dari?", options: ["Orientasi-Komplikasi-Resolusi", "Abstrak-Orientasi-Evaluasi", "Pengenalan-Masalah-Penyelesaian", "Identifikasi-Klasifikasi"], answer: "Orientasi-Komplikasi-Resolusi" },
+      { q: "Kata serapan dari bahasa Inggris 'computer' dalam bahasa Indonesia adalah?", options: ["Komputir", "Komputer", "Komputa", "Kompeter"], answer: "Komputer" },
+      { q: "Kata baku dari 'aktifitas' adalah?", options: ["Aktifitas", "Aktivitas", "Aktifvetas", "Aktifidas"], answer: "Aktivitas" },
+      { q: "Kalimat yang menunjukkan sebab akibat adalah?", options: ["Dia menangis karena sakit", "Dia pergi ke sekolah", "Dia membaca buku", "Dia tidur siang"], answer: "Dia menangis karena sakit" },
+      { q: "Kalimat 'Budi sedang membaca buku' adalah kalimat?", options: ["Aktif", "Pasif", "Perintah", "Tanya"], answer: "Aktif" },
+      { q: "Kalimat 'Buku itu sedang dibaca Budi' adalah kalimat?", options: ["Tanya", "Perintah", "Pasif", "Langsung"], answer: "Pasif" },
+      { q: "Kalimat yang menggunakan ejaan tidak baku adalah?", options: ["Mereka sedang beraktivitas", "Saya pergi ke sekolah", "Dia bekerja di perpustakaan", "Mereka sedang beraktifitas"], answer: "Mereka sedang beraktifitas" },
+      { q: "Kata 'praktis' dalam kalimat 'alat ini sangat praktis' termasuk kata?", options: ["Kerja", "Sifat", "Keterangan", "Benda"], answer: "Sifat" },
+      { q: "Bacaan fiksi adalah bacaan yang bersifat?", options: ["Faktual", "Ilmiah", "Rekaan", "Objektif"], answer: "Rekaan" },
+      { q: "Contoh kata berimbuhan me- adalah?", options: ["Menulis", "Tulis", "Penulis", "Ditulis"], answer: "Menulis" },
+      { q: "Cerita pendek memiliki jumlah kata kurang dari?", options: ["500", "1000", "10.000", "10.000"], answer: "10.000" },
+      { q: "Sinonim dari 'bahagia' adalah?", options: ["Sedih", "Senang", "Marah", "Biasa"], answer: "Senang" },
+      { q: "Antonim dari kata 'aktif' adalah?", options: ["Pasif", "Ramah", "Mudah", "Bekerja"], answer: "Pasif" },
+      { q: "Paragraf yang mengungkapkan definisi atau arti disebut paragraf?", options: ["Argumentasi", "Deskripsi", "Eksposisi", "Definisi"], answer: "Definisi" },
+      { q: "Kata 'menyapu' memiliki arti dasar?", options: ["Sapu", "Nyapu", "Penyapu", "Sapuan"], answer: "Sapu" },
+      { q: "Teks yang berisi pandangan pribadi disebut?", options: ["Eksposisi", "Deskripsi", "Argumentasi", "Narasi"], answer: "Argumentasi" },
+      { q: "Majalah dan koran termasuk jenis?", options: ["Fiksi", "Nonfiksi", "Cerpen", "Drama"], answer: "Nonfiksi" },
+      { q: "Kalimat tanya ditandai dengan tanda baca?", options: ["Titik", "Koma", "Tanda tanya", "Tanda petik"], answer: "Tanda tanya" },
+      { q: "Kalimat 'Dia adalah seorang dokter' adalah kalimat?", options: ["Tanya", "Berita", "Perintah", "Larangan"], answer: "Berita" },
+      { q: "Judul karya ilmiah harus ditulis dengan huruf?", options: ["Kapital semua", "Kapital di awal kata", "Huruf kecil semua", "Italic"], answer: "Kapital di awal kata" },
+      { q: "Kalimat 'Apakah kamu sudah makan?' adalah jenis kalimat?", options: ["Perintah", "Berita", "Tanya", "Ajakan"], answer: "Tanya" },
+      { q: "Sinonim dari kata 'indah' adalah?", options: ["Buruk", "Cantik", "Mahal", "Ribut"], answer: "Cantik" },
+      { q: "Kata 'bermain' dalam kalimat 'Anak itu sedang bermain' termasuk kata?", options: ["Kata kerja", "Kata benda", "Kata sifat", "Kata keterangan"], answer: "Kata kerja" }
+    ],
+    math: [
+      { q: "Jika f(x) = 2x + 3, maka f(4) = ?", options: ["10", "11", "9", "12"], answer: "11" },
+      { q: "Penyelesaian dari 2x - 5 = 9 adalah?", options: ["6", "7", "5", "8"], answer: "7" },
+      { q: "Himpunan penyelesaian dari |x - 3| < 5 adalah?", options: ["x < 8", "x > -2", "-2 < x < 8", "x > 8"], answer: "-2 < x < 8" },
+      { q: "Jika a = 3 dan b = -2, maka nilai dari a² - 2ab adalah?", options: ["25", "5", "1", "16"], answer: "25" },
+      { q: "Fungsi f(x) = x² - 2x + 1, nilai minimum terjadi saat x = ?", options: ["-1", "0", "1", "2"], answer: "1" },
+      { q: "Gradien garis yang melalui titik (2, 3) dan (4, 7) adalah?", options: ["2", "3", "1", "4"], answer: "2" },
+      { q: "Persamaan garis lurus dengan gradien 2 dan melalui titik (1, 2) adalah?", options: ["y = 2x", "y = 2x + 1", "y = 2x - 2", "y = 2x + 0"], answer: "y = 2x" },
+      { q: "Jika sin x = 1/2 dan 0° < x < 90°, maka x = ?", options: ["30°", "45°", "60°", "90°"], answer: "30°" },
+      { q: "Nilai dari cos² 30° + sin² 30° adalah?", options: ["0.5", "1", "√3", "2"], answer: "1" },
+      { q: "Turunan dari f(x) = 3x² adalah?", options: ["6x", "3x", "2x", "x²"], answer: "6x" },
+      { q: "Limit dari (x² - 4)/(x - 2) saat x → 2 adalah?", options: ["0", "2", "4", "∞"], answer: "4" },
+      { q: "Integral dari ∫2x dx adalah?", options: ["2x", "x²", "x² + C", "2x² + C"], answer: "x² + C" },
+      { q: "Volume bola dengan jari-jari 7 cm adalah?", options: ["1436 cm³", "1445 cm³", "1437 cm³", "1470 cm³"], answer: "1436 cm³" },
+      { q: "Rumus luas permukaan kerucut adalah?", options: ["πr²", "πr(r + s)", "2πr", "πr²h"], answer: "πr(r + s)" },
+      { q: "Jika vektor u = (2, 3) dan v = (1, 4), maka u + v = ?", options: ["(3, 7)", "(1, 1)", "(2, 4)", "(3, 4)"], answer: "(3, 7)" },
+      { q: "Det(A) jika matriks A = [[1,2],[3,4]] adalah?", options: ["2", "-2", "1", "-1"], answer: "-2" },
+      { q: "Jika matriks A berordo 2x2 dan B 2x2, maka ordo hasil A × B adalah?", options: ["2x2", "2x1", "1x2", "4x4"], answer: "2x2" },
+      { q: "Median dari data 3, 7, 8, 10, 11 adalah?", options: ["7", "8", "10", "9"], answer: "8" },
+      { q: "Rataan dari data 2, 4, 6, 8, 10 adalah?", options: ["6", "5", "7", "8"], answer: "6" },
+      { q: "Modus dari data 3, 5, 3, 6, 7, 3, 8 adalah?", options: ["3", "5", "6", "7"], answer: "3" },
+      { q: "Peluang muncul angka genap dari 1 sampai 6 adalah?", options: ["1/2", "1/3", "2/3", "1/6"], answer: "1/2" },
+      { q: "Peluang muncul mata dadu 5 saat dilempar 1 kali adalah?", options: ["1/5", "1/6", "1/4", "1/3"], answer: "1/6" },
+      { q: "Jika A = {1,2,3} dan B = {3,4,5}, maka A ∩ B = ?", options: ["{3}", "{1,2}", "{1,2,3}", "{3,4,5}"], answer: "{3}" },
+      { q: "Jika P(A) = 3/5, maka peluang komplemennya adalah?", options: ["2/5", "1/2", "1/5", "4/5"], answer: "2/5" },
+      { q: "Fungsi kuadrat y = ax² + bx + c memiliki sumbu simetri di x = ?", options: ["-b/2a", "-a/2b", "b/2a", "-c/2a"], answer: "-b/2a" },
+      { q: "Volume kubus dengan sisi 5 cm adalah?", options: ["125", "150", "100", "120"], answer: "125" },
+      { q: "Jika tinggi tabung 10 cm dan diameter alas 14 cm, maka volumenya adalah?", options: ["1540 cm³", "1430 cm³", "1200 cm³", "980 cm³"], answer: "1540 cm³" },
+      { q: "Sudut dalam segitiga jumlahnya adalah?", options: ["90°", "180°", "360°", "270°"], answer: "180°" },
+      { q: "Diagonal ruang kubus dengan sisi s adalah?", options: ["s√2", "s√3", "s", "2s"], answer: "s√3" },
+      { q: "Jumlah sudut segi enam (heksagon) adalah?", options: ["540°", "720°", "360°", "600°"], answer: "720°" },
+      { q: "Jika a dan b berbanding 3:4, maka jika a = 9, b = ?", options: ["12", "15", "10", "8"], answer: "12" },
+      { q: "Rumus luas trapesium adalah?", options: ["½(a + b)t", "ab", "½ab", "a + b × t"], answer: "½(a + b)t" },
+      { q: "Jumlah deret aritmetika 5 bilangan pertama dari 2, 4, 6,... adalah?", options: ["30", "20", "25", "40"], answer: "30" },
+      { q: "Suku ke-6 dari barisan geometri 3, 6, 12,... adalah?", options: ["96", "192", "384", "48"], answer: "96" },
+      { q: "Penyelesaian dari x² - 9 = 0 adalah?", options: ["±3", "3", "-3", "9"], answer: "±3" },
+      { q: "Hasil dari (a + b)² adalah?", options: ["a² + 2ab + b²", "a² - 2ab + b²", "a² + b²", "a² - b²"], answer: "a² + 2ab + b²" },
+      { q: "Panjang sisi miring segitiga siku-siku dengan kaki 3 dan 4 adalah?", options: ["5", "6", "7", "8"], answer: "5" },
+      { q: "Nilai cos 60° adalah?", options: ["½", "√2/2", "√3/2", "1"], answer: "½" },
+      { q: "Turunan dari sin x adalah?", options: ["cos x", "-cos x", "-sin x", "tan x"], answer: "cos x" },
+      { q: "Integral dari ∫cos x dx adalah?", options: ["sin x + C", "-sin x + C", "cos x + C", "-cos x + C"], answer: "sin x + C" },
+      { q: "Jika f(x) = x² - 4x + 4, maka f(2) = ?", options: ["0", "4", "2", "1"], answer: "0" },
+      { q: "Matriks identitas berordo 2 × 2 memiliki unsur diagonal sebanyak?", options: ["1", "2", "3", "4"], answer: "2" },
+      { q: "Barisan 1, 4, 9, 16,... merupakan barisan?", options: ["Aritmetika", "Geometri", "Kuadrat", "Fibonacci"], answer: "Kuadrat" },
+      { q: "Peluang munculnya huruf vokal dari kata 'MATEMATIKA' adalah?", options: ["4/10", "5/10", "6/10", "3/10"], answer: "4/10" },
+      { q: "Jika panjang alas segitiga 6 cm dan tinggi 4 cm, luasnya adalah?", options: ["12 cm²", "24 cm²", "18 cm²", "30 cm²"], answer: "12 cm²" },
+      { q: "Jika 2 log x = 3, maka nilai x adalah?", options: ["8", "9", "6", "4"], answer: "8" },
+      { q: "Hasil dari log₁₀ 1000 adalah?", options: ["2", "3", "1", "0"], answer: "3" },
+      { q: "Dalam koordinat Kartesius, titik (0,0) disebut?", options: ["Asal", "Sumbu X", "Sumbu Y", "Kuadran"], answer: "Asal" }
+    ]
+  }
+};
+
+// Utility Functions
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function showLoading() { loadingSpinner.style.display = 'block'; }
+function hideLoading() { loadingSpinner.style.display = 'none'; }
+
+function showToast(message, type = 'info', duration = 3000) {
+    const toast = document.createElement('div');
+    toast.classList.add('toast');
+    if (type) {
+        toast.classList.add(type);
+    }
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10); // Small delay to trigger transition
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        toast.addEventListener('transitionend', () => toast.remove());
+    }, duration);
+}
+
+function showContainer(containerId) {
+    document.querySelectorAll('.container').forEach(el => el.classList.remove('active'));
+    document.getElementById(containerId).classList.add('active');
+}
+
+function showPage(pageId) {
+    document.querySelectorAll('.container.sub-container').forEach(el => el.classList.remove('active'));
+    document.getElementById(pageId).classList.add('active');
+
+    // Update active state for nav buttons
+    document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active-nav'));
+    document.querySelector(`nav button[data-page="${pageId}"]`).classList.add('active-nav');
+}
+
+// Authentication Logic
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        showLoading();
+        try {
+            const snapshot = await db.ref('users/' + user.uid).once('value');
+            if (snapshot.exists()) {
+                currentUser = snapshot.val();
+                currentUser.uid = user.uid;
+                loadProfile();
+                loadLeaderboards();
+                showContainer('dashboard');
+                showPage('profilePage'); // Default to profile page on login
+                showToast(`Welcome, ${currentUser.name}!`, 'success');
+            } else {
+                showToast("User data not found. Please register again.", 'error');
+                await auth.signOut();
+            }
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+            showToast("Error fetching user data: " + error.message, 'error');
+            await auth.signOut();
+        } finally {
+            hideLoading();
+        }
+    } else {
+        showContainer('loginScreen');
+        // Ensure no sub-containers are active when logged out
+        document.querySelectorAll('.container.sub-container').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active-nav'));
+    }
+});
+
+loginButton.addEventListener('click', async () => {
+    const email = loginEmail.value.trim();
+    const password = loginPassword.value.trim();
+    loginError.innerText = "";
+
+    if (!email.endsWith('@atlantis.student.com')) {
+        loginError.innerText = "Email must end with @atlantis.student.com.";
+        return;
+    }
+    showLoading();
+    try {
+        await auth.signInWithEmailAndPassword(email, password);
+        // auth.onAuthStateChanged will handle UI update
+    } catch (error) {
+        loginError.innerText = error.message;
+        showToast("Login failed: " + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+});
+
+registerButton.addEventListener('click', async () => {
+    const name = nameInput.value.trim();
+    const email = registerEmail.value.trim();
+    const educationLevel = educationLevelSelect.value.trim();
+    const password = registerPassword.value.trim();
+    const confirmPass = confirmPassword.value.trim();
+    registerError.innerText = "";
+
+    if (!name) {
+        registerError.innerText = "Name cannot be empty.";
+        return;
+    }
+    if (!email.endsWith('@atlantis.student.com')) {
+        registerError.innerText = "Email must end with @atlantis.student.com.";
+        return;
+    }
+    if (!educationLevel) {
+        registerError.innerText = "Please select an education level.";
+        return;
+    }
+    if (password.length < 6) {
+        registerError.innerText = "Password must be at least 6 characters long.";
+        return;
+    }
+    if (password !== confirmPass) {
+        registerError.innerText = "Passwords do not match.";
+        return;
+    }
+
+    showLoading();
+    try {
+        const userCred = await auth.createUserWithEmailAndPassword(email, password);
+        await db.ref('users/' + userCred.user.uid).set({
+            name,
+            email,
+            education_level: educationLevel,
+            points: { physics: 0, chemistry: 0, biology: 0, indonesian: 0, english: 0, math: 0 },
+            total_score: 0
+        });
+        showToast("Registration successful! Please log in.", 'success');
+        showContainer('loginScreen');
+        // Clear registration form
+        nameInput.value = '';
+        registerEmail.value = '';
+        educationLevelSelect.value = '';
+        registerPassword.value = '';
+        confirmPassword.value = '';
+    } catch (error) {
+        registerError.innerText = error.message;
+        showToast("Registration failed: " + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+});
+
+logoutButton.addEventListener('click', async () => {
+    try {
+        await auth.signOut();
+        showToast("You have been logged out.", 'info');
+    } catch (error) {
+        showToast("Logout failed: " + error.message, 'error');
+    }
+});
+
+// Profile Page Logic
+function loadProfile() {
+    if (!currentUser) {
+        profileInfo.innerHTML = '<p>Profile data not available.</p>';
+        return;
+    }
+    profileInfo.innerHTML = `
+        <p><strong>Name:</strong> ${currentUser.name || 'N/A'}</p>
+        <p><strong>Email:</strong> ${currentUser.email || 'N/A'}</p>
+        <p><strong>Education Level:</strong> ${currentUser.education_level || 'N/A'}</p>
+        <h4>Subject Scores:</h4>
+        <ul>
+            <li>Physics: ${currentUser.points?.physics || 0}</li>
+            <li>Chemistry: ${currentUser.points?.chemistry || 0}</li>
+            <li>Biology: ${currentUser.points?.biology || 0}</li>
+            <li>Indonesian: ${currentUser.points?.indonesian || 0}</li>
+            <li>English: ${currentUser.points?.english || 0}</li>
+            <li>Math: ${currentUser.points?.math || 0}</li>
+        </ul>
+        <p><strong>Total Score:</strong> ${currentUser.total_score || 0}</p>
+    `;
+}
+
+changePasswordButton.addEventListener('click', async () => {
+    const newPass = prompt("Enter your new password (min 6 characters):");
+    if (newPass) {
+        if (newPass.length < 6) {
+            showToast("Password must be at least 6 characters.", 'error');
+            return;
+        }
+        showLoading();
+        try {
+            if (auth.currentUser) {
+                await auth.currentUser.updatePassword(newPass);
+                showToast("Password updated successfully!", 'success');
+            } else {
+                showToast("You must be logged in to change password.", 'error');
+            }
+        } catch (error) {
+            showToast("Failed to update password: " + error.message, 'error');
+        } finally {
+            hideLoading();
+        }
+    }
+});
+
+// Leaderboard Logic
+function loadLeaderboards() {
+    allLeaderboardsDiv.innerHTML = '';
+    db.ref('users').once('value').then(snapshot => {
+        const data = snapshot.val();
+        if (!data) {
+            allLeaderboardsDiv.innerHTML = '<p>No leaderboard data available yet.</p>';
+            return;
+        }
+        const subjects = ["physics", "chemistry", "biology", "indonesian", "english", "math"];
+
+        subjects.forEach(sub => {
+            let scores = [];
+            for (let uid in data) {
+                const user = data[uid];
+                const score = user.points && user.points[sub] ? user.points[sub] : 0;
+                scores.push({ name: user.name, score });
+            }
+            scores.sort((a, b) => b.score - a.score);
+
+            let tableRows = scores.slice(0, 10).map((user, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${user.name}</td>
+                    <td>${user.score}</td>
+                </tr>
+            `).join('');
+
+            allLeaderboardsDiv.innerHTML += `
+                <div class="leaderboard-subject">
+                    <h4>${sub.charAt(0).toUpperCase() + sub.slice(1)} Leaderboard (Top 10)</h4>
+                    <table>
+                        <thead>
+                            <tr><th>Rank</th><th>Name</th><th>Score</th></tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>
+                </div>
+            `;
+        });
+
+        // Overall Leaderboard
+        let overall = [];
+        for (let uid in data) {
+            const user = data[uid];
+            const score = user.total_score || 0;
+            overall.push({ name: user.name, score });
+        }
+        overall.sort((a, b) => b.score - a.score);
+
+        let overallRows = overall.slice(0, 10).map((user, index) => `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${user.name}</td>
+                <td>${user.score}</td>
+            </tr>
+        `).join('');
+
+        allLeaderboardsDiv.innerHTML += `
+            <div class="leaderboard-subject">
+                <h3>Overall Leaderboard (Top 10)</h3>
+                <table>
+                    <thead>
+                        <tr><th>Rank</th><th>Name</th><th>Score</th></tr>
+                    </thead>
+                    <tbody>${overallRows}</tbody>
+                </table>
+            </div>
+        `;
+    }).catch(error => {
+        console.error("Error loading leaderboards:", error);
+        allLeaderboardsDiv.innerHTML = '<p>Failed to load leaderboards.</p>';
+        showToast("Failed to load leaderboards: " + error.message, 'error');
+    });
+}
+
+// Exercise Logic
+startExerciseButton.addEventListener('click', () => {
+    currentSubject = subjectSelectEl.value;
+    if (!currentSubject) {
+        showToast('Please select a subject first!', 'error');
+        return;
+    }
+    if (!currentUser || !currentUser.education_level || !questions[currentUser.education_level] || !questions[currentUser.education_level][currentSubject]) {
+        showToast('Sorry, user data or questions for this subject not found!', 'error');
+        return;
+    }
+
+    if (confirm(`Are you ready to start the ${currentSubject} exercise?`)) {
+        currentQuestionIndex = 0;
+        userScore = 0;
+        shuffledQuestions = shuffleArray([...questions[currentUser.education_level][currentSubject]]).slice(0, 10);
+        displayQuestion();
+        startExerciseButton.style.display = 'none';
+        subjectSelectEl.disabled = true;
+    }
+});
+
+nextQuestionButton.addEventListener('click', () => {
+    currentQuestionIndex++;
+    displayQuestion();
+});
+
+finishExerciseButton.addEventListener('click', () => {
+    endExercise();
+});
+
+function displayQuestion() {
+    if (currentQuestionIndex >= shuffledQuestions.length) {
+        endExercise();
+        return;
+    }
+
+    const qObj = shuffledQuestions[currentQuestionIndex];
+    const shuffledOptions = shuffleArray([...qObj.options]);
+
+    questionDisplay.innerHTML = `
+        <p>${currentQuestionIndex + 1}. ${qObj.q}</p>
+        ${shuffledOptions.map(opt =>
+            `<button class="optionBtn" data-option="${opt}">${opt}</button>`).join('')}
+    `;
+    exerciseFeedback.textContent = '';
+    nextQuestionButton.style.display = 'none';
+    finishExerciseButton.style.display = 'none';
+
+    document.querySelectorAll('#questionDisplay .optionBtn').forEach(button => {
+        button.addEventListener('click', handleOptionClick);
+    });
+}
+
+function handleOptionClick(e) {
+    const selectedButton = e.target;
+    const selectedAnswer = selectedButton.dataset.option;
+    const qObj = shuffledQuestions[currentQuestionIndex];
+    const correctAnswer = qObj.answer;
+
+    // Disable all option buttons after selection
+    document.querySelectorAll('#questionDisplay .optionBtn').forEach(btn => {
+        btn.disabled = true;
+        if (btn.dataset.option === correctAnswer) {
+            btn.classList.add('correct');
+        } else if (btn.dataset.option === selectedAnswer) {
+            btn.classList.add('wrong');
+        }
+    });
+
+    if (selectedAnswer === correctAnswer) {
+        exerciseFeedback.textContent = "Correct!";
+        exerciseFeedback.style.color = 'var(--success-color)';
+        userScore += 1;
+    } else {
+        exerciseFeedback.textContent = `Wrong. The correct answer was: ${correctAnswer}`;
+        exerciseFeedback.style.color = 'var(--error-color)';
+    }
+
+    if (currentQuestionIndex < shuffledQuestions.length - 1) {
+        nextQuestionButton.style.display = 'block';
+    } else {
+        finishExerciseButton.style.display = 'block';
+    }
+}
+
+async function endExercise() {
+    showToast(`Exercise finished! Your score: ${userScore}/${shuffledQuestions.length}`, 'info');
+    if (currentUser && currentUser.uid) {
+        showLoading();
+        try {
+            await db.ref(`users/${currentUser.uid}/points/${currentSubject}`)
+                .transaction(val => (val || 0) + userScore);
+            await db.ref(`users/${currentUser.uid}/total_score`)
+                .transaction(val => (val || 0) + userScore);
+            showToast("Your score has been saved!", 'success');
+            const snapshot = await db.ref('users/' + currentUser.uid).once('value');
+            if (snapshot.exists()) {
+                currentUser = snapshot.val();
+                currentUser.uid = auth.currentUser.uid;
+                loadProfile();
+                loadLeaderboards();
+            }
+        } catch (error) {
+            showToast("Failed to save score: " + error.message, 'error');
+            console.error("Error saving score:", error);
+        } finally {
+            hideLoading();
+        }
+    } else {
+        showToast("Failed to save score: User data not found.", 'error');
+    }
+    questionDisplay.innerHTML = '';
+    exerciseFeedback.textContent = '';
+    nextQuestionButton.style.display = 'none';
+    finishExerciseButton.style.display = 'none';
+    startExerciseButton.style.display = 'block';
+    subjectSelectEl.disabled = false;
+    subjectSelectEl.value = ''; // Reset subject selection
+}
+
+// Navigation and Dark Mode
+document.querySelectorAll('nav button[data-page]').forEach(button => {
+    button.addEventListener('click', () => {
+        showPage(button.getAttribute('data-page'));
+    });
+});
+
+toggleDarkModeButton.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    // Save dark mode preference to localStorage
+    if (document.body.classList.contains('dark-mode')) {
+        localStorage.setItem('darkMode', 'enabled');
+    } else {
+        localStorage.setItem('darkMode', 'disabled');
+    }
+});
+
+// Load dark mode preference on page load
+document.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('darkMode') === 'enabled') {
+        document.body.classList.add('dark-mode');
+    }
+    // Set initial active nav button
+    const initialPage = document.querySelector('.container.sub-container.active');
+    if (initialPage) {
+        const pageId = initialPage.id;
+        const navButton = document.querySelector(`nav button[data-page="${pageId}"]`);
+        if (navButton) {
+            navButton.classList.add('active-nav');
+        }
+    }
+});
+
+showRegisterLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    showContainer('registerScreen');
+});
+
+showLoginLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    showContainer('loginScreen');
+});
+
+// Placeholder for Friends, Chat, Duel, Competition (requires Firebase implementation)
+document.getElementById('searchUsersButton').addEventListener('click', () => {
+    showToast("Search Users feature not yet implemented.", 'info');
+});
+document.getElementById('sendMessageButton').addEventListener('click', () => {
+    showToast("Chat feature not yet implemented.", 'info');
+});
+document.getElementById('startDuelButton').addEventListener('click', () => {
+    showToast("Duel feature not yet implemented.", 'info');
+});
+// You would need to implement the logic for these features using Firebase Realtime Database
+// For example, for friends:
+/*
+async function searchUsers() {
+    const searchTerm = searchUserInput.value.toLowerCase();
+    const searchResultsDiv = document.getElementById('searchResults');
+    searchResultsDiv.innerHTML = '';
+    if (searchTerm.length < 3) {
+        searchResultsDiv.innerHTML = '<p>Enter at least 3 characters to search.</p>';
+        return;
+    }
+    showLoading();
+    try {
+        const usersRef = db.ref('users');
+        const snapshot = await usersRef.orderByChild('name_lower').startAt(searchTerm).endAt(searchTerm + '\uf8ff').once('value');
+        const results = [];
+        snapshot.forEach(childSnapshot => {
+            const user = childSnapshot.val();
+            if (childSnapshot.key !== currentUser.uid) { // Don't show current user
+                results.push({ uid: childSnapshot.key, name: user.name });
+            }
+        });
+
+        if (results.length > 0) {
+            searchResultsDiv.innerHTML = '<ul>' + results.map(user => `
+                <li>${user.name} <button onclick="addFriend('${user.uid}')">Add Friend</button></li>
+            `).join('') + '</ul>';
+        } else {
+            searchResultsDiv.innerHTML = '<p>No users found.</p>';
+        }
+    } catch (error) {
+        showToast("Error searching users: " + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function addFriend(friendUid) {
+    if (!currentUser || !currentUser.uid) {
+        showToast("You must be logged in to add friends.", 'error');
+        return;
+    }
+    showLoading();
+    try {
+        // Add to current user's friend list
+        await db.ref(`users/${currentUser.uid}/friends/${friendUid}`).set(true);
+        // Add current user to friend's pending requests or direct friends
+        await db.ref(`users/${friendUid}/friend_requests/${currentUser.uid}`).set(true); // Or directly to friends
+        showToast("Friend request sent!", 'success');
+        loadFriends(); // Reload friend list
+    } catch (error) {
+        showToast("Failed to add friend: " + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function loadFriends() {
+    const friendListEl = document.getElementById('friendList');
+    friendListEl.innerHTML = '';
+    if (!currentUser || !currentUser.uid) return;
+
+    showLoading();
+    try {
+        const friendsRef = db.ref(`users/${currentUser.uid}/friends`);
+        const snapshot = await friendsRef.once('value');
+        const friendUids = snapshot.val();
+
+        if (friendUids) {
+            const friendNames = [];
+            for (const uid in friendUids) {
+                const friendSnapshot = await db.ref(`users/${uid}/name`).once('value');
+                if (friendSnapshot.exists()) {
+                    friendNames.push(friendSnapshot.val());
+                }
+            }
+            friendListEl.innerHTML = '<ul>' + friendNames.map(name => `<li>${name}</li>`).join('') + '</ul>';
+        } else {
+            friendListEl.innerHTML = '<p>You have no friends yet.</p>';
+        }
+    } catch (error) {
+        showToast("Failed to load friends: " + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+// Call loadFriends() on dashboard load or friendsPage activation
+*/
+</script>
+<footer><p>&copy; 2023 Atlantis Academy. All rights reserved.</p></footer>
+</body>
+</html>
