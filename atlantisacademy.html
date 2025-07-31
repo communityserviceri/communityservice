@@ -556,7 +556,7 @@ body.dark-mode #materialsPage li a {
 }
 
 #materialsPage li a:hover {
-    color: var(--accent-color);
+    color: #ff8f00;
 }
 
 body.dark-mode #materialsPage li a:hover {
@@ -622,6 +622,39 @@ body.dark-mode #duelRoomList li, body.dark-mode #friendRequestsList li, body.dar
     color: var(--error-color);
     text-align: center;
     margin-bottom: 15px;
+}
+
+/* New Duel UI Elements */
+.duel-score-display {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: var(--secondary-color);
+}
+
+.duel-score-display span {
+    padding: 5px 10px;
+    border-radius: 5px;
+    background: rgba(0, 77, 64, 0.1);
+}
+
+body.dark-mode .duel-score-display span {
+    background: rgba(255, 204, 128, 0.1);
+    color: var(--accent-color);
+}
+
+.duel-waiting-message {
+    text-align: center;
+    font-size: 1.1em;
+    color: var(--secondary-color);
+    margin-top: 20px;
+    display: none; /* Hidden by default */
+}
+
+body.dark-mode .duel-waiting-message {
+    color: var(--accent-color);
 }
 
 @keyframes fadeIn {
@@ -782,10 +815,14 @@ body.dark-mode #duelRoomList li, body.dark-mode #friendRequestsList li, body.dar
 
         <div id="duelQuizArea" style="display:none;">
             <h4>Duel in Progress: <span id="duelSubjectName"></span></h4>
-            <p>Opponent: <span id="duelOpponentName"></span></p>
+            <div class="duel-score-display">
+                <span id="playerScore">Your Score: 0</span>
+                <span id="opponentScore">Opponent Score: 0</span>
+            </div>
             <div id="timer"></div>
             <div id="duelQuestionDisplay"></div>
             <div id="duelExerciseFeedback"></div>
+            <div class="duel-waiting-message" id="duelWaitingMessage">Menunggu lawan menjawab...</div>
         </div>
 
         <div id="duelResults" style="display:none;">
@@ -876,6 +913,9 @@ let currentDuelRoomId = null;
 let currentDuelQuestions = [];
 let duelTimer = null;
 let duelQuestionTimeLimit = 20; // seconds per question
+let duelCurrentQuestionIndex = 0; // Track current question for duel
+let duelPlayerAnswered = false; // Track if current player has answered
+let duelOpponentId = null; // Store opponent's UID
 
 // DOM Elements
 const loginScreen = document.getElementById('loginScreen');
@@ -942,6 +982,9 @@ const duelTimerDisplay = document.getElementById('timer');
 const duelResultsDiv = document.getElementById('duelResults');
 const duelResultText = document.getElementById('duelResultText');
 const backToDuelLobbyButton = document.getElementById('backToDuelLobbyButton');
+const playerScoreSpan = document.getElementById('playerScore');
+const opponentScoreSpan = document.getElementById('opponentScore');
+const duelWaitingMessage = document.getElementById('duelWaitingMessage');
 
 
 // Question Data (from your original HTML, kept as is)
@@ -2387,13 +2430,21 @@ function getChatRoomId(uid1, uid2) {
 
 // Duel System Logic
 createDuelButton.addEventListener('click', createDuelRoom);
-backToDuelLobbyButton.addEventListener('click', () => {
+backToDuelLobbyButton.addEventListener('click', async () => {
+    // Clear current_duel_room status for current user
+    if (currentUser && currentUser.uid) {
+        await db.ref(`students/${currentUser.uid}/current_duel_room`).set(null);
+    }
     showDuelLobbyView();
     currentDuelRoomId = null;
     currentDuelQuestions = [];
+    duelCurrentQuestionIndex = 0;
+    duelPlayerAnswered = false;
+    duelOpponentId = null;
     if (duelTimer) clearInterval(duelTimer);
     duelTimer = null;
-    db.ref(`duels/${currentDuelRoomId}`).off(); // Detach listener
+    // Detach listener from the previous duel room
+    db.ref(`duels/${currentDuelRoomId}`).off();
 });
 
 function loadDuelLobby() {
@@ -2423,8 +2474,8 @@ function loadDuelLobby() {
 function updateDuelOpponentSelect() {
     duelOpponentSelect.innerHTML = '<option value="">Select Opponent</option>';
     for (const uid in onlineUsers) {
-        // Check if they are friends AND online
-        if (currentUser.friends && currentUser.friends[uid] && onlineUsers[uid].status === 'online') {
+        // Check if they are friends AND online AND not currently in a duel
+        if (currentUser.friends && currentUser.friends[uid] && onlineUsers[uid].status === 'online' && !onlineUsers[uid].current_duel_room) {
             const option = document.createElement('option');
             option.value = uid;
             option.textContent = onlineUsers[uid].name;
@@ -2460,15 +2511,16 @@ async function createDuelRoom() {
         const duelId = duelRef.key;
 
         // Generate unique questions for each player
-        const player1Questions = shuffleArray([...questions[currentUser.education_level][subject]]).slice(0, 20);
-        const player2Questions = shuffleArray([...questions[currentUser.education_level][subject]]).slice(0, 20);
+        const player1Questions = shuffleArray([...questions[currentUser.education_level][subject]]).slice(0, 10); // Reduced to 10 for faster testing
+        const player2Questions = shuffleArray([...questions[currentUser.education_level][subject]]).slice(0, 10); // Reduced to 10 for faster testing
+
+        duelOpponentId = opponentUid; // Store opponent's UID
 
         await duelRef.set({
             challengerId: currentUser.uid,
             challengerName: currentUser.name,
             opponentId: opponentUid,
-            // MENGAMBIL NAMA LAWAN DARI FIELD 'STUDENTS'
-            opponentName: (await db.ref(`students/${opponentUid}/name`).once('value')).val(),
+            opponentName: onlineUsers[opponentUid].name, // Get opponent name from onlineUsers cache
             subject: subject,
             status: 'pending', // pending, active, finished
             questions: {
@@ -2479,7 +2531,11 @@ async function createDuelRoom() {
                 [currentUser.uid]: 0,
                 [opponentUid]: 0
             },
-            currentQuestionIndex: 0,
+            currentQuestionIndex: 0, // This will be the global question index for the duel
+            playerStatus: { // Track if players have answered the current question
+                [currentUser.uid]: { answered: false, scoreForCurrentQ: 0 },
+                [opponentUid]: { answered: false, scoreForCurrentQ: 0 }
+            },
             timestamp: firebase.database.ServerValue.TIMESTAMP
         });
 
@@ -2535,7 +2591,23 @@ function listenForDuelRequests() {
 async function acceptDuel(duelId, challengerId) {
     showLoading();
     try {
-        await db.ref(`duels/${duelId}/status`).set('active');
+        const duelRef = db.ref(`duels/${duelId}`);
+        const duelSnapshot = await duelRef.once('value');
+        if (!duelSnapshot.exists()) {
+            showToast("Duel no longer exists.", 'error');
+            hideLoading();
+            return;
+        }
+        const duelData = duelSnapshot.val();
+        if (duelData.status !== 'pending') {
+            showToast("Duel is no longer pending.", 'error');
+            hideLoading();
+            return;
+        }
+
+        duelOpponentId = challengerId; // Store opponent's UID
+
+        await duelRef.update({ status: 'active' });
         // MENGHAPUS PERMINTAAN DARI FIELD 'STUDENTS'
         await db.ref(`students/${currentUser.uid}/incoming_duel_requests/${duelId}`).remove();
         // MENGATUR CURRENT_DUEL_ROOM DI FIELD 'STUDENTS'
@@ -2555,12 +2627,24 @@ async function acceptDuel(duelId, challengerId) {
 async function declineDuel(duelId, challengerId) {
     showLoading();
     try {
-        await db.ref(`duels/${duelId}`).remove(); // Remove the duel room
-        // MENGHAPUS PERMINTAAN DARI FIELD 'STUDENTS'
-        await db.ref(`students/${currentUser.uid}/incoming_duel_requests/${duelId}`).remove();
-        // MENGATUR CURRENT_DUEL_ROOM DI FIELD 'STUDENTS'
-        await db.ref(`students/${challengerId}/current_duel_room`).set(null); // Clear challenger's room status
-        showToast('Duel declined.', 'info');
+        const duelRef = db.ref(`duels/${duelId}`);
+        const duelSnapshot = await duelRef.once('value');
+        if (duelSnapshot.exists()) {
+            const duel = duelSnapshot.val();
+            // Only remove if it's still pending and the current user is the opponent
+            if (duel.status === 'pending' && duel.opponentId === currentUser.uid) {
+                await duelRef.remove(); // Remove the duel room
+                // MENGHAPUS PERMINTAAN DARI FIELD 'STUDENTS'
+                await db.ref(`students/${currentUser.uid}/incoming_duel_requests/${duelId}`).remove();
+                // MENGATUR CURRENT_DUEL_ROOM DI FIELD 'STUDENTS'
+                await db.ref(`students/${challengerId}/current_duel_room`).set(null); // Clear challenger's room status
+                showToast('Duel declined.', 'info');
+            } else {
+                showToast('Duel cannot be declined at this stage.', 'error');
+            }
+        } else {
+            showToast('Duel no longer exists.', 'info');
+        }
     } catch (error) {
         showToast("Failed to decline duel: " + error.message, 'error');
         console.error("Error declining duel:", error);
@@ -2578,11 +2662,8 @@ function listenForActiveDuelRooms() {
             const duel = childSnapshot.val();
             const duelId = childSnapshot.key;
 
+            // If the current user is involved in an active duel, ensure they are in the quiz area
             if (duel.status === 'active' && (duel.challengerId === currentUser.uid || duel.opponentId === currentUser.uid)) {
-                // This is an active duel involving the current user
-                // The UI should already be in duelQuizArea, so no need to list here.
-                // This listener is more for general overview or if a user navigates away and comes back.
-                // For now, we'll just ensure the user is in the correct view.
                 if (currentDuelRoomId === duelId) {
                     showDuelQuizAreaView();
                 }
@@ -2609,14 +2690,22 @@ async function cancelDuel(duelId) {
         const duelSnapshot = await duelRef.once('value');
         if (duelSnapshot.exists()) {
             const duel = duelSnapshot.val();
-            // MENGHAPUS PERMINTAAN DARI FIELD 'STUDENTS'
-            await db.ref(`students/${duel.opponentId}/incoming_duel_requests/${duelId}`).remove();
-            // MENGATUR CURRENT_DUEL_ROOM DI FIELD 'STUDENTS'
-            await db.ref(`students/${duel.opponentId}/current_duel_room`).set(null);
-            await db.ref(`students/${currentUser.uid}/current_duel_room`).set(null);
-            await duelRef.remove();
-            showToast('Duel cancelled.', 'info');
-            currentDuelRoomId = null;
+            // Only allow challenger to cancel if pending
+            if (duel.status === 'pending' && duel.challengerId === currentUser.uid) {
+                // MENGHAPUS PERMINTAAN DARI FIELD 'STUDENTS'
+                await db.ref(`students/${duel.opponentId}/incoming_duel_requests/${duelId}`).remove();
+                // MENGATUR CURRENT_DUEL_ROOM DI FIELD 'STUDENTS'
+                await db.ref(`students/${duel.opponentId}/current_duel_room`).set(null);
+                await db.ref(`students/${currentUser.uid}/current_duel_room`).set(null);
+                await duelRef.remove();
+                showToast('Duel cancelled.', 'info');
+                currentDuelRoomId = null;
+                showDuelLobbyView(); // Return to lobby
+            } else {
+                showToast('Duel cannot be cancelled at this stage or by this user.', 'error');
+            }
+        } else {
+            showToast('Duel no longer exists.', 'info');
         }
     } catch (error) {
         showToast("Failed to cancel duel: " + error.message, 'error');
@@ -2627,32 +2716,66 @@ async function cancelDuel(duelId) {
 }
 
 function listenToDuelRoom(duelId) {
+    // Detach any existing listener to prevent multiple calls
+    if (currentDuelRoomId) {
+        db.ref(`duels/${currentDuelRoomId}`).off();
+    }
+    currentDuelRoomId = duelId; // Set the current duel room ID
+
     db.ref(`duels/${duelId}`).on('value', (snapshot) => {
         const duel = snapshot.val();
         if (!duel) {
             showToast('Duel ended or cancelled by opponent.', 'info');
             showDuelLobbyView();
-            currentDuelRoomId = null;
-            currentDuelQuestions = [];
-            if (duelTimer) clearInterval(duelTimer);
-            duelTimer = null;
             return;
         }
+
+        // Determine opponent's UID
+        duelOpponentId = (duel.challengerId === currentUser.uid) ? duel.opponentId : duel.challengerId;
+
+        // Update scores display
+        playerScoreSpan.textContent = `Your Score: ${duel.scores[currentUser.uid] || 0}`;
+        opponentScoreSpan.textContent = `Opponent Score: ${duel.scores[duelOpponentId] || 0}`;
 
         if (duel.status === 'active') {
             showDuelQuizAreaView();
             duelSubjectNameSpan.textContent = duel.subject.charAt(0).toUpperCase() + duel.subject.slice(1);
-            duelOpponentNameSpan.textContent = duel.challengerId === currentUser.uid ? duel.opponentName : duel.challengerName;
+            duelOpponentNameSpan.textContent = (duel.challengerId === currentUser.uid) ? duel.opponentName : duel.challengerName;
 
             currentDuelQuestions = duel.questions[currentUser.uid]; // Get questions specific to current user
-            const currentQIndex = duel.currentQuestionIndex;
+            duelCurrentQuestionIndex = duel.currentQuestionIndex; // Global question index
 
-            if (currentQIndex < currentDuelQuestions.length) {
-                displayDuelQuestion(currentQIndex, duelId);
-            } else {
+            const currentPlayerStatus = duel.playerStatus[currentUser.uid];
+            const opponentPlayerStatus = duel.playerStatus[duelOpponentId];
+
+            if (duelCurrentQuestionIndex >= currentDuelQuestions.length) {
                 // All questions answered, show results
                 showDuelResults(duelId, duel);
+                return;
             }
+
+            if (currentPlayerStatus && currentPlayerStatus.answered) {
+                // Current player has answered, wait for opponent
+                duelQuestionDisplay.innerHTML = ''; // Clear question
+                duelExerciseFeedback.textContent = ''; // Clear feedback
+                duelTimerDisplay.textContent = 'Waiting...';
+                duelWaitingMessage.style.display = 'block';
+                if (duelTimer) clearInterval(duelTimer); // Stop timer
+            } else {
+                // Current player needs to answer
+                duelWaitingMessage.style.display = 'none';
+                displayDuelQuestion(duelCurrentQuestionIndex, duelId);
+            }
+
+            // If both players have answered the current question, advance to next
+            if (currentPlayerStatus && currentPlayerStatus.answered && opponentPlayerStatus && opponentPlayerStatus.answered) {
+                // Reset answered status for next question
+                db.ref(`duels/${duelId}/playerStatus/${currentUser.uid}/answered`).set(false);
+                db.ref(`duels/${duelId}/playerStatus/${duelOpponentId}/answered`).set(false);
+                // Advance global question index
+                db.ref(`duels/${duelId}/currentQuestionIndex`).transaction(currentVal => (currentVal || 0) + 1);
+            }
+
         } else if (duel.status === 'finished') {
             showDuelResults(duelId, duel);
         }
@@ -2685,6 +2808,7 @@ function displayDuelQuestion(qIndex, duelId) {
 
     document.querySelectorAll('#duelQuestionDisplay .optionBtn').forEach(button => {
         button.onclick = () => handleDuelOptionClick(button, qIndex, duelId);
+        button.disabled = false; // Ensure buttons are enabled for new question
     });
 }
 
@@ -2716,28 +2840,15 @@ async function handleDuelOptionClick(selectedButton, qIndex, duelId) {
         duelExerciseFeedback.style.color = 'var(--error-color)';
     }
 
-    // Update score and question index in Firebase
+    // Update player's score for current question and mark as answered
     const updates = {};
-    updates[`duels/${duelId}/scores/${currentUser.uid}`] = firebase.database.ServerValue.increment(scoreEarned);
-    // Only increment currentQuestionIndex if it's the challenger or if both players have answered
-    // For simplicity, we'll let the challenger control the question progression.
-    // A more robust system would track each player's progress.
-    // For this implementation, we'll assume the challenger advances the question.
-    // Or, we can advance for both if both have submitted/timed out.
-    // Let's make it simpler: the current user updates their own score, and the duel room's currentQuestionIndex is advanced by the challenger.
-    // If not challenger, just update score.
-    // MENGAMBIL DATA DARI FIELD 'STUDENTS'
-    if (currentUser.uid === (await db.ref(`students/${duelId}/challengerId`).once('value')).val()) {
-        updates[`duels/${duelId}/currentQuestionIndex`] = qIndex + 1;
-    }
+    updates[`duels/${duelId}/playerStatus/${currentUser.uid}/answered`] = true;
+    updates[`duels/${duelId}/playerStatus/${currentUser.uid}/scoreForCurrentQ`] = scoreEarned;
 
     await db.ref().update(updates);
 
-    // Wait a bit before moving to the next question
-    setTimeout(() => {
-        // The listener `listenToDuelRoom` will automatically call `displayDuelQuestion` for the next question
-        // or `showDuelResults` if all questions are done.
-    }, 2000); // 2 seconds delay
+    // The `listenToDuelRoom` function will handle advancing the question
+    // once both players have answered.
 }
 
 async function showDuelResults(duelId, duelData) {
@@ -2751,41 +2862,56 @@ async function showDuelResults(duelId, duelData) {
     const challengerScore = duelData.scores[duelData.challengerId] || 0;
     const opponentScore = duelData.scores[duelData.opponentId] || 0;
 
-    let resultMessage = `Duel Finished! <br>`;
-    resultMessage += `${duelData.challengerName}: ${challengerScore} points <br>`;
-    resultMessage += `${duelData.opponentName}: ${opponentScore} points <br>`;
+    let resultMessage = `<h3>Duel Selesai!</h3>`;
+    resultMessage += `<p>${duelData.challengerName}: <span style="color: var(--secondary-color);">${challengerScore} Poin</span></p>`;
+    resultMessage += `<p>${duelData.opponentName}: <span style="color: var(--secondary-color);">${opponentScore} Poin</span></p>`;
 
     if (challengerScore > opponentScore) {
-        resultMessage += `<strong>${duelData.challengerName} wins!</strong>`;
+        resultMessage += `<p style="font-size: 1.3em; font-weight: bold; color: var(--success-color);">🎉 ${duelData.challengerName} MENANG! 🎉</p>`;
     } else if (opponentScore > challengerScore) {
-        resultMessage += `<strong>${duelData.opponentName} wins!</strong>`;
+        resultMessage += `<p style="font-size: 1.3em; font-weight: bold; color: var(--success-color);">🎉 ${duelData.opponentName} MENANG! 🎉</p>`;
     } else {
-        resultMessage += `<strong>It's a tie!</strong>`;
+        resultMessage += `<p style="font-size: 1.3em; font-weight: bold; color: var(--accent-color);">🤝 SERI! Pertarungan Sengit! 🤝</p>`;
     }
 
     duelResultText.innerHTML = resultMessage;
 
-    // Clean up duel room after results are shown and user clicks back to lobby
-    // Or, set a timeout to remove it after a certain period
-    // For now, let's remove it when both players have finished and seen results, or after a delay.
-    // A more robust system would have a 'viewed results' flag for each player.
-    // For simplicity, the challenger can remove the room.
-    if (currentUser.uid === duelData.challengerId) {
-        // Give some time for opponent to see results, then remove
-        setTimeout(async () => {
-            await db.ref(`duels/${duelId}`).remove();
-            // MENGATUR CURRENT_DUEL_ROOM DI FIELD 'STUDENTS'
-            await db.ref(`students/${duelData.challengerId}/current_duel_room`).set(null);
-            await db.ref(`students/${duelData.opponentId}/current_duel_room`).set(null);
-            showToast('Duel room closed.', 'info');
-        }, 10000); // Room auto-closes after 10 seconds
+    // Update total score for both players in their student profiles
+    if (currentUser.uid === duelData.challengerId || currentUser.uid === duelData.opponentId) {
+        showLoading();
+        try {
+            const finalScore = duelData.scores[currentUser.uid] || 0;
+            await db.ref(`students/${currentUser.uid}/points/${duelData.subject}`)
+                .transaction(val => (val || 0) + finalScore);
+            await db.ref(`students/${currentUser.uid}/total_score`)
+                .transaction(val => (val || 0) + finalScore);
+            showToast("Skor duel Anda telah disimpan!", 'success');
+            loadProfile(); // Refresh profile to show updated scores
+            loadLeaderboards(); // Refresh leaderboards
+        } catch (error) {
+            showToast("Gagal menyimpan skor duel: " + error.message, 'error');
+            console.error("Error saving duel score:", error);
+        } finally {
+            hideLoading();
+        }
     }
+
+    // Detach listener from the duel room after results are shown
+    db.ref(`duels/${duelId}`).off();
+    currentDuelRoomId = null; // Clear the current duel room ID
+    duelCurrentQuestionIndex = 0;
+    duelPlayerAnswered = false;
+    duelOpponentId = null;
 }
 
 function showDuelLobbyView() {
     duelLobby.style.display = 'block';
     duelQuizArea.style.display = 'none';
     duelResultsDiv.style.display = 'none';
+    // Ensure current_duel_room is cleared when returning to lobby
+    if (currentUser && currentUser.uid) {
+        db.ref(`students/${currentUser.uid}/current_duel_room`).set(null);
+    }
     // Detach duel room listener if any
     if (currentDuelRoomId) {
         db.ref(`duels/${currentDuelRoomId}`).off();
