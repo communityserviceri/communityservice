@@ -575,6 +575,55 @@ footer {
     margin-top: auto; /* Push footer to bottom */
 }
 
+/* Duel Specific Styles */
+#duelRoomList, #duelChallengeForm, #duelQuizArea, #duelResults {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: rgba(0, 77, 64, 0.05);
+}
+
+body.dark-mode #duelRoomList, body.dark-mode #duelChallengeForm, body.dark-mode #duelQuizArea, body.dark-mode #duelResults {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+#duelRoomList ul, #friendRequestsList ul {
+    list-style: none;
+    padding: 0;
+}
+
+#duelRoomList li, #friendRequestsList li, #friendList li, #searchResults li {
+    background: rgba(0, 77, 64, 0.1);
+    margin-bottom: 8px;
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-dark);
+}
+
+body.dark-mode #duelRoomList li, body.dark-mode #friendRequestsList li, body.dark-mode #friendList li, body.dark-mode #searchResults li {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--dark-mode-text);
+}
+
+#duelRoomList li button, #friendRequestsList li button, #searchResults li button {
+    width: auto;
+    margin: 0 5px;
+    padding: 8px 12px;
+    font-size: 0.9em;
+}
+
+#duelQuizArea #timer {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--error-color);
+    text-align: center;
+    margin-bottom: 15px;
+}
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -649,7 +698,7 @@ footer {
 
 <!-- Registration Screen -->
 <div id="registerScreen" class="container">
-    <h2><i class="fas fa-user-plus"></i> Register</h2>
+    <h2><i class="fas fa-user-plus"></i> Register as Student</h2>
     <input type="text" id="name" placeholder="Name">
     <input type="email" id="registerEmail" placeholder="Email (@atlantis.student.com)">
     <select id="educationLevel">
@@ -686,6 +735,8 @@ footer {
         <input type="text" id="searchUserInput" placeholder="Search student name...">
         <button id="searchUsersButton"><i class="fas fa-search"></i> Search</button>
         <div id="searchResults"></div>
+        <h4>Friend Requests</h4>
+        <ul id="friendRequestsList"></ul>
         <h4>My Friends</h4>
         <ul id="friendList"></ul>
     </div>
@@ -693,20 +744,55 @@ footer {
     <!-- Chat System -->
     <div id="chatPage" class="container sub-container">
         <h3><i class="fas fa-comments"></i> Chat</h3>
+        <select id="chatFriendSelect">
+            <option value="">Select a friend to chat</option>
+        </select>
         <div id="chatMessages" style="max-height:300px;overflow-y:auto;border:1px solid var(--border-color);padding:10px;border-radius:8px;background:rgba(0,0,0,0.05);"></div>
-        <input type="text" id="chatInput" placeholder="Type your message...">
-        <button id="sendMessageButton"><i class="fas fa-paper-plane"></i> Send</button>
+        <input type="text" id="chatInput" placeholder="Type your message..." disabled>
+        <button id="sendMessageButton" disabled><i class="fas fa-paper-plane"></i> Send</button>
     </div>
 
     <!-- Duel/VS System -->
     <div id="duelPage" class="container sub-container">
         <h3><i class="fas fa-fist-raised"></i> VS/Duel</h3>
         <p>Challenge your friend to a quiz match.</p>
-        <select id="duelOpponentSelect">
-            <option value="">Select Opponent</option>
-        </select>
-        <button id="startDuelButton"><i class="fas fa-play"></i> Start Duel</button>
-        <div id="duelStatus"></div>
+
+        <div id="duelLobby">
+            <h4>Available Opponents (Online Friends)</h4>
+            <select id="duelOpponentSelect">
+                <option value="">Select Opponent</option>
+            </select>
+            <select id="duelSubjectSelect">
+                <option value="">Select Subject</option>
+                <option value="physics">Physics</option>
+                <option value="chemistry">Chemistry</option>
+                <option value="biology">Biology</option>
+                <option value="indonesian">Indonesian</option>
+                <option value="english">English</option>
+                <option value="math">Math</option>
+            </select>
+            <button id="createDuelButton"><i class="fas fa-plus-circle"></i> Create Duel</button>
+
+            <h4>Incoming Duel Requests</h4>
+            <ul id="incomingDuelRequests"></ul>
+
+            <h4>Active Duel Rooms</h4>
+            <ul id="activeDuelRooms"></ul>
+        </div>
+
+        <div id="duelQuizArea" style="display:none;">
+            <h4>Duel in Progress: <span id="duelSubjectName"></span></h4>
+            <p>Opponent: <span id="duelOpponentName"></span></p>
+            <div id="timer"></div>
+            <div id="duelQuestionDisplay"></div>
+            <div id="duelExerciseFeedback"></div>
+        </div>
+
+        <div id="duelResults" style="display:none;">
+            <h4>Duel Results</h4>
+            <p id="duelResultText"></p>
+            <button id="backToDuelLobbyButton"><i class="fas fa-undo"></i> Back to Lobby</button>
+        </div>
     </div>
 
     <!-- Competition System -->
@@ -784,6 +870,12 @@ let currentSubject = '';
 let currentQuestionIndex = 0;
 let userScore = 0;
 let shuffledQuestions = [];
+let onlineUsers = {}; // To store online users for chat/duel
+let selectedChatFriendUid = null; // For direct chat
+let currentDuelRoomId = null;
+let currentDuelQuestions = [];
+let duelTimer = null;
+let duelQuestionTimeLimit = 20; // seconds per question
 
 // DOM Elements
 const loginScreen = document.getElementById('loginScreen');
@@ -820,6 +912,37 @@ const nextQuestionButton = document.getElementById('nextQuestionButton');
 const finishExerciseButton = document.getElementById('finishExerciseButton');
 
 const allLeaderboardsDiv = document.getElementById('allLeaderboards');
+
+// Friends DOM
+const searchUserInput = document.getElementById('searchUserInput');
+const searchUsersButton = document.getElementById('searchUsersButton');
+const searchResultsDiv = document.getElementById('searchResults');
+const friendRequestsList = document.getElementById('friendRequestsList');
+const friendListEl = document.getElementById('friendList');
+
+// Chat DOM
+const chatFriendSelect = document.getElementById('chatFriendSelect');
+const chatMessagesDiv = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const sendMessageButton = document.getElementById('sendMessageButton');
+
+// Duel DOM
+const duelLobby = document.getElementById('duelLobby');
+const duelOpponentSelect = document.getElementById('duelOpponentSelect');
+const duelSubjectSelect = document.getElementById('duelSubjectSelect');
+const createDuelButton = document.getElementById('createDuelButton');
+const incomingDuelRequests = document.getElementById('incomingDuelRequests');
+const activeDuelRooms = document.getElementById('activeDuelRooms');
+const duelQuizArea = document.getElementById('duelQuizArea');
+const duelSubjectNameSpan = document.getElementById('duelSubjectName');
+const duelOpponentNameSpan = document.getElementById('duelOpponentName');
+const duelQuestionDisplay = document.getElementById('duelQuestionDisplay');
+const duelExerciseFeedback = document.getElementById('duelExerciseFeedback');
+const duelTimerDisplay = document.getElementById('timer');
+const duelResultsDiv = document.getElementById('duelResults');
+const duelResultText = document.getElementById('duelResultText');
+const backToDuelLobbyButton = document.getElementById('backToDuelLobbyButton');
+
 
 // Question Data (from your original HTML, kept as is)
 const questions = {
@@ -1306,7 +1429,7 @@ const questions = {
       { q: "Apa yang terjadi jika hambatan meningkat dalam rangkaian tertutup?", options: ["Arus meningkat", "Arus tetap", "Arus menurun", "Tegangan turun"], answer: "Arus menurun" },
       { q: "Sebuah benda memiliki massa 4 kg dan percepatan 3 m/s². Berapa resultan gayanya?", options: ["12 N", "7 N", "1.33 N", "24 N"], answer: "12 N" },
       { q: "Benda yang dilempar ke atas akan mengalami percepatan sebesar?", options: ["9.8 m/s² ke bawah", "0 m/s²", "9.8 m/s² ke atas", "tergantung massa"], answer: "9.8 m/s² ke bawah" },
-      { q: "Gelombang transversal memiliki arah getaran yang _____ terhadap arah rambat.", options: ["sejajar", "tegak lurus", "melingkar", "terbalik"], answer: "teguk lurus" },
+      { q: "Gelombang transversal memiliki arah getaran yang _____ terhadap arah rambat.", options: ["sejajar", "teguk lurus", "melingkar", "terbalik"], answer: "teguk lurus" },
       { q: "Contoh gelombang mekanik adalah?", options: ["gelombang cahaya", "gelombang radio", "gelombang air", "gelombang elektromagnetik"], answer: "gelombang air" },
       { q: "Rumus massa jenis (ρ) adalah?", options: ["massa × volume", "massa / volume", "volume / massa", "gaya / luas"], answer: "massa / volume" },
       { q: "Kecepatan cahaya di ruang hampa adalah?", options: ["3 × 10⁸ m/s", "3 × 10⁶ m/s", "1 × 10⁸ m/s", "1.5 × 10⁸ m/s"], answer: "3 × 10⁸ m/s" },
@@ -1497,19 +1620,19 @@ const questions = {
     math: [
       { q: "Jika f(x) = 2x + 3, maka f(4) = ?", options: ["10", "11", "9", "12"], answer: "11" },
       { q: "Penyelesaian dari 2x - 5 = 9 adalah?", options: ["6", "7", "5", "8"], answer: "7" },
-      { q: "Himpunan penyelesaian dari |x - 3| < 5 adalah?", options: ["x < 8", "x > -2", "-2 < x < 8", "x > 8"], answer: "-2 < x < 8" },
-      { q: "Jika a = 3 dan b = -2, maka nilai dari a² - 2ab adalah?", options: ["25", "5", "1", "16"], answer: "25" },
-      { q: "Fungsi f(x) = x² - 2x + 1, nilai minimum terjadi saat x = ?", options: ["-1", "0", "1", "2"], answer: "1" },
-      { q: "Gradien garis yang melalui titik (2, 3) dan (4, 7) adalah?", options: ["2", "3", "1", "4"], answer: "2" },
-      { q: "Persamaan garis lurus dengan gradien 2 dan melalui titik (1, 2) adalah?", options: ["y = 2x", "y = 2x + 1", "y = 2x - 2", "y = 2x + 0"], answer: "y = 2x" },
-      { q: "Jika sin x = 1/2 dan 0° < x < 90°, maka x = ?", options: ["30°", "45°", "60°", "90°"], answer: "30°" },
-      { q: "Nilai dari cos² 30° + sin² 30° adalah?", options: ["0.5", "1", "√3", "2"], answer: "1" },
-      { q: "Turunan dari f(x) = 3x² adalah?", options: ["6x", "3x", "2x", "x²"], answer: "6x" },
-      { q: "Limit dari (x² - 4)/(x - 2) saat x → 2 adalah?", options: ["0", "2", "4", "∞"], answer: "4" },
-      { q: "Integral dari ∫2x dx adalah?", options: ["2x", "x²", "x² + C", "2x² + C"], answer: "x² + C" },
+      { q: "Himpunan penyelesaian dari $|x - 3| < 5$ adalah?", options: ["$x < 8$", "$x > -2$", "$-2 < x < 8$", "$x > 8$"], answer: "$-2 < x < 8$" },
+      { q: "Jika $a = 3$ dan $b = -2$, maka nilai dari $a^2 - 2ab$ adalah?", options: ["25", "5", "1", "16"], answer: "25" },
+      { q: "Fungsi $f(x) = x^2 - 2x + 1$, nilai minimum terjadi saat $x = $?", options: ["-1", "0", "1", "2"], answer: "1" },
+      { q: "Gradien garis yang melalui titik $(2, 3)$ dan $(4, 7)$ adalah?", options: ["2", "3", "1", "4"], answer: "2" },
+      { q: "Persamaan garis lurus dengan gradien 2 dan melalui titik $(1, 2)$ adalah?", options: ["$y = 2x$", "$y = 2x + 1$", "$y = 2x - 2$", "$y = 2x + 0$"], answer: "$y = 2x$" },
+      { q: "Jika $\\sin x = 1/2$ dan $0° < x < 90°$, maka $x = $?", options: ["30°", "45°", "60°", "90°"], answer: "30°" },
+      { q: "Nilai dari $\\cos^2 30° + \\sin^2 30°$ adalah?", options: ["0.5", "1", "$\\sqrt{3}$", "2"], answer: "1" },
+      { q: "Turunan dari $f(x) = 3x^2$ adalah?", options: ["$6x$", "$3x$", "$2x$", "$x^2$"], answer: "$6x$" },
+      { q: "Limit dari $(x^2 - 4)/(x - 2)$ saat $x \\to 2$ adalah?", options: ["0", "2", "4", "$\\infty$"], answer: "4" },
+      { q: "Integral dari $\\int 2x \\, dx$ adalah?", options: ["$2x$", "$x^2$", "$x^2 + C$", "$2x^2 + C$"], answer: "$x^2 + C$" },
       { q: "Volume bola dengan jari-jari 7 cm adalah?", options: ["1436 cm³", "1445 cm³", "1437 cm³", "1470 cm³"], answer: "1436 cm³" },
-      { q: "Rumus luas permukaan kerucut adalah?", options: ["πr²", "πr(r + s)", "2πr", "πr²h"], answer: "πr(r + s)" },
-      { q: "Jika vektor u = (2, 3) dan v = (1, 4), maka u + v = ?", options: ["(3, 7)", "(1, 1)", "(2, 4)", "(3, 4)"], answer: "(3, 7)" },
+      { q: "Rumus luas permukaan kerucut adalah?", options: ["$\\pi r^2$", "$\\pi r(r + s)$", "$2\\pi r$", "$\\pi r^2 h$"], answer: "$\\pi r(r + s)$" },
+      { q: "Jika vektor $u = (2, 3)$ dan $v = (1, 4)$, maka $u + v = $?", options: ["$(3, 7)$", "$(1, 1)$", "$(2, 4)$", "$(3, 4)$"], answer: "$(3, 7)$" },
       { q: "Det(A) jika matriks A = [[1,2],[3,4]] adalah?", options: ["2", "-2", "1", "-1"], answer: "-2" },
       { q: "Jika matriks A berordo 2x2 dan B 2x2, maka ordo hasil A × B adalah?", options: ["2x2", "2x1", "1x2", "4x4"], answer: "2x2" },
       { q: "Median dari data 3, 7, 8, 10, 11 adalah?", options: ["7", "8", "10", "9"], answer: "8" },
@@ -1519,29 +1642,29 @@ const questions = {
       { q: "Peluang muncul mata dadu 5 saat dilempar 1 kali adalah?", options: ["1/5", "1/6", "1/4", "1/3"], answer: "1/6" },
       { q: "Jika A = {1,2,3} dan B = {3,4,5}, maka A ∩ B = ?", options: ["{3}", "{1,2}", "{1,2,3}", "{3,4,5}"], answer: "{3}" },
       { q: "Jika P(A) = 3/5, maka peluang komplemennya adalah?", options: ["2/5", "1/2", "1/5", "4/5"], answer: "2/5" },
-      { q: "Fungsi kuadrat y = ax² + bx + c memiliki sumbu simetri di x = ?", options: ["-b/2a", "-a/2b", "b/2a", "-c/2a"], answer: "-b/2a" },
+      { q: "Fungsi kuadrat $y = ax^2 + bx + c$ memiliki sumbu simetri di $x = $?", options: ["$-b/2a$", "$-a/2b$", "$b/2a$", "$-c/2a$"], answer: "$-b/2a$" },
       { q: "Volume kubus dengan sisi 5 cm adalah?", options: ["125", "150", "100", "120"], answer: "125" },
       { q: "Jika tinggi tabung 10 cm dan diameter alas 14 cm, maka volumenya adalah?", options: ["1540 cm³", "1430 cm³", "1200 cm³", "980 cm³"], answer: "1540 cm³" },
       { q: "Sudut dalam segitiga jumlahnya adalah?", options: ["90°", "180°", "360°", "270°"], answer: "180°" },
-      { q: "Diagonal ruang kubus dengan sisi s adalah?", options: ["s√2", "s√3", "s", "2s"], answer: "s√3" },
+      { q: "Diagonal ruang kubus dengan sisi s adalah?", options: ["$s\\sqrt{2}$", "$s\\sqrt{3}$", "$s$", "$2s$"], answer: "$s\\sqrt{3}$" },
       { q: "Jumlah sudut segi enam (heksagon) adalah?", options: ["540°", "720°", "360°", "600°"], answer: "720°" },
       { q: "Jika a dan b berbanding 3:4, maka jika a = 9, b = ?", options: ["12", "15", "10", "8"], answer: "12" },
-      { q: "Rumus luas trapesium adalah?", options: ["½(a + b)t", "ab", "½ab", "a + b × t"], answer: "½(a + b)t" },
+      { q: "Rumus luas trapesium adalah?", options: ["$\\frac{1}{2}(a + b)t$", "$ab$", "$\\frac{1}{2}ab$", "$a + b \\times t$"], answer: "$\\frac{1}{2}(a + b)t$" },
       { q: "Jumlah deret aritmetika 5 bilangan pertama dari 2, 4, 6,... adalah?", options: ["30", "20", "25", "40"], answer: "30" },
       { q: "Suku ke-6 dari barisan geometri 3, 6, 12,... adalah?", options: ["96", "192", "384", "48"], answer: "96" },
-      { q: "Penyelesaian dari x² - 9 = 0 adalah?", options: ["±3", "3", "-3", "9"], answer: "±3" },
-      { q: "Hasil dari (a + b)² adalah?", options: ["a² + 2ab + b²", "a² - 2ab + b²", "a² + b²", "a² - b²"], answer: "a² + 2ab + b²" },
+      { q: "Penyelesaian dari $x^2 - 9 = 0$ adalah?", options: ["$\\pm3$", "3", "-3", "9"], answer: "$\\pm3$" },
+      { q: "Hasil dari $(a + b)^2$ adalah?", options: ["$a^2 + 2ab + b^2$", "$a^2 - 2ab + b^2$", "$a^2 + b^2$", "$a^2 - b^2$"], answer: "$a^2 + 2ab + b^2$" },
       { q: "Panjang sisi miring segitiga siku-siku dengan kaki 3 dan 4 adalah?", options: ["5", "6", "7", "8"], answer: "5" },
-      { q: "Nilai cos 60° adalah?", options: ["½", "√2/2", "√3/2", "1"], answer: "½" },
-      { q: "Turunan dari sin x adalah?", options: ["cos x", "-cos x", "-sin x", "tan x"], answer: "cos x" },
-      { q: "Integral dari ∫cos x dx adalah?", options: ["sin x + C", "-sin x + C", "cos x + C", "-cos x + C"], answer: "sin x + C" },
-      { q: "Jika f(x) = x² - 4x + 4, maka f(2) = ?", options: ["0", "4", "2", "1"], answer: "0" },
+      { q: "Nilai $\\cos 60°$ adalah?", options: ["$\\frac{1}{2}$", "$\\sqrt{2}/2$", "$\\sqrt{3}/2$", "1"], answer: "$\\frac{1}{2}$" },
+      { q: "Turunan dari $\\sin x$ adalah?", options: ["$\\cos x$", "$-\\cos x$", "$-\\sin x$", "$\\tan x$"], answer: "$\\cos x$" },
+      { q: "Integral dari $\\int \\cos x \\, dx$ adalah?", options: ["$\\sin x + C$", "$-\\sin x + C$", "$\\cos x + C$", "$-\\cos x + C$"], answer: "$\\sin x + C$" },
+      { q: "Jika $f(x) = x^2 - 4x + 4$, maka $f(2) = $?", options: ["0", "4", "2", "1"], answer: "0" },
       { q: "Matriks identitas berordo 2 × 2 memiliki unsur diagonal sebanyak?", options: ["1", "2", "3", "4"], answer: "2" },
       { q: "Barisan 1, 4, 9, 16,... merupakan barisan?", options: ["Aritmetika", "Geometri", "Kuadrat", "Fibonacci"], answer: "Kuadrat" },
       { q: "Peluang munculnya huruf vokal dari kata 'MATEMATIKA' adalah?", options: ["4/10", "5/10", "6/10", "3/10"], answer: "4/10" },
       { q: "Jika panjang alas segitiga 6 cm dan tinggi 4 cm, luasnya adalah?", options: ["12 cm²", "24 cm²", "18 cm²", "30 cm²"], answer: "12 cm²" },
-      { q: "Jika 2 log x = 3, maka nilai x adalah?", options: ["8", "9", "6", "4"], answer: "8" },
-      { q: "Hasil dari log₁₀ 1000 adalah?", options: ["2", "3", "1", "0"], answer: "3" },
+      { q: "Jika $2 \\log x = 3$, maka nilai $x$ adalah?", options: ["8", "9", "6", "4"], answer: "8" },
+      { q: "Hasil dari $\\log_{10} 1000$ adalah?", options: ["2", "3", "1", "0"], answer: "3" },
       { q: "Dalam koordinat Kartesius, titik (0,0) disebut?", options: ["Asal", "Sumbu X", "Sumbu Y", "Kuadran"], answer: "Asal" }
     ]
   }
@@ -1589,7 +1712,22 @@ function showPage(pageId) {
 
     // Update active state for nav buttons
     document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active-nav'));
-    document.querySelector(`nav button[data-page="${pageId}"]`).classList.add('active-nav');
+    const activeButton = document.querySelector(`nav button[data-page="${pageId}"]`);
+    if (activeButton) {
+        activeButton.classList.add('active-nav');
+    }
+
+    // Specific page loads
+    if (pageId === 'friendsPage' && currentUser) {
+        loadFriends();
+        listenForFriendRequests();
+    } else if (pageId === 'chatPage' && currentUser) {
+        loadChatFriends();
+    } else if (pageId === 'duelPage' && currentUser) {
+        loadDuelLobby();
+        listenForDuelRequests();
+        listenForActiveDuelRooms();
+    }
 }
 
 // Authentication Logic
@@ -1601,13 +1739,18 @@ auth.onAuthStateChanged(async (user) => {
             if (snapshot.exists()) {
                 currentUser = snapshot.val();
                 currentUser.uid = user.uid;
+                // Ensure user is marked as online
+                db.ref('users/' + currentUser.uid + '/status').onDisconnect().set('offline');
+                db.ref('users/' + currentUser.uid + '/status').set('online');
+                db.ref('users/' + currentUser.uid + '/current_duel_room').set(null); // Clear any previous duel state
+
                 loadProfile();
                 loadLeaderboards();
                 showContainer('dashboard');
                 showPage('profilePage'); // Default to profile page on login
                 showToast(`Welcome, ${currentUser.name}!`, 'success');
             } else {
-                showToast("User data not found. Please register again.", 'error');
+                showToast("User data not found or not registered as student. Please register again.", 'error');
                 await auth.signOut();
             }
         } catch (error) {
@@ -1636,7 +1779,13 @@ loginButton.addEventListener('click', async () => {
     }
     showLoading();
     try {
-        await auth.signInWithEmailAndPassword(email, password);
+        const userCred = await auth.signInWithEmailAndPassword(email, password);
+        const userSnapshot = await db.ref('users/' + userCred.user.uid).once('value');
+        if (!userSnapshot.exists() || userSnapshot.val().role !== 'student') {
+            showToast("Login failed: Only students can log in.", 'error');
+            await auth.signOut(); // Force sign out if not a student
+            return;
+        }
         // auth.onAuthStateChanged will handle UI update
     } catch (error) {
         loginError.innerText = error.message;
@@ -1679,11 +1828,16 @@ registerButton.addEventListener('click', async () => {
     try {
         const userCred = await auth.createUserWithEmailAndPassword(email, password);
         await db.ref('users/' + userCred.user.uid).set({
-            name,
-            email,
+            name: name,
+            email: email,
             education_level: educationLevel,
+            role: 'student', // Explicitly set role as student
             points: { physics: 0, chemistry: 0, biology: 0, indonesian: 0, english: 0, math: 0 },
-            total_score: 0
+            total_score: 0,
+            status: 'offline', // Default status
+            friends: {},
+            friend_requests: {},
+            online_status_timestamp: firebase.database.ServerValue.TIMESTAMP // For tracking last online
         });
         showToast("Registration successful! Please log in.", 'success');
         showContainer('loginScreen');
@@ -1703,6 +1857,10 @@ registerButton.addEventListener('click', async () => {
 
 logoutButton.addEventListener('click', async () => {
     try {
+        if (currentUser && currentUser.uid) {
+            await db.ref('users/' + currentUser.uid + '/status').set('offline');
+            await db.ref('users/' + currentUser.uid + '/current_duel_room').set(null);
+        }
         await auth.signOut();
         showToast("You have been logged out.", 'info');
     } catch (error) {
@@ -1771,8 +1929,11 @@ function loadLeaderboards() {
             let scores = [];
             for (let uid in data) {
                 const user = data[uid];
-                const score = user.points && user.points[sub] ? user.points[sub] : 0;
-                scores.push({ name: user.name, score });
+                // Only include students in leaderboards
+                if (user.role === 'student') {
+                    const score = user.points && user.points[sub] ? user.points[sub] : 0;
+                    scores.push({ name: user.name, score });
+                }
             }
             scores.sort((a, b) => b.score - a.score);
 
@@ -1801,8 +1962,10 @@ function loadLeaderboards() {
         let overall = [];
         for (let uid in data) {
             const user = data[uid];
-            const score = user.total_score || 0;
-            overall.push({ name: user.name, score });
+            if (user.role === 'student') {
+                const score = user.total_score || 0;
+                overall.push({ name: user.name, score });
+            }
         }
         overall.sort((a, b) => b.score - a.score);
 
@@ -1953,6 +2116,668 @@ async function endExercise() {
     subjectSelectEl.value = ''; // Reset subject selection
 }
 
+// Friends System Logic
+searchUsersButton.addEventListener('click', searchUsers);
+
+async function searchUsers() {
+    const searchTerm = searchUserInput.value.trim().toLowerCase();
+    searchResultsDiv.innerHTML = '';
+    if (searchTerm.length < 3) {
+        searchResultsDiv.innerHTML = '<p>Enter at least 3 characters to search.</p>';
+        return;
+    }
+    showLoading();
+    try {
+        const usersRef = db.ref('users');
+        const snapshot = await usersRef.orderByChild('name').once('value'); // Order by name for better search
+        const results = [];
+        snapshot.forEach(childSnapshot => {
+            const user = childSnapshot.val();
+            // Only show other students, not self, and not already friends or pending
+            if (childSnapshot.key !== currentUser.uid && user.role === 'student' &&
+                !(currentUser.friends && currentUser.friends[childSnapshot.key]) &&
+                !(currentUser.friend_requests && currentUser.friend_requests[childSnapshot.key] && currentUser.friend_requests[childSnapshot.key].status === 'sent') &&
+                !(currentUser.friend_requests && currentUser.friend_requests[childSnapshot.key] && currentUser.friend_requests[childSnapshot.key].status === 'pending') &&
+                user.name.toLowerCase().includes(searchTerm)) {
+                results.push({ uid: childSnapshot.key, name: user.name });
+            }
+        });
+
+        if (results.length > 0) {
+            searchResultsDiv.innerHTML = '<ul>' + results.map(user => `
+                <li>${user.name} <button onclick="sendFriendRequest('${user.uid}', '${user.name}')">Add Friend</button></li>
+            `).join('') + '</ul>';
+        } else {
+            searchResultsDiv.innerHTML = '<p>No students found matching your search.</p>';
+        }
+    } catch (error) {
+        showToast("Error searching users: " + error.message, 'error');
+        console.error("Error searching users:", error);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function sendFriendRequest(targetUid, targetName) {
+    if (!currentUser || !currentUser.uid) {
+        showToast("You must be logged in to send friend requests.", 'error');
+        return;
+    }
+    showLoading();
+    try {
+        // Send request to target user
+        await db.ref(`users/${targetUid}/friend_requests/${currentUser.uid}`).set({
+            status: 'pending',
+            senderName: currentUser.name,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+        // Mark request as sent in current user's record
+        await db.ref(`users/${currentUser.uid}/friend_requests/${targetUid}`).set({
+            status: 'sent',
+            receiverName: targetName,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+        showToast(`Friend request sent to ${targetName}!`, 'success');
+        searchUsers(); // Refresh search results
+    } catch (error) {
+        showToast("Failed to send friend request: " + error.message, 'error');
+        console.error("Error sending friend request:", error);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function acceptFriendRequest(requesterUid, requesterName) {
+    if (!currentUser || !currentUser.uid) {
+        showToast("You must be logged in to accept friend requests.", 'error');
+        return;
+    }
+    showLoading();
+    try {
+        // Add to current user's friend list
+        await db.ref(`users/${currentUser.uid}/friends/${requesterUid}`).set(true);
+        // Add current user to requester's friend list
+        await db.ref(`users/${requesterUid}/friends/${currentUser.uid}`).set(true);
+        // Remove request from both sides
+        await db.ref(`users/${currentUser.uid}/friend_requests/${requesterUid}`).remove();
+        await db.ref(`users/${requesterUid}/friend_requests/${currentUser.uid}`).remove();
+
+        showToast(`You are now friends with ${requesterName}!`, 'success');
+        loadFriends(); // Reload friend list and requests
+    } catch (error) {
+        showToast("Failed to accept friend request: " + error.message, 'error');
+        console.error("Error accepting friend request:", error);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function declineFriendRequest(requesterUid) {
+    if (!currentUser || !currentUser.uid) {
+        showToast("You must be logged in to decline friend requests.", 'error');
+        return;
+    }
+    showLoading();
+    try {
+        // Remove request from both sides
+        await db.ref(`users/${currentUser.uid}/friend_requests/${requesterUid}`).remove();
+        await db.ref(`users/${requesterUid}/friend_requests/${currentUser.uid}`).remove();
+        showToast("Friend request declined.", 'info');
+        loadFriends(); // Reload friend list and requests
+    } catch (error) {
+        showToast("Failed to decline friend request: " + error.message, 'error');
+        console.error("Error declining friend request:", error);
+    } finally {
+        hideLoading();
+    }
+}
+
+function listenForFriendRequests() {
+    if (!currentUser || !currentUser.uid) return;
+
+    db.ref(`users/${currentUser.uid}/friend_requests`).on('value', async (snapshot) => {
+        const requests = snapshot.val();
+        friendRequestsList.innerHTML = '';
+        if (requests) {
+            for (const uid in requests) {
+                const request = requests[uid];
+                if (request.status === 'pending') {
+                    const senderName = request.senderName || (await db.ref(`users/${uid}/name`).once('value')).val();
+                    friendRequestsList.innerHTML += `
+                        <li>
+                            <span>${senderName} wants to be your friend.</span>
+                            <div>
+                                <button onclick="acceptFriendRequest('${uid}', '${senderName}')">Accept</button>
+                                <button onclick="declineFriendRequest('${uid}')">Decline</button>
+                            </div>
+                        </li>
+                    `;
+                }
+            }
+        } else {
+            friendRequestsList.innerHTML = '<p>No pending friend requests.</p>';
+        }
+    });
+}
+
+function loadFriends() {
+    friendListEl.innerHTML = '';
+    if (!currentUser || !currentUser.uid) return;
+
+    db.ref(`users/${currentUser.uid}/friends`).on('value', async (snapshot) => {
+        const friendUids = snapshot.val();
+        friendListEl.innerHTML = ''; // Clear previous list
+        if (friendUids) {
+            const friendPromises = [];
+            for (const uid in friendUids) {
+                friendPromises.push(db.ref(`users/${uid}`).once('value'));
+            }
+            const friendSnapshots = await Promise.all(friendPromises);
+
+            const friendElements = [];
+            for (const friendSnapshot of friendSnapshots) {
+                if (friendSnapshot.exists()) {
+                    const friendData = friendSnapshot.val();
+                    const friendName = friendData.name;
+                    const friendStatus = friendData.status === 'online' ? '<span style="color: green;">(Online)</span>' : '<span style="color: gray;">(Offline)</span>';
+                    friendElements.push(`<li>${friendName} ${friendStatus}</li>`);
+                }
+            }
+            friendListEl.innerHTML = friendElements.join('');
+        } else {
+            friendListEl.innerHTML = '<p>You have no friends yet.</p>';
+        }
+    });
+}
+
+// Chat System Logic
+function loadChatFriends() {
+    chatFriendSelect.innerHTML = '<option value="">Select a friend to chat</option>';
+    chatInput.disabled = true;
+    sendMessageButton.disabled = true;
+    chatMessagesDiv.innerHTML = '';
+    selectedChatFriendUid = null;
+
+    if (!currentUser || !currentUser.uid) return;
+
+    db.ref(`users/${currentUser.uid}/friends`).on('value', async (snapshot) => {
+        const friendUids = snapshot.val();
+        if (friendUids) {
+            for (const uid in friendUids) {
+                const friendSnapshot = await db.ref(`users/${uid}/name`).once('value');
+                if (friendSnapshot.exists()) {
+                    const friendName = friendSnapshot.val();
+                    const option = document.createElement('option');
+                    option.value = uid;
+                    option.textContent = friendName;
+                    chatFriendSelect.appendChild(option);
+                }
+            }
+        }
+    });
+}
+
+chatFriendSelect.addEventListener('change', () => {
+    selectedChatFriendUid = chatFriendSelect.value;
+    chatMessagesDiv.innerHTML = '';
+    if (selectedChatFriendUid) {
+        chatInput.disabled = false;
+        sendMessageButton.disabled = false;
+        listenForChatMessages(selectedChatFriendUid);
+    } else {
+        chatInput.disabled = true;
+        sendMessageButton.disabled = true;
+        db.ref(`chats/${getChatRoomId(currentUser.uid, selectedChatFriendUid)}`).off(); // Detach listener
+    }
+});
+
+sendMessageButton.addEventListener('click', sendMessage);
+chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        sendMessage();
+    }
+});
+
+async function sendMessage() {
+    const messageText = chatInput.value.trim();
+    if (!messageText || !selectedChatFriendUid || !currentUser || !currentUser.uid) return;
+
+    const chatRoomId = getChatRoomId(currentUser.uid, selectedChatFriendUid);
+    const newMessageRef = db.ref(`chats/${chatRoomId}`).push();
+    await newMessageRef.set({
+        senderId: currentUser.uid,
+        senderName: currentUser.name,
+        message: messageText,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
+    chatInput.value = '';
+    chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight; // Scroll to bottom
+}
+
+function listenForChatMessages(friendUid) {
+    const chatRoomId = getChatRoomId(currentUser.uid, friendUid);
+    db.ref(`chats/${chatRoomId}`).on('child_added', (snapshot) => {
+        const message = snapshot.val();
+        const messageElement = document.createElement('p');
+        const senderName = message.senderId === currentUser.uid ? 'You' : message.senderName;
+        const messageClass = message.senderId === currentUser.uid ? 'my-message' : 'friend-message';
+        const timestamp = new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        messageElement.innerHTML = `<span class="${messageClass}"><strong>${senderName}:</strong> ${message.message} <small>(${timestamp})</small></span>`;
+        chatMessagesDiv.appendChild(messageElement);
+        chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight; // Scroll to bottom
+    });
+}
+
+function getChatRoomId(uid1, uid2) {
+    // Ensures a consistent chat room ID regardless of who initiates the chat
+    return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`;
+}
+
+// Duel System Logic
+createDuelButton.addEventListener('click', createDuelRoom);
+backToDuelLobbyButton.addEventListener('click', () => {
+    showDuelLobbyView();
+    currentDuelRoomId = null;
+    currentDuelQuestions = [];
+    if (duelTimer) clearInterval(duelTimer);
+    duelTimer = null;
+    db.ref(`duels/${currentDuelRoomId}`).off(); // Detach listener
+});
+
+function loadDuelLobby() {
+    duelLobby.style.display = 'block';
+    duelQuizArea.style.display = 'none';
+    duelResultsDiv.style.display = 'none';
+
+    duelOpponentSelect.innerHTML = '<option value="">Select Opponent</option>';
+    duelSubjectSelect.value = '';
+
+    if (!currentUser || !currentUser.uid) return;
+
+    // Populate online friends for duel
+    db.ref('users').on('value', (snapshot) => {
+        onlineUsers = {};
+        snapshot.forEach(childSnapshot => {
+            const user = childSnapshot.val();
+            if (user.role === 'student' && childSnapshot.key !== currentUser.uid) {
+                onlineUsers[childSnapshot.key] = user;
+            }
+        });
+        updateDuelOpponentSelect();
+    });
+}
+
+function updateDuelOpponentSelect() {
+    duelOpponentSelect.innerHTML = '<option value="">Select Opponent</option>';
+    for (const uid in onlineUsers) {
+        // Check if they are friends AND online
+        if (currentUser.friends && currentUser.friends[uid] && onlineUsers[uid].status === 'online') {
+            const option = document.createElement('option');
+            option.value = uid;
+            option.textContent = onlineUsers[uid].name;
+            duelOpponentSelect.appendChild(option);
+        }
+    }
+}
+
+async function createDuelRoom() {
+    const opponentUid = duelOpponentSelect.value;
+    const subject = duelSubjectSelect.value;
+
+    if (!opponentUid || !subject) {
+        showToast('Please select an opponent and a subject.', 'error');
+        return;
+    }
+    if (!currentUser || !currentUser.uid) {
+        showToast('You must be logged in to create a duel.', 'error');
+        return;
+    }
+    if (!questions[currentUser.education_level] || !questions[currentUser.education_level][subject]) {
+        showToast('No questions available for this subject at your education level.', 'error');
+        return;
+    }
+    if (questions[currentUser.education_level][subject].length < 20) {
+        showToast('Not enough questions for this subject. Need at least 20 questions.', 'error');
+        return;
+    }
+
+    showLoading();
+    try {
+        const duelRef = db.ref('duels').push();
+        const duelId = duelRef.key;
+
+        // Generate unique questions for each player
+        const player1Questions = shuffleArray([...questions[currentUser.education_level][subject]]).slice(0, 20);
+        const player2Questions = shuffleArray([...questions[currentUser.education_level][subject]]).slice(0, 20);
+
+        await duelRef.set({
+            challengerId: currentUser.uid,
+            challengerName: currentUser.name,
+            opponentId: opponentUid,
+            opponentName: onlineUsers[opponentUid].name,
+            subject: subject,
+            status: 'pending', // pending, active, finished
+            questions: {
+                [currentUser.uid]: player1Questions,
+                [opponentUid]: player2Questions
+            },
+            scores: {
+                [currentUser.uid]: 0,
+                [opponentUid]: 0
+            },
+            currentQuestionIndex: 0,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+
+        // Notify opponent
+        await db.ref(`users/${opponentUid}/incoming_duel_requests/${duelId}`).set({
+            challengerId: currentUser.uid,
+            challengerName: currentUser.name,
+            subject: subject,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+
+        showToast(`Duel request sent to ${onlineUsers[opponentUid].name}!`, 'success');
+        // Set current user's duel room status
+        await db.ref(`users/${currentUser.uid}/current_duel_room`).set(duelId);
+        currentDuelRoomId = duelId;
+        listenToDuelRoom(duelId); // Start listening to this duel room
+    } catch (error) {
+        showToast("Failed to create duel: " + error.message, 'error');
+        console.error("Error creating duel:", error);
+    } finally {
+        hideLoading();
+    }
+}
+
+function listenForDuelRequests() {
+    if (!currentUser || !currentUser.uid) return;
+
+    db.ref(`users/${currentUser.uid}/incoming_duel_requests`).on('value', async (snapshot) => {
+        const requests = snapshot.val();
+        incomingDuelRequests.innerHTML = '';
+        if (requests) {
+            for (const duelId in requests) {
+                const request = requests[duelId];
+                const challengerName = request.challengerName || (await db.ref(`users/${request.challengerId}/name`).once('value')).val();
+                incomingDuelRequests.innerHTML += `
+                    <li>
+                        <span>${challengerName} challenged you to a ${request.subject} duel!</span>
+                        <div>
+                            <button onclick="acceptDuel('${duelId}', '${request.challengerId}')">Accept</button>
+                            <button onclick="declineDuel('${duelId}', '${request.challengerId}')">Decline</button>
+                        </div>
+                    </li>
+                `;
+            }
+        } else {
+            incomingDuelRequests.innerHTML = '<p>No incoming duel requests.</p>';
+        }
+    });
+}
+
+async function acceptDuel(duelId, challengerId) {
+    showLoading();
+    try {
+        await db.ref(`duels/${duelId}/status`).set('active');
+        await db.ref(`users/${currentUser.uid}/incoming_duel_requests/${duelId}`).remove();
+        await db.ref(`users/${challengerId}/current_duel_room`).set(duelId); // Set challenger's room too
+        await db.ref(`users/${currentUser.uid}/current_duel_room`).set(duelId); // Set current user's room
+        currentDuelRoomId = duelId;
+        showToast('Duel accepted! Starting quiz...', 'success');
+        listenToDuelRoom(duelId);
+    } catch (error) {
+        showToast("Failed to accept duel: " + error.message, 'error');
+        console.error("Error accepting duel:", error);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function declineDuel(duelId, challengerId) {
+    showLoading();
+    try {
+        await db.ref(`duels/${duelId}`).remove(); // Remove the duel room
+        await db.ref(`users/${currentUser.uid}/incoming_duel_requests/${duelId}`).remove();
+        await db.ref(`users/${challengerId}/current_duel_room`).set(null); // Clear challenger's room status
+        showToast('Duel declined.', 'info');
+    } catch (error) {
+        showToast("Failed to decline duel: " + error.message, 'error');
+        console.error("Error declining duel:", error);
+    } finally {
+        hideLoading();
+    }
+}
+
+function listenForActiveDuelRooms() {
+    if (!currentUser || !currentUser.uid) return;
+
+    db.ref('duels').on('value', (snapshot) => {
+        activeDuelRooms.innerHTML = '';
+        snapshot.forEach(childSnapshot => {
+            const duel = childSnapshot.val();
+            const duelId = childSnapshot.key;
+
+            if (duel.status === 'active' && (duel.challengerId === currentUser.uid || duel.opponentId === currentUser.uid)) {
+                // This is an active duel involving the current user
+                // The UI should already be in duelQuizArea, so no need to list here.
+                // This listener is more for general overview or if a user navigates away and comes back.
+                // For now, we'll just ensure the user is in the correct view.
+                if (currentDuelRoomId === duelId) {
+                    showDuelQuizAreaView();
+                }
+            } else if (duel.status === 'pending' && duel.challengerId === currentUser.uid) {
+                // Display pending duels initiated by current user
+                activeDuelRooms.innerHTML += `
+                    <li>
+                        <span>Waiting for ${duel.opponentName} to accept ${duel.subject} duel.</span>
+                        <button onclick="cancelDuel('${duelId}')">Cancel</button>
+                    </li>
+                `;
+            }
+        });
+        if (activeDuelRooms.innerHTML === '') {
+            activeDuelRooms.innerHTML = '<p>No active or pending duel rooms.</p>';
+        }
+    });
+}
+
+async function cancelDuel(duelId) {
+    showLoading();
+    try {
+        const duelRef = db.ref(`duels/${duelId}`);
+        const duelSnapshot = await duelRef.once('value');
+        if (duelSnapshot.exists()) {
+            const duel = duelSnapshot.val();
+            await db.ref(`users/${duel.opponentId}/incoming_duel_requests/${duelId}`).remove();
+            await db.ref(`users/${duel.opponentId}/current_duel_room`).set(null);
+            await db.ref(`users/${currentUser.uid}/current_duel_room`).set(null);
+            await duelRef.remove();
+            showToast('Duel cancelled.', 'info');
+            currentDuelRoomId = null;
+        }
+    } catch (error) {
+        showToast("Failed to cancel duel: " + error.message, 'error');
+        console.error("Error cancelling duel:", error);
+    } finally {
+        hideLoading();
+    }
+}
+
+function listenToDuelRoom(duelId) {
+    db.ref(`duels/${duelId}`).on('value', (snapshot) => {
+        const duel = snapshot.val();
+        if (!duel) {
+            showToast('Duel ended or cancelled by opponent.', 'info');
+            showDuelLobbyView();
+            currentDuelRoomId = null;
+            currentDuelQuestions = [];
+            if (duelTimer) clearInterval(duelTimer);
+            duelTimer = null;
+            return;
+        }
+
+        if (duel.status === 'active') {
+            showDuelQuizAreaView();
+            duelSubjectNameSpan.textContent = duel.subject.charAt(0).toUpperCase() + duel.subject.slice(1);
+            duelOpponentNameSpan.textContent = duel.challengerId === currentUser.uid ? duel.opponentName : duel.challengerName;
+
+            currentDuelQuestions = duel.questions[currentUser.uid]; // Get questions specific to current user
+            const currentQIndex = duel.currentQuestionIndex;
+
+            if (currentQIndex < currentDuelQuestions.length) {
+                displayDuelQuestion(currentQIndex, duelId);
+            } else {
+                // All questions answered, show results
+                showDuelResults(duelId, duel);
+            }
+        } else if (duel.status === 'finished') {
+            showDuelResults(duelId, duel);
+        }
+    });
+}
+
+function displayDuelQuestion(qIndex, duelId) {
+    if (duelTimer) clearInterval(duelTimer); // Clear previous timer
+
+    const qObj = currentDuelQuestions[qIndex];
+    const shuffledOptions = shuffleArray([...qObj.options]);
+
+    duelQuestionDisplay.innerHTML = `
+        <p>${qIndex + 1}. ${qObj.q}</p>
+        ${shuffledOptions.map(opt =>
+            `<button class="optionBtn" data-option="${opt}">${opt}</button>`).join('')}
+    `;
+    duelExerciseFeedback.textContent = '';
+    duelTimerDisplay.textContent = duelQuestionTimeLimit;
+
+    let timeLeft = duelQuestionTimeLimit;
+    duelTimer = setInterval(() => {
+        timeLeft--;
+        duelTimerDisplay.textContent = timeLeft;
+        if (timeLeft <= 0) {
+            clearInterval(duelTimer);
+            handleDuelOptionClick(null, qIndex, duelId); // Auto-submit if time runs out
+        }
+    }, 1000);
+
+    document.querySelectorAll('#duelQuestionDisplay .optionBtn').forEach(button => {
+        button.onclick = () => handleDuelOptionClick(button, qIndex, duelId);
+    });
+}
+
+async function handleDuelOptionClick(selectedButton, qIndex, duelId) {
+    if (duelTimer) clearInterval(duelTimer); // Stop the timer
+    duelTimerDisplay.textContent = 'Time\'s Up!';
+
+    const selectedAnswer = selectedButton ? selectedButton.dataset.option : null;
+    const qObj = currentDuelQuestions[qIndex];
+    const correctAnswer = qObj.answer;
+
+    // Disable all option buttons
+    document.querySelectorAll('#duelQuestionDisplay .optionBtn').forEach(btn => {
+        btn.disabled = true;
+        if (btn.dataset.option === correctAnswer) {
+            btn.classList.add('correct');
+        } else if (selectedButton && btn.dataset.option === selectedAnswer) {
+            btn.classList.add('wrong');
+        }
+    });
+
+    let scoreEarned = 0;
+    if (selectedAnswer === correctAnswer) {
+        duelExerciseFeedback.textContent = "Correct!";
+        duelExerciseFeedback.style.color = 'var(--success-color)';
+        scoreEarned = 1;
+    } else {
+        duelExerciseFeedback.textContent = `Wrong. The correct answer was: ${correctAnswer}`;
+        duelExerciseFeedback.style.color = 'var(--error-color)';
+    }
+
+    // Update score and question index in Firebase
+    const updates = {};
+    updates[`duels/${duelId}/scores/${currentUser.uid}`] = firebase.database.ServerValue.increment(scoreEarned);
+    // Only increment currentQuestionIndex if it's the challenger or if both players have answered
+    // For simplicity, we'll let the challenger control the question progression.
+    // A more robust system would track each player's progress.
+    // For this implementation, we'll assume the challenger advances the question.
+    // Or, we can advance for both if both have submitted/timed out.
+    // Let's make it simpler: the current user updates their own score, and the duel room's currentQuestionIndex is advanced by the challenger.
+    // If not challenger, just update score.
+    if (currentUser.uid === (await db.ref(`duels/${duelId}/challengerId`).once('value')).val()) {
+        updates[`duels/${duelId}/currentQuestionIndex`] = qIndex + 1;
+    }
+
+    await db.ref().update(updates);
+
+    // Wait a bit before moving to the next question
+    setTimeout(() => {
+        // The listener `listenToDuelRoom` will automatically call `displayDuelQuestion` for the next question
+        // or `showDuelResults` if all questions are done.
+    }, 2000); // 2 seconds delay
+}
+
+async function showDuelResults(duelId, duelData) {
+    if (duelTimer) clearInterval(duelTimer);
+    duelTimer = null;
+
+    duelLobby.style.display = 'none';
+    duelQuizArea.style.display = 'none';
+    duelResultsDiv.style.display = 'block';
+
+    const challengerScore = duelData.scores[duelData.challengerId] || 0;
+    const opponentScore = duelData.scores[duelData.opponentId] || 0;
+
+    let resultMessage = `Duel Finished! <br>`;
+    resultMessage += `${duelData.challengerName}: ${challengerScore} points <br>`;
+    resultMessage += `${duelData.opponentName}: ${opponentScore} points <br>`;
+
+    if (challengerScore > opponentScore) {
+        resultMessage += `<strong>${duelData.challengerName} wins!</strong>`;
+    } else if (opponentScore > challengerScore) {
+        resultMessage += `<strong>${duelData.opponentName} wins!</strong>`;
+    } else {
+        resultMessage += `<strong>It's a tie!</strong>`;
+    }
+
+    duelResultText.innerHTML = resultMessage;
+
+    // Clean up duel room after results are shown and user clicks back to lobby
+    // Or, set a timeout to remove it after a certain period
+    // For now, let's remove it when both players have finished and seen results, or after a delay.
+    // A more robust system would have a 'viewed results' flag for each player.
+    // For simplicity, the challenger can remove the room.
+    if (currentUser.uid === duelData.challengerId) {
+        // Give some time for opponent to see results, then remove
+        setTimeout(async () => {
+            await db.ref(`duels/${duelId}`).remove();
+            await db.ref(`users/${duelData.challengerId}/current_duel_room`).set(null);
+            await db.ref(`users/${duelData.opponentId}/current_duel_room`).set(null);
+            showToast('Duel room closed.', 'info');
+        }, 10000); // Room auto-closes after 10 seconds
+    }
+}
+
+function showDuelLobbyView() {
+    duelLobby.style.display = 'block';
+    duelQuizArea.style.display = 'none';
+    duelResultsDiv.style.display = 'none';
+    // Detach duel room listener if any
+    if (currentDuelRoomId) {
+        db.ref(`duels/${currentDuelRoomId}`).off();
+        currentDuelRoomId = null;
+    }
+    // Re-load lobby data
+    loadDuelLobby();
+}
+
+function showDuelQuizAreaView() {
+    duelLobby.style.display = 'none';
+    duelQuizArea.style.display = 'block';
+    duelResultsDiv.style.display = 'none';
+}
+
+
 // Navigation and Dark Mode
 document.querySelectorAll('nav button[data-page]').forEach(button => {
     button.addEventListener('click', () => {
@@ -1996,104 +2821,11 @@ showLoginLink.addEventListener('click', (e) => {
     showContainer('loginScreen');
 });
 
-// Placeholder for Friends, Chat, Duel, Competition (requires Firebase implementation)
-document.getElementById('searchUsersButton').addEventListener('click', () => {
-    showToast("Search Users feature not yet implemented.", 'info');
+// Competition System (Placeholder)
+document.getElementById('competitionPage').addEventListener('click', () => {
+    showToast("Competition feature not yet implemented.", 'info');
 });
-document.getElementById('sendMessageButton').addEventListener('click', () => {
-    showToast("Chat feature not yet implemented.", 'info');
-});
-document.getElementById('startDuelButton').addEventListener('click', () => {
-    showToast("Duel feature not yet implemented.", 'info');
-});
-// You would need to implement the logic for these features using Firebase Realtime Database
-// For example, for friends:
-/*
-async function searchUsers() {
-    const searchTerm = searchUserInput.value.toLowerCase();
-    const searchResultsDiv = document.getElementById('searchResults');
-    searchResultsDiv.innerHTML = '';
-    if (searchTerm.length < 3) {
-        searchResultsDiv.innerHTML = '<p>Enter at least 3 characters to search.</p>';
-        return;
-    }
-    showLoading();
-    try {
-        const usersRef = db.ref('users');
-        const snapshot = await usersRef.orderByChild('name_lower').startAt(searchTerm).endAt(searchTerm + '\uf8ff').once('value');
-        const results = [];
-        snapshot.forEach(childSnapshot => {
-            const user = childSnapshot.val();
-            if (childSnapshot.key !== currentUser.uid) { // Don't show current user
-                results.push({ uid: childSnapshot.key, name: user.name });
-            }
-        });
 
-        if (results.length > 0) {
-            searchResultsDiv.innerHTML = '<ul>' + results.map(user => `
-                <li>${user.name} <button onclick="addFriend('${user.uid}')">Add Friend</button></li>
-            `).join('') + '</ul>';
-        } else {
-            searchResultsDiv.innerHTML = '<p>No users found.</p>';
-        }
-    } catch (error) {
-        showToast("Error searching users: " + error.message, 'error');
-    } finally {
-        hideLoading();
-    }
-}
-
-async function addFriend(friendUid) {
-    if (!currentUser || !currentUser.uid) {
-        showToast("You must be logged in to add friends.", 'error');
-        return;
-    }
-    showLoading();
-    try {
-        // Add to current user's friend list
-        await db.ref(`users/${currentUser.uid}/friends/${friendUid}`).set(true);
-        // Add current user to friend's pending requests or direct friends
-        await db.ref(`users/${friendUid}/friend_requests/${currentUser.uid}`).set(true); // Or directly to friends
-        showToast("Friend request sent!", 'success');
-        loadFriends(); // Reload friend list
-    } catch (error) {
-        showToast("Failed to add friend: " + error.message, 'error');
-    } finally {
-        hideLoading();
-    }
-}
-
-async function loadFriends() {
-    const friendListEl = document.getElementById('friendList');
-    friendListEl.innerHTML = '';
-    if (!currentUser || !currentUser.uid) return;
-
-    showLoading();
-    try {
-        const friendsRef = db.ref(`users/${currentUser.uid}/friends`);
-        const snapshot = await friendsRef.once('value');
-        const friendUids = snapshot.val();
-
-        if (friendUids) {
-            const friendNames = [];
-            for (const uid in friendUids) {
-                const friendSnapshot = await db.ref(`users/${uid}/name`).once('value');
-                if (friendSnapshot.exists()) {
-                    friendNames.push(friendSnapshot.val());
-                }
-            }
-            friendListEl.innerHTML = '<ul>' + friendNames.map(name => `<li>${name}</li>`).join('') + '</ul>';
-        } else {
-            friendListEl.innerHTML = '<p>You have no friends yet.</p>';
-        }
-    } catch (error) {
-        showToast("Failed to load friends: " + error.message, 'error');
-    } finally {
-        hideLoading();
-    }
-}
-// Call loadFriends() on dashboard load or friendsPage activation
-*/
 </script>
 <footer><p>&copy; 2023 Atlantis Academy. All rights reserved.</p></footer>
 </body>
