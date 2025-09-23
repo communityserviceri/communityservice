@@ -17,8 +17,8 @@
     --text-dark: #004d40; /* Dark Teal for light mode content */
     --bg-gradient-start: #003844; /* Darker Blue-Green */
     --bg-gradient-end: #006064; /* Lighter Blue-Green */
-    --card-bg-light: rgba(255, 255, 255, 0.95);
-    --card-bg-dark: rgba(0, 31, 36, 0.95); /* Darker for dark mode cards */
+    --card-bg-light: rgba(255, 255, 255, 0.15); /* Lebih transparan untuk efek kaca buram */
+    --card-bg-dark: rgba(0, 0, 0, 0.3); /* Lebih gelap untuk dark mode cards */
     --border-color: #00796b;
     --error-color: #ff5722;
     --success-color: #4CAF50;
@@ -64,6 +64,38 @@ body {
     100% { transform: translateY(0); }
 }
 
+/* CSS untuk Gelembung */
+.bubble {
+    position: absolute;
+    bottom: -50px; /* Start below the screen */
+    width: 15px;
+    height: 15px;
+    background-color: rgba(255, 255, 255, 0.2); /* Lebih transparan */
+    border-radius: 50%;
+    animation: bubbleUp 10s infinite ease-in-out;
+    z-index: 0;
+    opacity: 0;
+    pointer-events: none; /* Agar tidak mengganggu interaksi */
+}
+
+@keyframes bubbleUp {
+    0% {
+        transform: translateY(0) scale(0.5);
+        opacity: 0;
+    }
+    20% {
+        opacity: 0.8;
+    }
+    80% {
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateY(-100vh) scale(1.2);
+        opacity: 0;
+    }
+}
+
+
 header {
     background: rgba(0, 56, 68, .9);
     color: var(--accent-color);
@@ -105,7 +137,8 @@ nav button {
 
 nav button:hover {
     background: var(--hover-bg);
-    transform: translateY(-2px);
+    transform: translateY(-3px) scale(1.02); /* Efek hover lebih interaktif */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
 }
 
 nav button.active-nav {
@@ -119,8 +152,11 @@ nav button.active-nav {
     flex: 1;
     display: none;
     border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); /* Shadow lebih menonjol */
     background: var(--card-bg-light);
+    backdrop-filter: blur(10px); /* Efek kaca buram */
+    -webkit-backdrop-filter: blur(10px); /* Untuk kompatibilitas Safari */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Border lebih halus */
     color: var(--text-dark);
     margin: 20px auto; /* Center container */
     max-width: 900px; /* Max width for better readability */
@@ -179,8 +215,8 @@ button {
 
 button:hover {
     background: var(--accent-color);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transform: translateY(-3px) scale(1.02); /* Efek hover lebih interaktif */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
     color: var(--primary-color);
 }
 
@@ -260,7 +296,8 @@ body.dark-mode nav button.active-nav {
 }
 
 body.dark-mode .container {
-    background: var(--dark-mode-card-text);
+    background: var(--card-bg-dark); /* Menggunakan variabel baru */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Border lebih halus di dark mode */
     color: var(--dark-mode-text);
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
 }
@@ -335,7 +372,7 @@ body.dark-mode footer {
 }
 
 .leaderboard-subject:hover {
-    transform: translateY(-3px);
+    transform: translateY(-3px) scale(1.01); /* Efek hover lebih interaktif */
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
@@ -451,7 +488,7 @@ body.dark-mode #questionDisplay p {
 
 #questionDisplay .optionBtn:hover {
     background: var(--secondary-color);
-    transform: translateX(5px);
+    transform: translateX(5px) scale(1.01); /* Efek hover lebih interaktif */
 }
 
 #questionDisplay .optionBtn.correct {
@@ -497,6 +534,9 @@ body.dark-mode #questionDisplay p {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
     min-width: 250px;
     text-align: center;
+    display: flex; /* Untuk ikon */
+    align-items: center; /* Untuk ikon */
+    gap: 8px; /* Spasi antara ikon dan teks */
 }
 
 .toast.show {
@@ -526,7 +566,7 @@ body.dark-mode #questionDisplay p {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: background 0.3s ease;
+    transition: background 0.3s ease, transform 0.2s ease;
 }
 
 body.dark-mode #materialsPage li {
@@ -535,6 +575,7 @@ body.dark-mode #materialsPage li {
 
 #materialsPage li:hover {
     background: rgba(0, 77, 64, 0.2);
+    transform: translateY(-2px) scale(1.01); /* Efek hover lebih interaktif */
 }
 
 body.dark-mode #materialsPage li:hover {
@@ -602,12 +643,23 @@ body.dark-mode #duelRoomList, body.dark-mode #duelChallengeForm, body.dark-mode 
     justify-content: space-between;
     align-items: center;
     color: var(--text-dark);
+    transition: background 0.3s ease, transform 0.2s ease;
 }
 
 body.dark-mode #duelRoomList li, body.dark-mode #friendRequestsList li, body.dark-mode #friendList li, body.dark-mode #searchResults li {
     background: rgba(255, 255, 255, 0.1);
     color: var(--dark-mode-text);
 }
+
+#duelRoomList li:hover, #friendRequestsList li:hover, #friendList li:hover, #searchResults li:hover {
+    transform: translateX(5px);
+    background: rgba(0, 77, 64, 0.2);
+}
+
+body.dark-mode #duelRoomList li:hover, body.dark-mode #friendRequestsList li:hover, body.dark-mode #friendList li:hover, body.dark-mode #searchResults li:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
 
 #duelRoomList li button, #friendRequestsList li button, #searchResults li button {
     width: auto;
@@ -656,6 +708,57 @@ body.dark-mode .duel-score-display span {
 body.dark-mode .duel-waiting-message {
     color: var(--accent-color);
 }
+
+/* Chat Message Styling */
+#chatMessages {
+    max-height:300px;
+    overflow-y:auto;
+    border:1px solid var(--border-color);
+    padding:10px;
+    border-radius:8px;
+    background:rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+#chatMessages p {
+    margin: 5px 0;
+    padding: 8px 12px;
+    border-radius: 15px;
+    max-width: 70%;
+    word-wrap: break-word;
+}
+
+#chatMessages .my-message {
+    background-color: var(--secondary-color);
+    color: white;
+    margin-left: auto; /* Posisikan ke kanan */
+    text-align: right;
+}
+
+#chatMessages .friend-message {
+    background-color: var(--hover-bg);
+    color: var(--text-dark);
+    margin-right: auto; /* Posisikan ke kiri */
+    text-align: left;
+}
+
+body.dark-mode #chatMessages .friend-message {
+    background-color: rgba(255, 204, 128, 0.1);
+    color: var(--dark-mode-text);
+}
+
+#chatMessages small {
+    font-size: 0.75em;
+    color: rgba(255, 255, 255, 0.7);
+    display: block;
+    margin-top: 3px;
+}
+
+body.dark-mode #chatMessages .friend-message small {
+    color: rgba(255, 255, 255, 0.5);
+}
+
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
@@ -717,6 +820,8 @@ body.dark-mode .duel-waiting-message {
 </head>
 <body>
 <div class="water"></div>
+<!-- Elemen untuk gelembung akan ditambahkan secara dinamis oleh JS -->
+
 <header><h1>Atlantis Academy</h1></header>
 
 <!-- Login Screen -->
@@ -780,7 +885,7 @@ body.dark-mode .duel-waiting-message {
         <select id="chatFriendSelect">
             <option value="">Select a friend to chat</option>
         </select>
-        <div id="chatMessages" style="max-height:300px;overflow-y:auto;border:1px solid var(--border-color);padding:10px;border-radius:8px;background:rgba(0,0,0,0.05);"></div>
+        <div id="chatMessages"></div> <!-- Style moved to CSS -->
         <input type="text" id="chatInput" placeholder="Type your message..." disabled>
         <button id="sendMessageButton" disabled><i class="fas fa-paper-plane"></i> Send</button>
     </div>
@@ -1766,13 +1871,23 @@ function shuffleArray(array) {
 function showLoading() { loadingSpinner.style.display = 'block'; }
 function hideLoading() { loadingSpinner.style.display = 'none'; }
 
+// Fungsi showToast yang diperbarui dengan ikon
 function showToast(message, type = 'info', duration = 3000) {
     const toast = document.createElement('div');
     toast.classList.add('toast');
     if (type) {
         toast.classList.add(type);
     }
-    toast.textContent = message;
+
+    let iconHtml = '';
+    if (type === 'success') {
+        iconHtml = '<i class="fas fa-check-circle"></i> ';
+    } else if (type === 'error') {
+        iconHtml = '<i class="fas fa-times-circle"></i> ';
+    } else if (type === 'info') {
+        iconHtml = '<i class="fas fa-info-circle"></i> ';
+    }
+    toast.innerHTML = iconHtml + message; // Gunakan innerHTML untuk ikon
     toastContainer.appendChild(toast);
 
     setTimeout(() => {
@@ -1943,6 +2058,9 @@ registerButton.addEventListener('click', async () => {
 });
 
 logoutButton.addEventListener('click', async () => {
+    if (!confirm("Are you sure you want to quit?")) { // Konfirmasi logout
+        return;
+    }
     try {
         if (currentUser && currentUser.uid) {
             // MEMPERBARUI STATUS DI FIELD 'STUDENTS' SAAT LOGOUT
@@ -2253,6 +2371,9 @@ async function sendFriendRequest(targetUid, targetName) {
         showToast("You must be logged in to send friend requests.", 'error');
         return;
     }
+    if (!confirm(`Send friend request to ${targetName}?`)) { // Konfirmasi
+        return;
+    }
     showLoading();
     try {
         // KIRIM PERMINTAAN KE PENGGUNA TARGET DI FIELD 'STUDENTS'
@@ -2282,6 +2403,9 @@ async function acceptFriendRequest(requesterUid, requesterName) {
         showToast("You must be logged in to accept friend requests.", 'error');
         return;
     }
+    if (!confirm(`Accept friend request from ${requesterName}?`)) { // Konfirmasi
+        return;
+    }
     showLoading();
     try {
         // TAMBAHKAN KE DAFTAR TEMAN PENGGUNA SAAT INI DI FIELD 'STUDENTS'
@@ -2305,6 +2429,9 @@ async function acceptFriendRequest(requesterUid, requesterName) {
 async function declineFriendRequest(requesterUid) {
     if (!currentUser || !currentUser.uid) {
         showToast("You must be logged in to decline friend requests.", 'error');
+        return;
+    }
+    if (!confirm("Decline this friend request?")) { // Konfirmasi
         return;
     }
     showLoading();
@@ -2470,7 +2597,9 @@ function listenForChatMessages(friendUid) {
         const senderName = message.senderId === currentUser.uid ? 'You' : message.senderName;
         const messageClass = message.senderId === currentUser.uid ? 'my-message' : 'friend-message';
         const timestamp = new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        messageElement.innerHTML = `<span class="${messageClass}"><strong>${senderName}:</strong> ${message.message} <small>(${timestamp})</small></span>`;
+        
+        messageElement.classList.add(messageClass); // Tambahkan kelas CSS untuk styling
+        messageElement.innerHTML = `<strong>${senderName}:</strong> ${message.message} <small>(${timestamp})</small>`;
         chatMessagesDiv.appendChild(messageElement);
         chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight; // Scroll to bottom
     });
@@ -2561,6 +2690,9 @@ async function createDuelRoom() {
         showToast('Not enough questions for this subject. Need at least 10 questions.', 'error');
         return;
     }
+    if (!confirm(`Challenge ${onlineUsers[opponentUid].name} to a ${subject} duel?`)) { // Konfirmasi
+        return;
+    }
 
     showLoading();
     try {
@@ -2646,6 +2778,9 @@ function listenForDuelRequests() {
 }
 
 async function acceptDuel(duelId, challengerId) {
+    if (!confirm("Accept this duel challenge?")) { // Konfirmasi
+        return;
+    }
     showLoading();
     try {
         const duelRef = db.ref(`duels/${duelId}`);
@@ -2682,6 +2817,9 @@ async function acceptDuel(duelId, challengerId) {
 }
 
 async function declineDuel(duelId, challengerId) {
+    if (!confirm("Decline this duel challenge?")) { // Konfirmasi
+        return;
+    }
     showLoading();
     try {
         const duelRef = db.ref(`duels/${duelId}`);
@@ -2745,6 +2883,9 @@ function listenForActiveDuelRooms() {
 }
 
 async function cancelDuel(duelId) {
+    if (!confirm("Are you sure you want to cancel this duel?")) { // Konfirmasi
+        return;
+    }
     showLoading();
     try {
         const duelRef = db.ref(`duels/${duelId}`);
@@ -2792,7 +2933,7 @@ function listenToDuelRoom(duelId) {
         }
 
         // Determine opponent's UID
-        duelOpponentId = (duel.challengerId === currentUser.uid) ? duel.opponentId : duel.challagerId; // Fix typo: duel.challagerId -> duel.challengerId
+        duelOpponentId = (duel.challengerId === currentUser.uid) ? duel.opponentId : duel.challengerId; // Fixed typo: duel.challagerId -> duel.challengerId
 
         // Update scores display
         playerScoreSpan.textContent = `Your Score: ${duel.scores[currentUser.uid] || 0}`;
@@ -3055,6 +3196,26 @@ document.addEventListener('DOMContentLoaded', () => {
             navButton.classList.add('active-nav');
         }
     }
+
+    // Fungsi untuk membuat gelembung
+    function createBubble() {
+        const bubble = document.createElement('div');
+        bubble.classList.add('bubble');
+        bubble.style.left = Math.random() * 100 + 'vw'; // Posisi horizontal acak
+        bubble.style.animationDuration = Math.random() * 8 + 7 + 's'; // Durasi 7-15 detik
+        bubble.style.animationDelay = Math.random() * 5 + 's'; // Delay acak
+        bubble.style.width = Math.random() * 20 + 10 + 'px'; // Ukuran 10-30px
+        bubble.style.height = bubble.style.width; // Lingkaran sempurna
+        document.body.appendChild(bubble);
+
+        // Hapus gelembung setelah animasinya selesai untuk menghemat memori
+        bubble.addEventListener('animationend', () => {
+            bubble.remove();
+        });
+    }
+
+    // Buat gelembung secara berkala
+    setInterval(createBubble, 700); // Buat gelembung baru setiap 0.7 detik
 });
 
 showRegisterLink.addEventListener('click', (e) => {
