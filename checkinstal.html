@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checklist Instalasi PC - Atlantis Corporation</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-900 to-blue-700 text-white min-h-screen font-sans">
+  <div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold text-center mb-8">Checklist Instalasi PC</h1>
+
+    <div class="bg-white text-gray-900 rounded-2xl shadow-xl p-6 mb-10">
+      <h2 class="text-2xl font-semibold mb-4 text-blue-700">🧩 Instalasi Hardware</h2>
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="bg-blue-200">
+            <th class="p-3 border text-left">Checklist</th>
+            <th class="p-3 border text-center">Status</th>
+            <th class="p-3 border text-left">Catatan</th>
+          </tr>
+        </thead>
+        <tbody id="hardwareTable" class="bg-white">
+        </tbody>
+      </table>
+    </div>
+
+    <div class="bg-white text-gray-900 rounded-2xl shadow-xl p-6">
+      <h2 class="text-2xl font-semibold mb-4 text-blue-700">💻 Instalasi Software</h2>
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="bg-blue-200">
+            <th class="p-3 border text-left">Checklist</th>
+            <th class="p-3 border text-center">Status</th>
+            <th class="p-3 border text-left">Catatan</th>
+          </tr>
+        </thead>
+        <tbody id="softwareTable" class="bg-white">
+        </tbody>
+      </table>
+    </div>
+
+    <div class="text-center mt-10">
+      <button onclick="exportToExcel()" class="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition">💾 Export ke Excel</button>
+    </div>
+  </div>
+
+  <script>
+    const hardwareData = [
+      "Pasang Motherboard ke Casing",
+      "Pasang CPU ke Socket",
+      "Pasang Pasta Termal",
+      "Pasang Heatsink/Fan CPU",
+      "Pasang RAM pada Slot yang Tepat",
+      "Pasang SSD/HDD",
+      "Pasang Kabel SATA & Power",
+      "Pasang GPU (Jika Ada)",
+      "Pasang Kabel Power 24-pin dan 8-pin CPU",
+      "Pasang Front Panel (Power SW, Reset SW, LED, Audio, USB)",
+      "Pasang Kipas Casing",
+      "Cek Semua Koneksi",
+      "Nyalakan PC untuk Tes Awal"
+    ];
+
+    const softwareData = [
+      "Masuk BIOS dan Atur Boot Order",
+      "Instal Sistem Operasi (Windows/Linux)",
+      "Instal Driver Motherboard & GPU",
+      "Instal Software Pendukung (Office, Browser, Tools)",
+      "Aktifkan Windows & Update Sistem",
+      "Cek Device Manager untuk Driver",
+      "Backup & Restore Tools",
+      "Instal Antivirus dan Utility",
+      "Lakukan Benchmark dan Monitoring Suhu"
+    ];
+
+    function createTableRows(data, tableId) {
+      const table = document.getElementById(tableId);
+      data.forEach(item => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td class="border p-3">${item}</td>
+          <td class="border p-3 text-center"><input type="checkbox" class="w-5 h-5"></td>
+          <td class="border p-3"><input type="text" placeholder="Catatan..." class="w-full border rounded p-2"></td>
+        `;
+        table.appendChild(row);
+      });
+    }
+
+    createTableRows(hardwareData, "hardwareTable");
+    createTableRows(softwareData, "softwareTable");
+
+    function exportToExcel() {
+      const wb = XLSX.utils.book_new();
+      const hwData = [["Checklist", "Status", "Catatan"]];
+      const swData = [["Checklist", "Status", "Catatan"]];
+
+      document.querySelectorAll("#hardwareTable tr").forEach(tr => {
+        const tds = tr.querySelectorAll("td");
+        hwData.push([
+          tds[0].innerText,
+          tds[1].querySelector("input").checked ? "Selesai" : "Belum",
+          tds[2].querySelector("input").value
+        ]);
+      });
+
+      document.querySelectorAll("#softwareTable tr").forEach(tr => {
+        const tds = tr.querySelectorAll("td");
+        swData.push([
+          tds[0].innerText,
+          tds[1].querySelector("input").checked ? "Selesai" : "Belum",
+          tds[2].querySelector("input").value
+        ]);
+      });
+
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(hwData), "Instalasi Hardware");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(swData), "Instalasi Software");
+
+      XLSX.writeFile(wb, "Checklist_Instalasi_PC_Atlantis.xlsx");
+    }
+  </script>
+</body>
+</html>
